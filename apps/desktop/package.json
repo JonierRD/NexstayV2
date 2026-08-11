@@ -1,0 +1,94 @@
+{
+  "name": "@sapay/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "package:api": "node scripts/copy-api.js",
+    "dist": "electron-vite build && npm run package:api && electron-builder",
+    "dist:win": "electron-vite build && npm run package:api && electron-builder --win --x64",
+    "dist:linux": "electron-vite build && npm run package:api && electron-builder --linux --x64"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "embedded-postgres": "^18.4.0-beta.17",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.5.5"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.15.43",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "electron": "33.4.11",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  },
+  "build": {
+    "appId": "com.sapay.hotel",
+    "productName": "SAPAY Hotel",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "dist-api",
+        "to": "app/apps/api/dist",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "extraMetadata": {
+      "main": "out/main/index.js"
+    },
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node",
+      "embedded-postgres/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "SAPAY-Hotel-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SAPAY Hotel"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "artifactName": "SAPAY-Hotel-${version}.${ext}",
+      "category": "Office"
+    }
+  }
+}

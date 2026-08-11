@@ -1,0 +1,294 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  RECEPTION
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  CHECK_IN
+  CHECK_OUT
+  STATUS_CHANGE
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  fullName           String
+  role               Role
+  cc                 String    @unique
+  email              String    @unique
+  phone              String?
+  passwordHash       String
+  isActive           Boolean   @default(true)
+  resetToken         String?
+  resetTokenExpiresAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  startedShifts Shift[]          @relation("ShiftStart")
+  endedShifts   Shift[]          @relation("ShiftEnd")
+  auditLogs     AuditLog[]       @relation("AuditLogs")
+  @@map("users")
+}
+
+enum RoomType {
+  DOSCAMAS
+  MATRIMONIAL
+  SENCILLA
+}
+
+enum RoomStatus {
+  DISPONIBLE
+  OCUPADA
+  RESERVADA
+  MANTENIMIENTO
+}
+
+enum StayStatus {
+  ACTIVA
+  FINALIZADA
+  CANCELADA
+}
+
+enum AcType {
+  AIRE
+  VENTILADOR
+}
+
+enum VehicleType {
+  MOTO
+  CARRO
+  CAMIONETA
+  CAMION_LIVIANO
+  PESADO
+}
+
+enum SaleType {
+  CONTADO
+  FIADO
+}
+
+enum ShiftStatus {
+  ACTIVO
+  CERRADO
+}
+
+model Client {
+  id              Int      @id @default(autoincrement())
+  firstName       String   @map("nombre")
+  lastName        String   @map("apellido")
+  cc              String   @unique @map("cedula")
+  phone           String?  @map("telefono")
+  cityOrigin      String?  @map("ciudad_origen")
+  cityDestination String?  @map("ciudad_destino")
+  profession      String?  @map("profesion")
+  notes           String?  @map("notas")
+  createdAt       DateTime @default(now()) @map("creado_en")
+
+  stays Stay[]
+  @@map("clientes")
+}
+
+model Room {
+  number          String     @id @map("numero")
+  type            RoomType   @map("tipo")
+  hasAir          Boolean    @default(false) @map("tiene_aire")
+  hasFan          Boolean    @default(false) @map("tiene_ventilador")
+  priceWithAir    Decimal?   @map("precio_con_aire")
+  priceWithFan    Decimal?   @map("precio_con_ventilador")
+  status          RoomStatus @default(DISPONIBLE) @map("estado")
+  image           String?    @map("imagen")
+  notes           String?    @map("notas")
+  createdAt       DateTime   @default(now()) @map("creado_en")
+  updatedAt       DateTime   @updatedAt @map("actualizado_en")
+
+  stays Stay[]
+  @@map("habitaciones")
+}
+
+model Stay {
+  id          Int        @id @default(autoincrement())
+  clientId    Int        @map("cliente_id")
+  roomNumber  String     @map("habitacion_numero")
+  checkIn     DateTime   @map("fecha_ingreso")
+  checkOut    DateTime?  @map("fecha_salida")
+  nights      Int        @map("noches")
+  pricePerNight Decimal  @map("precio_por_noche")
+  total       Decimal    @map("total")
+  acTypeUsed  AcType     @map("tipo_aire_usado")
+  status      StayStatus @default(ACTIVA) @map("estado")
+  createdAt   DateTime   @default(now()) @map("creado_en")
+  updatedAt   DateTime   @updatedAt @map("actualizado_en")
+
+  client Client @relation(fields: [clientId], references: [id])
+  room   Room   @relation(fields: [roomNumber], references: [number])
+  sales  Sale[]
+  @@map("hospedajes")
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  name      String   @map("nombre")
+  price     Decimal  @map("precio")
+  category  String   @default("TIENDA") @map("categoria")
+  description String?  @map("descripcion")
+  createdAt DateTime @default(now()) @map("creado_en")
+  updatedAt DateTime @updatedAt @map("actualizado_en")
+
+  stock       Stock[]
+  sales       Sale[]
+  @@map("productos")
+}
+
+model Stock {
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("producto_id")
+  quantity  Int      @default(0) @map("cantidad")
+  minStock  Int      @default(0) @map("stock_minimo")
+  location  String?  @map("ubicacion")
+  status    String   @default("NUEVO") @map("estado")
+  createdAt DateTime @default(now()) @map("creado_en")
+  updatedAt DateTime @updatedAt @map("actualizado_en")
+
+  product Product @relation(fields: [productId], references: [id])
+  @@map("inventario")
+}
+
+model Sale {
+  id        Int       @id @default(autoincrement())
+  productId Int       @map("producto_id")
+  stayId    Int?      @map("hospedaje_id")
+  date      DateTime  @map("fecha")
+  quantity  Int       @map("cantidad")
+  unitPrice Decimal   @map("precio_unitario")
+  saleType  SaleType  @default(CONTADO) @map("tipo")
+  createdAt DateTime  @default(now()) @map("creado_en")
+
+  product  Product    @relation(fields: [productId], references: [id])
+  stay     Stay?      @relation(fields: [stayId], references: [id])
+  payments Payment[]
+  @@map("ventas")
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  saleId    Int      @map("venta_id")
+  amount    Decimal  @map("monto")
+  date      DateTime @default(now()) @map("fecha")
+  createdAt DateTime @default(now()) @map("creado_en")
+
+  sale Sale @relation(fields: [saleId], references: [id])
+  @@map("abonos")
+}
+
+model Shift {
+  id              Int          @id @default(autoincrement())
+  startUserId     String       @map("recepcionista_inicio_id")
+  endUserId       String?      @map("recepcionista_fin_id")
+  startAt         DateTime     @map("inicio")
+  endAt           DateTime?    @map("fin")
+  baseCash        Decimal      @map("base_dinero")
+  notes           String?      @map("novedades")
+  signatureStart  String?      @map("firma_inicio")
+  signatureEnd    String?      @map("firma_fin")
+  status          ShiftStatus  @default(ACTIVO) @map("estado")
+  createdAt       DateTime     @default(now()) @map("creado_en")
+  updatedAt       DateTime     @updatedAt @map("actualizado_en")
+
+  startUser User  @relation("ShiftStart", fields: [startUserId], references: [id])
+  endUser   User? @relation("ShiftEnd", fields: [endUserId], references: [id])
+  @@map("turnos")
+}
+
+model MonthlyParking {
+  id              Int         @id @default(autoincrement())
+  entryDate       DateTime    @map("fecha_ingreso")
+  ownerName       String      @map("propietario")
+  licensePlate    String      @unique @map("placa")
+  phone           String      @map("telefono")
+  vehicleLine     String      @map("linea")
+  vehicleType     VehicleType @map("tipo_vehiculo")
+  monthlyFee      Decimal     @map("valor_mensual")
+  notes           String?     @map("notas")
+  createdAt       DateTime    @default(now()) @map("creado_en")
+  updatedAt       DateTime    @updatedAt @map("actualizado_en")
+
+  payments ParkingPayment[]
+  @@map("parqueadero_mensual")
+}
+
+model ParkingPayment {
+  id              Int            @id @default(autoincrement())
+  parkingId       Int            @map("parqueadero_id")
+  month           Int            @map("mes")
+  year            Int            @map("anio")
+  amountPaid      Decimal        @map("valor_pagado")
+  paidAt          DateTime       @default(now()) @map("fecha_pago")
+  notes           String?        @map("notas")
+
+  parking MonthlyParking @relation(fields: [parkingId], references: [id])
+  @@map("pagos_parqueadero")
+}
+
+model AuditLog {
+  id          Int         @id @default(autoincrement())
+  userId      String      @map("usuario_id")
+  action      AuditAction @map("accion")
+  entity      String      @map("entidad")
+  entityId    String?     @map("entidad_id")
+  oldValue    String?     @map("valor_anterior")
+  newValue    String?     @map("valor_nuevo")
+  description String      @map("descripcion")
+  ipAddress   String?     @map("ip_address")
+  createdAt   DateTime   @default(now()) @map("creado_en")
+
+  user User @relation("AuditLogs", fields: [userId], references: [id])
+  @@map("logs_auditoria")
+}
+
+enum LaundryStatus {
+  PENDIENTE
+  EN_PROCESO
+  LISTO
+  ENTREGADO
+}
+
+enum LaundryItem {
+  CAMISA
+  PANTALON
+  TOALLA
+  SABANA
+  FUNDAS_ALMOHADA
+  EDREDON
+  OTRO
+}
+
+model Laundry {
+  id          Int           @id @default(autoincrement())
+  item        LaundryItem   @map("tipo_prenda")
+  description String        @map("descripcion")
+  quantity    Int           @map("cantidad")
+  unitPrice   Decimal       @map("precio_unitario")
+  totalPrice  Decimal       @map("precio_total")
+  status      LaundryStatus @default(PENDIENTE) @map("estado")
+  deliveryDate DateTime?    @map("fecha_entrega")
+  clientName  String        @map("nombre_cliente")
+  roomNumber  String?       @map("numero_habitacion")
+  notes       String?       @map("notas")
+  createdAt   DateTime      @default(now()) @map("creado_en")
+  updatedAt   DateTime      @updatedAt @map("actualizado_en")
+
+  @@map("lavanderia")
+}

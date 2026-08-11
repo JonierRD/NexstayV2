@@ -1,0 +1,31 @@
+{
+  "name": "sapay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SAPAY desktop hotel management system.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n API,DESKTOP -c cyan,green \"npm run dev --workspace @sapay/api\" \"npm run dev --workspace @sapay/desktop\"",
+    "dev:api": "npm run dev --workspace @sapay/api",
+    "dev:desktop": "npm run dev --workspace @sapay/desktop",
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "prisma:generate": "npm run prisma:generate --workspace @sapay/database",
+    "prisma:migrate": "npm run prisma:migrate --workspace @sapay/database",
+    "prisma:push": "npm run prisma:db:push --workspace @sapay/database",
+    "prisma:studio": "npm run prisma:studio --workspace @sapay/database",
+    "db:sync": "npm run prisma:push && npm run prisma:generate",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.4.2"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}
