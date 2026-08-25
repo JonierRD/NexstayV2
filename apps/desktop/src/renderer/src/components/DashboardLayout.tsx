@@ -7,6 +7,7 @@ import { RecepcionPage } from './RecepcionPage';
 import { LavanderiaPage } from './LavanderiaPage';
 import { ClientesPage } from './ClientesPage';
 import { HuespedesPage } from './HuespedesPage';
+import { InventarioPage } from './InventarioPage';
 import { type ModuleKey, Sidebar } from './Sidebar';
 
 type PageComponent = (props: { user: PublicUser }) => ReactElement;
@@ -22,7 +23,7 @@ const pages: Record<ModuleKey, PageComponent> = {
   parqueadero: () => <PageShell title="Parqueadero" subtitle="Parqueadero mensual" />,
   auditoria: ({ user }) => <AuditoriaPage user={user} />,
   lavanderia: ({ user }) => <LavanderiaPage user={user} />,
-  inventario: () => <PageShell title="Inventario" subtitle="Próximamente" future />,
+  inventario: ({ user }) => <InventarioPage user={user} />,
   lavado: () => <PageShell title="Lavado tanque" subtitle="Próximamente" future />,
   'ingresos-gastos': () => <PageShell title="Ingresos y Gastos" subtitle="Próximamente" future />,
   semanario: () => <PageShell title="Semanario" subtitle="Próximamente" future />,
