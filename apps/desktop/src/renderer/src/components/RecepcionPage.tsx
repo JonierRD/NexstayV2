@@ -171,6 +171,10 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   };
 
   const executeCheckin = () => {
+    if (!selectedRoom) {
+      setError('Debes seleccionar una habitación.');
+      return;
+    }
     setLoading(true);
     setError('');
 
@@ -261,7 +265,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
             <p className="mt-2 text-sm text-green-700">
               {foundClient 
                 ? `${foundClient.firstName} ${foundClient.lastName}`
-                : `${newClient.firstName} ${newClient.lastName}`
+                : `${clientData.firstName} ${clientData.lastName}`
               } ha sido registrado en la habitación {selectedRoom?.number}
             </p>
             <button
@@ -805,9 +809,8 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
 
       {showAdminAuth && (
         <AdminPasswordModal
-          isOpen={showAdminAuth}
           onClose={() => setShowAdminAuth(false)}
-          onAuthorize={onAdminAuthorized}
+          onSuccess={onAdminAuthorized}
         />
       )}
     </div>
