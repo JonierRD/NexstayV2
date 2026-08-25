@@ -4,6 +4,8 @@ import type { PublicUser } from '../lib/api';
 import { HabitacionesPage } from './HabitacionesPage';
 import { AuditoriaPage } from './AuditoriaPage';
 import { RecepcionPage } from './RecepcionPage';
+import { ClientesPage } from './ClientesPage';
+import { HuespedesPage } from './HuespedesPage';
 import { type ModuleKey, Sidebar } from './Sidebar';
 
 type PageComponent = (props: { user: PublicUser }) => ReactElement;
@@ -12,9 +14,9 @@ const pages: Record<ModuleKey, PageComponent> = {
   dashboard: () => <PageShell title="Dashboard" subtitle="Resumen del hotel" />,
   recepcion: ({ user }) => <RecepcionPage user={user} />,
   reservas: () => <PageShell title="Reservas" subtitle="Gestión de reservas" />,
-  huespedes: () => <PageShell title="Huéspedes" subtitle="Huéspedes en el hotel" />,
+  huespedes: ({ user }) => <HuespedesPage user={user} />,
   habitaciones: ({ user }) => <HabitacionesPage user={user} />,
-  clientes: () => <PageShell title="Clientes" subtitle="Registro de clientes permanentes" />,
+  clientes: ({ user }) => <ClientesPage user={user} />,
   ventas: () => <PageShell title="Ventas" subtitle="Inventario y ventas de tienda" />,
   parqueadero: () => <PageShell title="Parqueadero" subtitle="Parqueadero mensual" />,
   auditoria: ({ user }) => <AuditoriaPage user={user} />,
