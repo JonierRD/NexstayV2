@@ -77,6 +77,34 @@ export class InventoryService {
     return product;
   }
 
+  async createSale(data: { stockId: number; stayId: number; quantity: number }, user: JwtPayload) {
+    if (!Number.isInteger(data.quantity) || data.quantity < 1) {
+      throw new NotFoundException('La cantidad debe ser mayor que cero');
+    }
+
+    const sale = await this.prisma.$transaction(async (tx) => {
+      const stock = await tx.stock.findUnique({ where: { id: data.stockId }, include: { product: true } });
+      if (!stock) throw new NotFoundException('Item de inventario no encontrado');
+      if (stock.quantity < data.quantity) throw new NotFoundException('No hay suficiente inventario disponible');
+      const stay = await tx.stay.findUnique({ where: { id: data.stayId } });
+      if (!stay || stay.status !== 'ACTIVA') throw new NotFoundException('Hospedaje activo no encontrado');
+      await tx.stock.update({ where: { id: stock.id }, data: { quantity: { decrement: data.quantity } } });
+      return tx.sale.create({
+        data: { productId: stock.productId, stayId: data.stayId, date: new Date(), quantity: data.quantity, unitPrice: stock.product.price, saleType: 'FIADO' },
+        include: { product: true }
+      });
+    });
+
+    await this.auditoria.log(user, {
+      action: 'CREATE' as any,
+      entity: 'VENTA',
+      entityId: sale.id.toString(),
+      description: `Cargó ${data.quantity} unidad(es) de ${sale.product.name} al hospedaje ${data.stayId}`,
+      newValue: JSON.stringify(sale)
+    });
+    return sale;
+  }
+
   async updateProduct(id: number, data: {
     name?: string;
     price?: number;

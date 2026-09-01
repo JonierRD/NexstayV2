@@ -29,6 +29,11 @@ export class InventoryController {
     return this.service.createProduct(data, user);
   }
 
+  @Post('sale')
+  async createSale(@Body() data: { stockId: number; stayId: number; quantity: number }, @CurrentUser() user: JwtPayload) {
+    return this.service.createSale(data, user);
+  }
+
   @Put('product/:id')
   async updateProduct(@Param('id') id: string, @Body() data: any, @CurrentUser() user: JwtPayload) {
     return this.service.updateProduct(parseInt(id), data, user);

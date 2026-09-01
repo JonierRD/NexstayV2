@@ -172,9 +172,16 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
 
   const executeCheckin = () => {
     if (!selectedRoom) {
+<<<<<<< HEAD
       setError('Debes seleccionar una habitación.');
       return;
     }
+=======
+      setError('Selecciona una habitación antes de continuar.');
+      return;
+    }
+
+>>>>>>> origin/develop
     setLoading(true);
     setError('');
 
@@ -263,10 +270,14 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
             <CheckCircle size={64} className="mx-auto mb-4 text-green-600" />
             <h2 className="text-xl font-bold text-green-800">¡Check-In Exitoso!</h2>
             <p className="mt-2 text-sm text-green-700">
+<<<<<<< HEAD
               {foundClient 
                 ? `${foundClient.firstName} ${foundClient.lastName}`
                 : `${clientData.firstName} ${clientData.lastName}`
               } ha sido registrado en la habitación {selectedRoom?.number}
+=======
+              {(foundClient ? `${foundClient.firstName} ${foundClient.lastName}` : `${clientData.firstName} ${clientData.lastName}`)} ha sido registrado en la habitación {selectedRoom?.number}
+>>>>>>> origin/develop
             </p>
             <button
               onClick={resetForm}
