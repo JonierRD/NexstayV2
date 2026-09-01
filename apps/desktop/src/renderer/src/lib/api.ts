@@ -385,6 +385,12 @@ export async function inventoryByCategoryRequest(category: string): Promise<Inve
   return apiRequest<Inventory[]>(`/inventory/category/${category}`);
 }
 
+export type StoreStock = { id: number; quantity: number; product: { id: number; name: string; price: number } };
+
+export async function storeStockRequest(): Promise<StoreStock[]> {
+  return apiRequest<StoreStock[]>('/inventory/category/TIENDA', { method: 'GET' });
+}
+
 export async function createInventoryRequest(data: {
   category: string;
   name: string;
@@ -426,6 +432,12 @@ export async function deleteInventoryRequest(id: number): Promise<{ message: str
   return apiRequest<{ message: string }>(`/inventory/${id}`, {
     method: 'DELETE'
   });
+}
+
+export type StaySale = { id: number; productId: number; stayId: number | null; quantity: number; unitPrice: number; product?: { name: string } };
+
+export async function createStaySaleRequest(input: { stockId: number; stayId: number; quantity: number }): Promise<StaySale> {
+  return apiRequest<StaySale>('/inventory/sale', { method: 'POST', body: input });
 }
 
 // Clientes
