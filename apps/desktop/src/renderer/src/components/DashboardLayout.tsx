@@ -4,6 +4,7 @@ import type { PublicUser } from '../lib/api';
 import { HabitacionesPage } from './HabitacionesPage';
 import { AuditoriaPage } from './AuditoriaPage';
 import { RecepcionPage } from './RecepcionPage';
+import { LavanderiaPage } from './LavanderiaPage';
 import { ClientesPage } from './ClientesPage';
 import { HuespedesPage } from './HuespedesPage';
 import { type ModuleKey, Sidebar } from './Sidebar';
@@ -20,7 +21,7 @@ const pages: Record<ModuleKey, PageComponent> = {
   ventas: () => <PageShell title="Ventas" subtitle="Inventario y ventas de tienda" />,
   parqueadero: () => <PageShell title="Parqueadero" subtitle="Parqueadero mensual" />,
   auditoria: ({ user }) => <AuditoriaPage user={user} />,
-  lavanderia: () => <PageShell title="Lavandería" subtitle="Próximamente" future />,
+  lavanderia: ({ user }) => <LavanderiaPage user={user} />,
   inventario: () => <PageShell title="Inventario" subtitle="Próximamente" future />,
   lavado: () => <PageShell title="Lavado tanque" subtitle="Próximamente" future />,
   'ingresos-gastos': () => <PageShell title="Ingresos y Gastos" subtitle="Próximamente" future />,
