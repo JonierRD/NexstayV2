@@ -356,7 +356,7 @@ export function InventarioPage({ user }: InventarioPageProps): ReactElement {
       <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-[#2b1b14]">Inventario & Tienda</h1>
+            <h1 className="text-xl font-bold tracking-tight text-[#2b1b14]">Inventario</h1>
             <span className="rounded-full bg-[#eadfd6] px-2.5 py-0.5 text-[11px] font-semibold text-[#4b2b21]">
               {items.length} {items.length === 1 ? 'artículo' : 'artículos'}
             </span>
@@ -411,25 +411,25 @@ export function InventarioPage({ user }: InventarioPageProps): ReactElement {
         </div>
       )}
 
-      {/* Tarjetas de Métricas Ejecutivas */}
-      <div className="mb-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Tarjetas de Métricas Ejecutivas Compactas */}
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {/* Total Productos */}
-        <div className="rounded-[20px] border border-[#eadfd6] bg-white p-4 shadow-[0_16px_40px_rgba(67,42,27,0.06)]">
+        <div className="rounded-2xl border border-[#eadfd6] bg-white p-3 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-[#7d6d61]">Total Productos</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#faf6f2] text-[#4b2b21]">
-              <Boxes size={16} />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#faf6f2] text-[#4b2b21]">
+              <Boxes size={14} />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold text-[#2b1b14]">{metrics.totalItems}</p>
-          <p className="mt-1 text-[11px] text-[#7d6d61]">{metrics.totalUnits} unidades en stock</p>
+          <p className="mt-1.5 text-xl font-bold text-[#2b1b14]">{metrics.totalItems}</p>
+          <p className="text-[10px] text-[#7d6d61]">{metrics.totalUnits} unidades en stock</p>
         </div>
 
         {/* Stock Normal */}
         <div
           onClick={() => setStockFilter(stockFilter === 'NORMAL' ? 'ALL' : 'NORMAL')}
           className={cn(
-            'cursor-pointer rounded-[20px] border p-4 transition shadow-[0_16px_40px_rgba(67,42,27,0.06)]',
+            'cursor-pointer rounded-2xl border p-3 transition shadow-sm',
             stockFilter === 'NORMAL'
               ? 'border-[#2f8f4e] bg-[#f2faf3]'
               : 'border-[#eadfd6] bg-white hover:border-[#c6e8cf]'
@@ -437,39 +437,39 @@ export function InventarioPage({ user }: InventarioPageProps): ReactElement {
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-[#2f8f4e]">Stock Normal</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#e9f6eb] text-[#2f8f4e]">
-              <CheckCircle2 size={16} />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e9f6eb] text-[#2f8f4e]">
+              <CheckCircle2 size={14} />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold text-[#2f8f4e]">{metrics.normalCount}</p>
-          <p className="mt-1 text-[11px] text-[#2f8f4e]/80">Existencias óptimas</p>
+          <p className="mt-1.5 text-xl font-bold text-[#2f8f4e]">{metrics.normalCount}</p>
+          <p className="text-[10px] text-[#2f8f4e]/80">Existencias óptimas</p>
         </div>
 
         {/* Stock Bajo / Alerta */}
         <div
           onClick={() => setStockFilter(stockFilter === 'LOW' ? 'ALL' : 'LOW')}
           className={cn(
-            'cursor-pointer rounded-[20px] border p-4 transition shadow-[0_16px_40px_rgba(67,42,27,0.06)]',
+            'cursor-pointer rounded-2xl border p-3 transition shadow-sm',
             stockFilter === 'LOW'
               ? 'border-[#c78b14] bg-[#fffbf2]'
               : 'border-[#eadfd6] bg-white hover:border-[#f2dbab]'
           )}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-[#c78b14]">Stock Crítico / Bajo</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#fff5df] text-[#c78b14]">
-              <AlertTriangle size={16} />
+            <span className="text-[11px] font-medium text-[#c78b14]">Stock Crítico</span>
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fff5df] text-[#c78b14]">
+              <AlertTriangle size={14} />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold text-[#c78b14]">{metrics.lowStockCount}</p>
-          <p className="mt-1 text-[11px] text-[#c78b14]/80">Cerca del stock mínimo</p>
+          <p className="mt-1.5 text-xl font-bold text-[#c78b14]">{metrics.lowStockCount}</p>
+          <p className="text-[10px] text-[#c78b14]/80">Cerca del mín.</p>
         </div>
 
         {/* Agotados */}
         <div
           onClick={() => setStockFilter(stockFilter === 'OUT' ? 'ALL' : 'OUT')}
           className={cn(
-            'cursor-pointer rounded-[20px] border p-4 transition shadow-[0_16px_40px_rgba(67,42,27,0.06)]',
+            'cursor-pointer rounded-2xl border p-3 transition shadow-sm',
             stockFilter === 'OUT'
               ? 'border-[#c94a43] bg-[#fff5f5]'
               : 'border-[#eadfd6] bg-white hover:border-[#f0c8c4]'
@@ -477,12 +477,12 @@ export function InventarioPage({ user }: InventarioPageProps): ReactElement {
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-[#c94a43]">Agotados</span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#fff0ee] text-[#c94a43]">
-              <TrendingDown size={16} />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fff0ee] text-[#c94a43]">
+              <TrendingDown size={14} />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold text-[#c94a43]">{metrics.outOfStockCount}</p>
-          <p className="mt-1 text-[11px] text-[#c94a43]/80">Sin unidades disponibles</p>
+          <p className="mt-1.5 text-xl font-bold text-[#c94a43]">{metrics.outOfStockCount}</p>
+          <p className="text-[10px] text-[#c94a43]/80">Sin existencias</p>
         </div>
       </div>
 
@@ -527,7 +527,7 @@ export function InventarioPage({ user }: InventarioPageProps): ReactElement {
         </div>
       </div>
 
-      {/* Grid de Productos en Inventario */}
+      {/* Lista / Tabla de Productos estilo Excel */}
       {loading ? (
         <div className="flex h-64 items-center justify-center rounded-[20px] border border-dashed border-[#eadfd6] bg-white">
           <div className="flex flex-col items-center gap-2 text-[#7d6d61]">
@@ -560,123 +560,149 @@ export function InventarioPage({ user }: InventarioPageProps): ReactElement {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredItems.map((item) => {
-            const prod = item.product;
-            const price = Number(prod.price || 0);
-            const isOutOfStock = item.quantity === 0;
+        <div className="overflow-hidden rounded-2xl border border-[#eadfd6] bg-white shadow-[0_10px_30px_rgba(67,42,27,0.04)]">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[850px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-[#eadfd6] bg-[#faf6f2] text-[11px] font-bold uppercase tracking-wider text-[#6e584a]">
+                  <th className="py-3 px-4">Producto</th>
+                  <th className="py-3 px-3">Categoría</th>
+                  <th className="py-3 px-3">Ubicación</th>
+                  <th className="py-3 px-3 text-right">Precio Venta</th>
+                  <th className="py-3 px-3 text-center">Stock / Mín</th>
+                  <th className="py-3 px-3 text-center">Estado</th>
+                  <th className="py-3 px-3 text-center">Ajuste Rápido</th>
+                  <th className="py-3 px-3 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#f0e6de] text-[12px] text-[#2b1b14]">
+                {filteredItems.map((item) => {
+                  const prod = item.product;
+                  const price = Number(prod.price || 0);
+                  const isOutOfStock = item.quantity === 0;
 
-            return (
-              <div
-                key={item.id}
-                className={cn(
-                  'group flex flex-col justify-between rounded-[20px] border bg-white p-4 transition-all duration-200 shadow-[0_14px_35px_rgba(67,42,27,0.06)] hover:shadow-[0_20px_45px_rgba(67,42,27,0.12)]',
-                  isOutOfStock ? 'border-[#f0c8c4] bg-[#fffdfd]' : 'border-[#eadfd6]'
-                )}
-              >
-                <div>
-                  {/* Categoría y Estado */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="rounded-lg bg-[#faf6f2] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#6e584a]">
-                      {prod.category || 'TIENDA'}
-                    </span>
-                    {getStockStatusBadge(item.quantity, item.minStock)}
-                  </div>
-
-                  {/* Nombre y Descripción */}
-                  <h3 className="mt-3 text-[14px] font-bold leading-tight text-[#2b1b14] group-hover:text-[#4b2b21]">
-                    {prod.name}
-                  </h3>
-                  {prod.description ? (
-                    <p className="mt-1 line-clamp-2 text-[11px] text-[#7d6d61]">{prod.description}</p>
-                  ) : (
-                    <p className="mt-1 text-[11px] italic text-[#a49486]">Sin descripción adicional</p>
-                  )}
-
-                  {/* Ubicación si existe */}
-                  {item.location && (
-                    <div className="mt-2.5 flex items-center gap-1 text-[10px] text-[#8d7b70]">
-                      <MapPin size={11} />
-                      <span>Ubicación: {item.location}</span>
-                    </div>
-                  )}
-
-                  {/* Precio Unitario */}
-                  <div className="mt-3.5 flex items-baseline justify-between rounded-xl bg-[#fcfaf8] border border-[#f0e6de] px-3 py-2">
-                    <span className="text-[10px] font-medium text-[#7d6d61]">Precio Venta:</span>
-                    <span className="text-[14px] font-extrabold text-[#4b2b21]">
-                      ${price.toLocaleString('es-CO')}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Sección de Ajuste Rápido de Stock */}
-                <div className="mt-4 border-t border-[#f0e6de] pt-3.5">
-                  <div className="mb-2 flex items-center justify-between text-[11px]">
-                    <span className="font-medium text-[#7d6d61]">Existencias:</span>
-                    <span className="font-bold text-[#2b1b14]">
-                      {item.quantity}{' '}
-                      <span className="text-[10px] font-normal text-[#8d7b70]">
-                        (mín: {item.minStock})
-                      </span>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    {/* Botón Restar 1 */}
-                    <button
-                      type="button"
-                      disabled={item.quantity <= 0}
-                      onClick={() => handleQuickAdjust(item, -1)}
-                      className="flex h-8 flex-1 items-center justify-center rounded-xl border border-[#dccfca] bg-white text-[12px] font-bold text-[#4b2b21] transition hover:bg-[#fff0ee] hover:border-[#f0c8c4] hover:text-[#c94a43] disabled:opacity-40"
-                      title="Restar 1 unidad"
+                  return (
+                    <tr
+                      key={item.id}
+                      className={cn(
+                        'transition-colors duration-150 hover:bg-[#fcfaf8]',
+                        isOutOfStock && 'bg-[#fffafa]'
+                      )}
                     >
-                      -1
-                    </button>
+                      {/* Producto: Nombre y descripción */}
+                      <td className="py-3 px-4 align-middle">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[#2b1b14]">{prod.name}</span>
+                          {prod.description ? (
+                            <span className="line-clamp-1 text-[11px] text-[#7d6d61]">{prod.description}</span>
+                          ) : (
+                            <span className="text-[10px] italic text-[#a49486]">Sin descripción</span>
+                          )}
+                        </div>
+                      </td>
 
-                    {/* Botón Sumar 1 */}
-                    <button
-                      type="button"
-                      onClick={() => handleQuickAdjust(item, 1)}
-                      className="flex h-8 flex-1 items-center justify-center rounded-xl border border-[#dccfca] bg-white text-[12px] font-bold text-[#4b2b21] transition hover:bg-[#e9f6eb] hover:border-[#c6e8cf] hover:text-[#2f8f4e]"
-                      title="Agregar 1 unidad"
-                    >
-                      +1
-                    </button>
+                      {/* Categoría */}
+                      <td className="py-3 px-3 align-middle">
+                        <span className="inline-block rounded-lg bg-[#faf6f2] border border-[#f0e6de] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#6e584a]">
+                          {prod.category || 'TIENDA'}
+                        </span>
+                      </td>
 
-                    {/* Botón Sumar 5 */}
-                    <button
-                      type="button"
-                      onClick={() => handleQuickAdjust(item, 5)}
-                      className="flex h-8 px-2.5 items-center justify-center rounded-xl border border-[#dccfca] bg-[#faf6f2] text-[11px] font-bold text-[#4b2b21] transition hover:bg-[#e9f6eb] hover:border-[#c6e8cf] hover:text-[#2f8f4e]"
-                      title="Agregar 5 unidades de golpe"
-                    >
-                      +5
-                    </button>
+                      {/* Ubicación */}
+                      <td className="py-3 px-3 align-middle text-[#7d6d61]">
+                        {item.location ? (
+                          <div className="flex items-center gap-1 text-[11px]">
+                            <MapPin size={12} className="text-[#a49486] shrink-0" />
+                            <span>{item.location}</span>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-[#b4a497]">-</span>
+                        )}
+                      </td>
 
-                    {/* Acciones Editar y Eliminar */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEditModal(item)}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#dccfca] bg-white text-[#7d6d61] hover:border-[#b08f7c] hover:text-[#4b2b21] transition"
-                      title="Editar producto"
-                    >
-                      <Edit2 size={13} />
-                    </button>
+                      {/* Precio Venta */}
+                      <td className="py-3 px-3 align-middle text-right font-extrabold text-[#4b2b21]">
+                        ${price.toLocaleString('es-CO')}
+                      </td>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteClick(item)}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#f0c8c4] bg-white text-[#c94a43] hover:bg-[#fff0ee] transition"
-                      title="Eliminar producto"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                      {/* Existencias / Mínimo */}
+                      <td className="py-3 px-3 align-middle text-center">
+                        <span className="font-bold text-[#2b1b14]">{item.quantity}</span>
+                        <span className="text-[10px] text-[#8d7b70] ml-1">/ mín {item.minStock}</span>
+                      </td>
+
+                      {/* Estado Badge */}
+                      <td className="py-3 px-3 align-middle text-center">
+                        {getStockStatusBadge(item.quantity, item.minStock)}
+                      </td>
+
+                      {/* Ajuste Rápido */}
+                      <td className="py-3 px-3 align-middle text-center">
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={item.quantity <= 0}
+                            onClick={() => handleQuickAdjust(item, -1)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#dccfca] bg-white text-[11px] font-bold text-[#4b2b21] transition hover:bg-[#fff0ee] hover:border-[#f0c8c4] hover:text-[#c94a43] disabled:opacity-30 disabled:pointer-events-none"
+                            title="Restar 1 unidad"
+                          >
+                            -1
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleQuickAdjust(item, 1)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#dccfca] bg-white text-[11px] font-bold text-[#4b2b21] transition hover:bg-[#e9f6eb] hover:border-[#c6e8cf] hover:text-[#2f8f4e]"
+                            title="Sumar 1 unidad"
+                          >
+                            +1
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleQuickAdjust(item, 5)}
+                            className="flex h-7 px-2 items-center justify-center rounded-lg border border-[#dccfca] bg-[#faf6f2] text-[10px] font-bold text-[#4b2b21] transition hover:bg-[#e9f6eb] hover:border-[#c6e8cf] hover:text-[#2f8f4e]"
+                            title="Sumar 5 unidades"
+                          >
+                            +5
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Acciones */}
+                      <td className="py-3 px-3 align-middle text-center">
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(item)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#dccfca] bg-white text-[#7d6d61] hover:border-[#b08f7c] hover:text-[#4b2b21] hover:bg-[#faf6f2] transition"
+                            title="Editar producto"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(item)}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#f0c8c4] bg-white text-[#c94a43] hover:bg-[#fff0ee] transition"
+                            title="Eliminar producto"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {/* Footer tipo hoja de cálculo con resumen de registros */}
+          <div className="flex flex-col sm:flex-row items-center justify-between border-t border-[#eadfd6] bg-[#faf6f2] px-4 py-2 text-[11px] text-[#7d6d61] gap-1">
+            <span>
+              Mostrando <strong className="text-[#2b1b14]">{filteredItems.length}</strong> de <strong className="text-[#2b1b14]">{items.length}</strong> productos
+            </span>
+            <span>
+              Valor en stock filtrado: <strong className="text-[#4b2b21]">${filteredItems.reduce((acc, it) => acc + it.quantity * Number(it.product.price || 0), 0).toLocaleString('es-CO')}</strong>
+            </span>
+          </div>
         </div>
       )}
 
