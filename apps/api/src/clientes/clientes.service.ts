@@ -186,35 +186,22 @@ export class ClientesService {
       throw new NotFoundException('Cliente no encontrado');
     }
 
-    // No se puede eliminar un cliente con hospedajes activos
-    // (dejaría la habitación OCUPADA sin dueño)
-    const activeStays = client.stays.filter(stay => stay.status === 'ACTIVA');
-    if (activeStays.length > 0) {
+    // No se puede eliminar un cliente que tenga algún hospedaje,
+    // activo o histórico (la FK de Stay.clientId no lo permite)
+    if (client.stays.length > 0) {
       throw new ConflictException(
-        'No se puede eliminar un cliente con hospedajes activos'
+        'No se puede eliminar un cliente con historial de hospedajes'
       );
     }
 
-    // Borrar en cascada los registros históricos relacionados
-    // (stays + sus ventas y abonos), porque la FK de Stay.clientId no
-    // permite eliminar el cliente directo si tiene historial.
-    const stays = await this.prisma.stay.findMany({
-      where: { clientId: id },
-      include: { sales: true }
-    });
-    const stayIds = stays.map(stay => stay.id);
-    const saleIds = stays.flatMap(stay => stay.sales.map(sale => sale.id));
-
-    if (saleIds.length > 0) {
-      await this.prisma.payment.deleteMany({ where: { saleId: { in: saleIds } } });
-      await this.prisma.sale.deleteMany({ where: { id: { in: saleIds } } });
+    // Eliminar
+    try {
+      await this.prisma.client.delete({ where: { id } });
+    } catch {
+      throw new ConflictException(
+        'No se pudo eliminar el cliente porque tiene registros relacionados.'
+      );
     }
-    if (stayIds.length > 0) {
-      await this.prisma.stay.deleteMany({ where: { id: { in: stayIds } } });
-    }
-
-    // Eliminar cliente
-    await this.prisma.client.delete({ where: { id } });
 
     // Auditoría
     await this.auditoria.log(user, {
