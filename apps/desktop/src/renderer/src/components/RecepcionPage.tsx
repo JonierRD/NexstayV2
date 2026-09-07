@@ -15,24 +15,34 @@ import sencillaImg from '../assets/habitaciones/sencilla.png';
 import matrimonialImg from '../assets/habitaciones/matrimonial.png';
 import dobleImg from '../assets/habitaciones/doblecama.jpeg';
 
+// Paso actual del wizard de check-in
 type CheckinStep = 'CLIENT_DATA' | 'SELECT_ROOM' | 'CONFIRM' | 'SUCCESS';
 
 export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
+  // Wizard: CLIENT_DATA → SELECT_ROOM → CONFIRM → SUCCESS
   const [step, setStep] = useState<CheckinStep>('CLIENT_DATA');
+  // Habitaciones disponibles traídas de la API
   const [rooms, setRooms] = useState<Habitacion[]>([]);
   const [loading, setLoading] = useState(false);
+  // Cédula que escribe el recepcionista para buscar cliente
   const [ccSearch, setCcSearch] = useState('');
+  // Cliente encontrado en la API por cédula (null = nuevo)
   const [foundClient, setFoundClient] = useState<Cliente | null>(null);
+  // Habitación que el recepcionista selecciona para el check-in
   const [selectedRoom, setSelectedRoom] = useState<Habitacion | null>(null);
+  // Tipo de aire: AIRE o VENTILADOR (se auto-selecciona según la habitación)
   const [acType, setAcType] = useState<'AIRE' | 'VENTILADOR'>('AIRE');
+  // Noches estimadas del hospedaje
   const [nights, setNights] = useState<number>(1);
+  // Contraseña del admin (se pide si el usuario es RECEPTION)
   const [adminPassword, setAdminPassword] = useState<string | null>(null);
   const [showAdminAuth, setShowAdminAuth] = useState(false);
+  // Acción pendiente mientras se valida la contraseña del admin
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  // Formulario de cliente (unificado para nuevo y existente)
+  // Formulario de cliente (se llena si existe o se completa si es nuevo)
   const [clientData, setClientData] = useState({
     firstName: '',
     lastName: '',
@@ -45,7 +55,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
 
   const isAdmin = user.role === 'ADMIN';
 
-  // Cargar habitaciones disponibles
+  // Trae todas las habitaciones de la API (GET /habitaciones)
   const loadRooms = useCallback(() => {
     setLoading(true);
     habitacionesRequest()
@@ -64,7 +74,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     loadRooms();
   }, [loadRooms]);
 
-  // Buscar cliente por cédula
+  // GET /clientes/cc/:cc → si existe llena el form, si no limpia para nuevo cliente
   const handleSearchClient = () => {
     if (!ccSearch.trim()) {
       setError('Ingresa una cédula');
@@ -106,13 +116,13 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
       .finally(() => setLoading(false));
   };
 
-  // Variable para controlar si ya se buscó
+  // Controla si ya se buscó (para mostrar "encontrado" o "nuevo cliente")
   const [hasSearched, setHasSearched] = useState(false);
   
-  // Historial de cédulas buscadas
+  // Historial de cédulas (para el datalist del input)
   const [ccHistory, setCcHistory] = useState<string[]>([]);
 
-  // Cargar historial de localStorage
+  // Carga el historial guardado en localStorage
   useEffect(() => {
     const saved = localStorage.getItem('sapay-cc-history');
     if (saved) {
@@ -124,7 +134,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     }
   }, []);
 
-  // Guardar cédula en historial cuando se busca con éxito
+  // Guarda la cédula buscada en localStorage (máx 10)
   useEffect(() => {
     if (foundClient && ccSearch && !ccHistory.includes(ccSearch)) {
       const newHistory = [ccSearch, ...ccHistory].slice(0, 10); // Máximo 10 cédulas
@@ -133,13 +143,13 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     }
   }, [foundClient, ccSearch]);
 
-  // Seleccionar cédula del historial
+  // Al elegir una cédula del historial la busca directo
   const handleSelectCc = (cc: string) => {
     setCcSearch(cc);
     handleSearchClient();
   };
 
-  // Continuar a selección de habitación
+  // Valida nombre/apellido y pasa al paso 2 (elegir habitación)
   const handleContinueToRoom = () => {
     if (!clientData.firstName || !clientData.lastName) {
       setError('Nombre y apellido son obligatorios');
@@ -149,14 +159,14 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     setStep('SELECT_ROOM');
   };
 
-  // Calcular precio estimado
+  // Total estimado = precio del A/C elegido × noches
   const calculateEstimatedTotal = () => {
     if (!selectedRoom) return 0;
     const price = acType === 'AIRE' ? selectedRoom.priceWithAir : selectedRoom.priceWithFan;
     return (price || 0) * nights;
   };
 
-  // Confirmar check-in
+  // Si no es admin, pide contraseña de admin antes de confirmar
   const handleConfirmCheckin = () => {
     if (!selectedRoom) {
       setError('Selecciona una habitación');
@@ -171,6 +181,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     }
   };
 
+  // Construye el payload y hace POST /stays/checkin
   const executeCheckin = () => {
     if (!selectedRoom) {
       setError('Selecciona una habitación antes de continuar.');
@@ -208,6 +219,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   };
 
 
+  // Guarda la contraseña de admin y ejecuta la acción que estaba pendiente
   const onAdminAuthorized = (password: string) => {
     setAdminPassword(password);
     setShowAdminAuth(false);
@@ -217,6 +229,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     }
   };
 
+  // Reinicia el formulario después de un check-in exitoso
   const resetForm = () => {
     setStep('CLIENT_DATA');
     setCcSearch('');
@@ -239,8 +252,10 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     setAdminPassword(null);
   };
 
+  // Solo las disponibles se muestran/exigen para ocupar
   const availableRooms = rooms.filter(r => r.status === 'DISPONIBLE');
 
+  // Imagen por tipo de habitación para el panel derecho
   const typeImages: Record<string, string> = {
     DOSCAMAS: dobleImg,
     MATRIMONIAL: matrimonialImg,

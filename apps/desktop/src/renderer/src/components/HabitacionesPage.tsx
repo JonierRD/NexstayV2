@@ -23,6 +23,7 @@ import { RoomFormModal } from './RoomFormModal';
 type RoomStatus = 'DISPONIBLE' | 'OCUPADA' | 'RESERVADA' | 'MANTENIMIENTO';
 type RoomType = 'DOSCAMAS' | 'MATRIMONIAL' | 'SENCILLA';
 
+// Estructura de habitación para la UI (mezcla datos de Room API + Stay activo)
 type Room = {
   number: string;
   type: RoomType;
@@ -30,7 +31,7 @@ type Room = {
   acType: string;
   description: string;
   image: string | null;
-  guest?: string;
+  guest?: string;       // huésped actual (del stay activo)
   checkIn?: string;
   checkOut?: string;
   nights?: number;
@@ -39,7 +40,7 @@ type Room = {
   priceWithAir: number;
   priceWithFan: number;
   storeDebt: number;
-  heroTone: string;
+  heroTone: string;     // gradientes visuales
   accentTone: string;
   stayId?: number; // ID del hospedaje actual para editar
   hasAir: boolean;
@@ -92,6 +93,7 @@ const typeImages: Record<string, string> = {
   SENCILLA: sencillaImg
 };
 
+// Convierte una habitación de la API (Habitacion) a la estructura local Room
 function mapApiRoom(apiRoom: Habitacion, index: number): Room {
   const typeLabel: Record<string, string> = {
     DOSCAMAS: 'Dos Camas',
@@ -130,6 +132,7 @@ const statusStyles: Record<RoomStatus, string> = {
   MANTENIMIENTO: 'bg-[#f5efe9] text-[#8f5e3d] border-[#dcc5b1]'
 };
 
+// Tarjeta de estadística del top (total, ocupadas, disponibles, reservadas, mantenimiento)
 function StatCard({
   icon: Icon,
   title,
@@ -159,6 +162,7 @@ function StatCard({
   );
 }
 
+// Etiqueta de estado con colores (verde=disponible, rojo=ocupada, etc.)
 function StatusPill({ status }: { status: RoomStatus }): ReactElement {
   return (
     <span className={cn('inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide', statusStyles[status])}>
@@ -195,6 +199,7 @@ function AccentButton({
   );
 }
 
+// Panel derecho: detalle de la habitación seleccionada + botón "Liberar"
 function RoomDetailCard({
   room,
   canManageImage,
@@ -203,11 +208,12 @@ function RoomDetailCard({
   onRemoveImage
 }: {
   room: Room;
-  canManageImage: boolean;
+  canManageImage: boolean; // solo admin puede cambiar/eliminar imagen
   onLiberar: () => void;
   onAddImage: () => void;
   onRemoveImage: () => void;
 }): ReactElement {
+  // Cálculo del total a cobrar según el A/C que seleccionó el huésped
   const nights = room.nights ?? 1;
   const selectedPrice = room.selectedAc === 'Aire' && room.priceWithAir > 0 ? room.priceWithAir : room.priceWithFan > 0 ? room.priceWithFan : 0;
   const roomTotal = nights * selectedPrice;
@@ -335,9 +341,10 @@ function DetailLine({
 }
 
 export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [apiRooms, setApiRooms] = useState<Habitacion[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);      // habitaciones ya mapeadas para UI
+  const [apiRooms, setApiRooms] = useState<Habitacion[]>([]); // copia original de la API para editar
   const [loading, setLoading] = useState(true);
+  // Filtros y orden de la lista
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'TODOS' | RoomStatus>('TODOS');
   const [styleFilter, setStyleFilter] = useState<'TODOS' | 'SENCILLA' | 'MATRIMONIAL' | 'DOS CAMAS'>('TODOS');
@@ -345,24 +352,29 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
   const [sortBy, setSortBy] = useState<'Número' | 'Tipo' | 'Precio'>('Número');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selectedRoomNumber, setSelectedRoomNumber] = useState('');
+  // Modal de crear/editar habitación
   const [editingRoom, setEditingRoom] = useState<Habitacion | null>(null);
   const [showRoomForm, setShowRoomForm] = useState(false);
+  // Autorización de admin para acciones sensibles
   const [showAdminAuth, setShowAdminAuth] = useState(false);
   const [pendingAction, setPendingAction] = useState<'create' | 'edit' | 'liberar' | 'image' | null>(null);
   const [pendingRoomNumber, setPendingRoomNumber] = useState<string | null>(null);
   const [adminAuthPassword, setAdminAuthPassword] = useState<string | null>(null);
+  // Subida de imagen
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageError, setImageError] = useState('');
   const imageFileRef = useRef<HTMLInputElement>(null);
+  // Modal de confirmación (liberar, eliminar imagen)
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [confirmTitle, setConfirmTitle] = useState('');
   const [confirmMessage, setConfirmMessage] = useState('');
   const [confirmLabel, setConfirmLabel] = useState('Confirmar');
   const [confirmDanger, setConfirmDanger] = useState(false);
-  const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+  const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB límite de imagen
 
   const isAdmin = user.role === 'ADMIN';
 
+  // GET /habitaciones + GET /stays/active → mestrar huésped en cada habitación ocupada
   const loadRooms = useCallback(() => {
     setLoading(true);
     Promise.all([
@@ -372,7 +384,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
       .then(([roomsData, staysData]) => {
         setApiRooms(roomsData);
         
-        // Crear un mapa de stays activos por número de habitación
+        // Mapa para cruzar cada habitación con su stay activo
         const staysByRoom = new Map();
         staysData.forEach(stay => {
           staysByRoom.set(stay.roomNumber, stay);
@@ -407,6 +419,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
     loadRooms();
   }, [loadRooms]);
 
+  // Aplica búsqueda + filtros (estado, estilo, ventilador) + orden
   const filteredRooms = rooms.filter((room) => {
     const normalizedSearch = search.trim().toLowerCase();
     const styleLabel = room.type === 'DOSCAMAS' ? 'DOS CAMAS' : room.type;
@@ -442,10 +455,12 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
     return 0;
   });
 
+  // Habitación seleccionada (panel derecho) o la primera como default
   const selectedRoom =
     filteredRooms.find((room) => room.number === selectedRoomNumber) ??
     filteredRooms[0];
 
+  // Conteos para las tarjetas de estadísticas del top
   const stats = {
     total: rooms.length,
     ocupadas: rooms.filter((room) => room.status === 'OCUPADA').length,
@@ -456,6 +471,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
 
   const pct = (n: number) => stats.total > 0 ? `${((n / stats.total) * 100).toFixed(1)}% del total` : '0% del total';
 
+  // Si es admin ejecuta directo, si no pide contraseña de admin primero
   function requireAuth(action: 'create' | 'edit' | 'liberar' | 'image', roomNumber?: string) {
     if (isAdmin) {
       executeAction(action, roomNumber);
@@ -467,6 +483,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
     }
   }
 
+  // Solo admin: abre el diálogo para elegir imagen (pusa 2MB)
   function handleAddImage(roomNumber: string) {
     if (!isAdmin) {
       return;
@@ -475,6 +492,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
     imageFileRef.current?.click();
   }
 
+  // Solo admin: confirma y pone image=null (vuelve la imagen por defecto)
   function handleRemoveImage(roomNumber: string) {
     if (!isAdmin) {
       return;
@@ -488,6 +506,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
     );
   }
 
+  // Ejecuta la acción: abre modal de crear/editar o confirma liberar
   function executeAction(action: 'create' | 'edit' | 'liberar' | 'image', roomNumber?: string) {
     if (action === 'create') {
       setEditingRoom(null);
@@ -543,6 +562,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
     loadRooms();
   }
 
+  // GET /stays/room/:number → si hay stay activo hace checkout, si no solo cambia estado
   async function handleLiberar(number: string) {
     try {
       // Primero buscar si hay un stay activo en esta habitación
@@ -579,13 +599,14 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
     }
   }
 
+  // Lee la imagen como base64 y la envía en PATCH /habitaciones/:number
   async function handleImagePick(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     // Reseteamos el input para permitir volver a elegir el mismo archivo.
     event.target.value = '';
     if (!file || !pendingRoomNumber) return;
 
-    // Validar tamaño del archivo
+    // Validar tamaño del archivo (2MB)
     if (file.size > MAX_IMAGE_SIZE) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
       setImageError(`La imagen es demasiado grande (${sizeMB}MB). El máximo permitido es 2MB.`);
