@@ -1,0 +1,254 @@
+Plan de Trabajo y Repartición de Desarrollo Frontend (Equipo de 4 Desarrolladores)
+Actuando como Desarrollador Senior y Líder Técnico, a continuación se presenta la auditoría técnica detallada de lo que falta por construir en el frontend, las reglas de arquitectura y colaboración con Git/GitHub para evitar conflictos, los requisitos de entorno y la asignación óptima de responsabilidades para 4 desarrolladores.
+
+1. Auditoría de Frontend: Estado Actual vs. Lo que Falta
+Estado Actual del Frontend
+Completado y Operativo:
+App.tsx
+: Sistema de autenticación (Login, Registro con autorización de Admin, Recuperación de contraseña por código OTP y pantalla de primer arranque Seed Admin).
+RecepcionPage.tsx
+: Flujo de Check-In completo con búsqueda de cédula, autocompletado y asignación de habitación con cálculo de tarifas (Aire vs. Ventilador).
+HabitacionesPage.tsx
+: Visualización de 17 habitaciones, filtros (estado, estilo, ventilador), subida/edición de fotos en Base64, edición de datos y liberación (Check-Out).
+AuditoriaPage.tsx
+: Consulta de registros de trazabilidad del sistema con filtros y buscador.
+Sidebar.tsx
+ y 
+DashboardLayout.tsx
+: Maquetación general y navegación.
+Módulos de Frontend que Faltan por Crear y Desarrollar
+Módulo	Estado en Backend	Lo que falta construir en Frontend
+1. Dashboard General	Datos dispersos en varias tablas	Vista ejecutiva: tarjetas de KPI (ocupación %, habitaciones libres/ocupadas, ingresos del día, check-ins/check-outs previstos hoy) y accesos directos rápidos.
+2. Directorio de Clientes	
+clientes.controller.ts
+ listo	Tabla con buscador por cédula/nombre/teléfono, modal de creación/edición de cliente y modal con historial de hospedajes anteriores del cliente.
+3. Huéspedes Activos	
+stays.controller.ts
+ listo	Vista tipo tarjetas o tabla de todos los huéspedes actualmente alojados, consumos extra cargados a su cuenta, días transcurridos y botón directo de Check-Out.
+4. Inventario / Stock	
+inventory.controller.ts
+ listo	Catálogo de productos, control de stock disponible vs stock mínimo (alertas en rojo), modal para ajuste rápido de existencias (+ / -) y creación de nuevos productos.
+5. Ventas / Tienda (POS)	Sale y Payment en Prisma	Punto de venta ágil para recepcionistas: registrar venta de productos (al contado o cargado a una habitación/hospedaje activo) y registro de abonos.
+6. Lavandería	
+laundry.controller.ts
+ listo	Panel kanban o tabla con filtros de prendas por estado (PENDIENTE, EN_PROCESO, LISTO, ENTREGADO), registro de orden de lavado, cobro y vinculación con habitación.
+7. Parqueadero	Tablas MonthlyParking / ParkingPayment en Prisma	Registro de vehículos (mensual y por días), control de pagos por mes (1-12) y semáforo de morosidad por placa.
+8. Turnos y Caja / Perfil	Tabla Shift en Prisma	Registro de apertura y cierre de turno de recepcionista con arqueo de base de dinero, novedades y firmas. Pantalla de perfil de usuario para cambio de contraseña.
+2. Requisitos de Entorno y Configuración para los Desarrolladores
+Para que cualquier miembro del equipo pueda clonar y levantar el proyecto sin errores, deben tener la siguiente configuración:
+
+Requisitos de Software
+Node.js: Versión 22.x LTS o superior (node -v).
+npm: Versión 10.x o superior (npm -v).
+PostgreSQL: PostgreSQL 16+ corriendo localmente en el puerto 5432 (o contenedor Docker).
+Git: Instalado y configurado con nombre y correo (git config user.name, git config user.email).
+Editor: Visual Studio Code con las extensiones recomendadas:
+Tailwind CSS IntelliSense
+Prisma
+ESLint y Prettier
+Guía de Primer Arranque para cada Desarrollador
+bash
+
+
+# 1. Clonar el repositorio
+git clone <URL_DEL_REPOSITORIO>
+cd NexstayV2
+# 2. Configurar variables de entorno
+cp .env.example .env
+# Ajustar DATABASE_URL en .env si la contraseña de PostgreSQL local difiere
+# 3. Instalar dependencias del monorepo
+npm install
+# 4. Generar el cliente de Prisma y sincronizar tablas
+npm run prisma:generate
+npm run prisma:push
+# 5. Iniciar API y Escritorio concurrentemente
+npm run dev
+# API responderá en http://localhost:3333
+# Renderer Vite en http://localhost:5173
+3. Estrategia de Git y Flujo de Trabajo Colaborativo (GitHub Flow)
+Para evitar conflictos (merge conflicts) y garantizar que nadie rompa código existente:
+
+⚠️ Failed to render Mermaid diagram: Invalid mermaid header: "gitGraph". Expected "graph TD", "flowchart LR", "stateDiagram-v2", etc.. Supported types: flowchart/graph, stateDiagram-v2, sequenceDiagram, classDiagram, erDiagram, xychart-beta.
+gitGraph
+    commit id: "v0.1.0-main"
+    branch develop
+    checkout develop
+    commit id: "Initial-Dev-Setup"
+    branch feat/clientes
+    branch feat/inventario
+    branch feat/lavanderia
+    checkout feat/clientes
+    commit id: "Crear ClientesPage.tsx"
+    checkout feat/inventario
+    commit id: "Crear InventarioPage.tsx"
+    checkout develop
+    merge feat/clientes
+    checkout feat/lavanderia
+    commit id: "Crear LavanderiaPage.tsx"
+    checkout develop
+    merge feat/inventario
+    merge feat/lavanderia
+    checkout main
+    merge develop tag: "v0.2.0"
+Mermaid diagram
+Reglas de Oro del Repositorio
+Ramas Protegidas:
+main: Producción estable. Nadie sube cambios directos (push deshabilitado).
+develop: Rama de integración donde se unen las características terminadas.
+Nomenclatura de Ramas:
+feat/clientes-ui (Nueva funcionalidad)
+feat/inventario-pos
+feat/lavanderia-modulo
+fix/ajuste-calculo-noches (Corrección de error)
+Flujo de Trabajo Diario:
+bash
+
+
+# Al iniciar el día:
+git checkout develop
+git pull origin develop
+git checkout mi-rama
+git merge develop
+Pull Requests (PR):
+Todo PR debe apuntar a develop.
+Requiere revisión y aprobación de al menos 1 desarrollador (o el Lead) antes del merge.
+Prohibido hacer git push --force en ramas compartidas.
+4. Patrones de Código y Arquitectura Frontend que Deben Respetarse
+Para mantener el diseño y comportamiento idéntico al código ya programado:
+
+1. Sistema de Diseño y Paleta de Colores (Tailwind CSS)
+Utilizar la paleta temática del hotel ya definida en 
+RecepcionPage.tsx
+ y 
+HabitacionesPage.tsx
+:
+
+Fondo Principal: bg-[#f6f1eb] o bg-[#fbf8f4]
+Tarjetas: bg-white border border-[#eadfd6] rounded-[20px] shadow-[0_16px_40px_rgba(67,42,27,0.08)]
+Botones Primarios: bg-[#4b2b21] hover:bg-[#5a3429] text-white rounded-xl
+Botones Secundarios: bg-white border border-[#dccfca] text-[#4b2b21] hover:bg-[#faf6f2]
+Estados / Badges:
+Verde (Éxito / Disponible / Pagado): bg-[#e9f6eb] text-[#2f8f4e] border-[#c6e8cf]
+Rojo (Ocupado / Pendiente / Deuda): bg-[#fff0ee] text-[#c94a43] border-[#f0c8c4]
+Amarillo (Reservado / En Proceso): bg-[#fff5df] text-[#c78b14] border-[#f2dbab]
+2. Capa de Conexión a la API (
+lib/api.ts
+)
+NO usar fetch directo en los componentes React.
+Agregar funciones exportadas en 
+lib/api.ts
+ usando apiRequest<T>(), que automáticamente inyecta el token JWT y maneja errores.
+3. Reutilización de Modales de Seguridad
+Si una acción requiere confirmación: Usar ConfirmModal (
+ConfirmModal.tsx
+).
+Si una acción crítica requiere permiso de Administrador: Usar AdminPasswordModal (
+AdminPasswordModal.tsx
+).
+5. Repartición Óptima del Trabajo (4 Desarrolladores)
+Para evitar colisiones de archivos, cada desarrollador trabajará en módulos aislados conectados a través de 
+DashboardLayout.tsx
+.
+
+
+
+apps/desktop/src/renderer/src/components/
+├── DashboardPage.tsx       <-- Dev 1 (Lead)
+├── TurnosCajaModal.tsx     <-- Dev 1 (Lead)
+├── ClientesPage.tsx        <-- Dev 2
+├── HuespedesPage.tsx       <-- Dev 2
+├── InventarioPage.tsx      <-- Dev 3
+├── VentasTiendaPage.tsx    <-- Dev 3
+├── LavanderiaPage.tsx      <-- Dev 4
+└── ParqueaderoPage.tsx     <-- Dev 4
+Desarrollador 1 (Líder Técnico / Dueño del Proyecto)
+Rol: Arquitectura, Integración, Módulo Dashboard y Control de Turnos/Caja.
+
+Responsabilidades:
+Dashboard General (DashboardPage.tsx):
+Crear el componente del dashboard principal con tarjetas de métricas en tiempo real:
+Habitaciones ocupadas vs. disponibles vs. mantenimiento.
+Total de huéspedes actuales.
+Ingresos estimados del día.
+Alertas de stock bajo en tienda.
+Accesos directos a "Nuevo Check-In", "Ver Habitaciones", "Registrar Venta".
+Módulo de Turnos y Caja (TurnosCajaModal.tsx o página):
+Implementar apertura y cierre de turno de recepcionista con arqueo de base de dinero (baseCash), registro de novedades y firmas.
+Conectar con endpoints de Shift en backend.
+Gestión de Perfil:
+Formulario para que el usuario logueado cambie su contraseña y vea su información.
+Code Review & Release:
+Revisar los Pull Requests de los otros 3 desarrolladores y hacer merge a develop y main.
+Desarrollador 2
+Rol: Módulos de Gestión de Clientes y Huéspedes Activos.
+
+Responsabilidades:
+Módulo de Clientes (ClientesPage.tsx):
+Crear la vista de directorio de clientes consumiendo clientesRequest() de 
+lib/api.ts
+.
+Tabla con búsqueda en vivo por Cédula, Nombre, Teléfono o Ciudad.
+Modal para crear nuevo cliente y editar datos existentes (createClienteRequest, updateClienteRequest).
+Modal para ver el historial completo de hospedajes anteriores del cliente (cliente.stays).
+Botón de eliminar protegido con AdminPasswordModal.
+Módulo de Huéspedes Activos (HuespedesPage.tsx):
+Crear la vista consumiendo staysActiveRequest().
+Mostrar tarjetas con información del huésped: Nombre, Habitación asignada, Fecha y hora de ingreso, Noches transcurridas, Servicios/tienda consumidos.
+Botón de acción rápida: "Cargar Consumo a Habitación" y "Realizar Check-Out".
+Desarrollador 3
+Rol: Módulos de Inventario (Tienda) y Punto de Venta (Ventas).
+
+Responsabilidades:
+Módulo de Inventario (InventarioPage.tsx):
+Conectar con inventoryRequest() y inventoryByCategoryRequest() ya definidos en 
+lib/api.ts
+.
+Listado de productos con badges por categoría (BEBIDAS, SNACKS, ASEO, etc.).
+Indicadores visuales de stock: Verde (Normal), Amarillo (Cerca al mínimo), Rojo (Agotado).
+Modal para crear/editar productos con su precio unitario.
+Botón de ajuste rápido de stock (adjustInventoryQuantityRequest con + o - unidades).
+Módulo de Ventas / POS (VentasTiendaPage.tsx):
+Interfaz de caja registradora táctil/rápida para registrar ventas de productos.
+Modal de selección:
+Venta al Contado: Se registra y descuenta inventario.
+Venta Fiada / Cargar a Habitación: Asocia la venta al stayId de la habitación ocupada para cobrarlo en el Check-Out.
+Desarrollador 4
+Rol: Módulos de Lavandería y Parqueadero.
+
+Responsabilidades:
+Módulo de Lavandería (LavanderiaPage.tsx):
+Conectar con laundryRequest(), createLaundryRequest(), updateLaundryRequest(), deleteLaundryRequest() de 
+lib/api.ts
+.
+Vista de órdenes de lavandería con filtros por estado (PENDIENTE, EN_PROCESO, LISTO, ENTREGADO).
+Formulario de registro de prendas (Camisas, Pantalones, Toallas, Sábanas, Edredones) con cálculo de precio unitario 
+×
+× cantidad.
+Opción de asociar la orden a un huésped (habitación) o cliente particular.
+Módulo de Parqueadero (ParqueaderoPage.tsx):
+Agregar las funciones de API en 
+lib/api.ts
+ y crear la UI.
+Gestión de vehículos mensuales: Propietario, Placa, Tipo (Moto, Carro, Camioneta, Pesado), Tarifa mensual.
+Control de pagos mensuales (meses 1 a 12 con checkboxes o grid anual tipo semáforo Pagado/Pendiente).
+Registro de parqueadero diario (tarifa por día según tabla de precios oficial).
+6. Plan de Sprints Sugerido (Cronograma de 2 Semanas)
+
+
+Semana 1:
+├── Dev 1: Estructura base del Dashboard + Endpoints de Turnos/Shift en API si hacen falta.
+├── Dev 2: Pantalla completa de Clientes (CRUD + Historial).
+├── Dev 3: Pantalla de Inventario (Catálogo + Ajustes de Stock).
+└── Dev 4: Pantalla de Lavandería (Órdenes + Estados).
+Semana 2:
+├── Dev 1: Conexión de métricas reales en Dashboard + Cierre de Turnos y Perfil.
+├── Dev 2: Pantalla de Huéspedes Activos con enlace a Check-out.
+├── Dev 3: Pantalla de Ventas/POS (Venta de mostrador y cargo a habitación).
+└── Dev 4: Pantalla de Parqueadero Mensual y Diario.
+7. Checklist para el Líder del Proyecto antes de Iniciar
+ Crear el repositorio en GitHub y configurar las ramas main y develop.
+ Invitar a los 3 desarrolladores como colaboradores con permisos de lectura/escritura.
+ Configurar las reglas de protección de rama (Branch Protection Rules) en main y develop.
+ Compartir este documento con el equipo junto con el archivo 
+docs/contexto-proyecto.md
+.

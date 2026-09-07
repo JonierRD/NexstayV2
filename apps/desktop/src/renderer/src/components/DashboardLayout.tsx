@@ -9,6 +9,7 @@ import { ClientesPage } from './ClientesPage';
 import { HuespedesPage } from './HuespedesPage';
 import { InventarioPage } from './InventarioPage';
 import { type ModuleKey, Sidebar } from './Sidebar';
+import { AssistantChat } from './AssistantChat';
 
 type PageComponent = (props: { user: PublicUser }) => ReactElement;
 
@@ -158,6 +159,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
         </header>
         <div className="flex min-h-0 flex-1 flex-col bg-[hsl(var(--background))]">
           <Page user={user} />
+          <AssistantChat user={user} pageKey={active} pageTitle={pageTitles[active]} />
         </div>
       </div>
     </div>
