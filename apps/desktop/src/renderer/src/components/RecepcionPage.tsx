@@ -8,7 +8,7 @@ import {
   Phone
 } from 'lucide-react';
 import { type ReactElement, useState, useEffect, useCallback } from 'react';
-import { type PublicUser, habitacionesRequest, clienteByCcRequest, checkinRequest, type Habitacion, type Cliente } from '../lib/api';
+import { type PublicUser, habitacionesRequest, clienteByCcRequest, clientesRequest, checkinRequest, type Habitacion, type Cliente } from '../lib/api';
 import { AdminPasswordModal } from './AdminPasswordModal';
 import { cn } from '../lib/utils';
 import sencillaImg from '../assets/habitaciones/sencilla.png';
@@ -122,16 +122,34 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   // Historial de cédulas (para el datalist del input)
   const [ccHistory, setCcHistory] = useState<string[]>([]);
 
-  // Carga el historial guardado en localStorage
+  // Carga el historial guardado en localStorage y lo filtra contra los
+  // clientes que siguen existiendo (descarta cédulas de clientes eliminados)
   useEffect(() => {
     const saved = localStorage.getItem('sapay-cc-history');
-    if (saved) {
-      try {
-        setCcHistory(JSON.parse(saved));
-      } catch {
-        setCcHistory([]);
-      }
+    if (!saved) {
+      setCcHistory([]);
+      return;
     }
+
+    let loaded: string[] = [];
+    try {
+      loaded = JSON.parse(saved);
+    } catch {
+      setCcHistory([]);
+      return;
+    }
+
+    clientesRequest()
+      .then((clients) => {
+        const validCcs = new Set(clients.map((client) => client.cc));
+        const filtered = loaded.filter((cc) => validCcs.has(cc)).slice(0, 10);
+        setCcHistory(filtered);
+        localStorage.setItem('sapay-cc-history', JSON.stringify(filtered));
+      })
+      .catch(() => {
+        // Si la API no responde, mantener el historial local tal cual
+        setCcHistory(loaded);
+      });
   }, []);
 
   // Guarda la cédula buscada en localStorage (máx 10)
