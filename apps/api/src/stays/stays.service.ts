@@ -25,7 +25,8 @@ export class StaysService {
     return this.prisma.stay.findMany({
       include: {
         client: true,
-        room: true
+        room: true,
+        sales: { include: { product: true } }
       },
       orderBy: { createdAt: 'desc' }
     });

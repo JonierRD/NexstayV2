@@ -98,6 +98,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
           phone: '',
           cityOrigin: '',
           cityDestination: '',
+
           profession: '',
           notes: ''
         });
@@ -171,6 +172,11 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   };
 
   const executeCheckin = () => {
+    if (!selectedRoom) {
+      setError('Selecciona una habitación antes de continuar.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -200,6 +206,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
       })
       .finally(() => setLoading(false));
   };
+
 
   const onAdminAuthorized = (password: string) => {
     setAdminPassword(password);
@@ -259,9 +266,9 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
             <CheckCircle size={64} className="mx-auto mb-4 text-green-600" />
             <h2 className="text-xl font-bold text-green-800">¡Check-In Exitoso!</h2>
             <p className="mt-2 text-sm text-green-700">
-              {foundClient 
+              {foundClient
                 ? `${foundClient.firstName} ${foundClient.lastName}`
-                : `${newClient.firstName} ${newClient.lastName}`
+                : `${clientData.firstName} ${clientData.lastName}`
               } ha sido registrado en la habitación {selectedRoom?.number}
             </p>
             <button
@@ -302,6 +309,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                       </datalist>
                     </div>
                     <button
+
                       onClick={handleSearchClient}
                       disabled={loading}
                       className="flex items-center gap-2 rounded-lg bg-[#4b2b21] px-4 py-2 text-sm font-medium text-white hover:bg-[#3a1a12] disabled:opacity-50"
@@ -376,6 +384,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                       onChange={(e) => setClientData({ ...clientData, cityOrigin: e.target.value })}
                       className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
                     />
+
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
@@ -449,6 +458,8 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
             {step === 'SELECT_ROOM' && (
               <div className="space-y-6">
                 <div>
+
+
                   <label className="mb-3 block text-sm font-medium text-[#4b2b21]">
                     Asignar Habitación
                   </label>
@@ -500,6 +511,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                           <p className="text-sm text-[#7d6e63]">{selectedRoom.type}</p>
                         </div>
                       </div>
+
                       
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         {selectedRoom.hasAir && (
@@ -539,6 +551,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                                 : 'border-[#dccfca] bg-white text-[#4b2b21] hover:border-[#bfa89d]'
                             )}
                           >
+
                             ❄️ Aire
                           </button>
                         )}
@@ -573,6 +586,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                     </div>
                   </div>
 
+
                   <div className="flex gap-3 pt-2">
                     <button
                       onClick={() => setStep('CLIENT_DATA')}
@@ -595,6 +609,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                 </div>
               </div>
             )}
+
 
             {step === 'CONFIRM' && (
               <div className="space-y-6">
@@ -630,6 +645,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                       )}
                     </div>
                   </div>
+
 
                   <div className="rounded-xl border border-[#c3b5a8] bg-[#f9f0e6] p-5">
                     <h3 className="mb-4 font-medium text-[#2b1b14]">Datos del Hospedaje</h3>
@@ -678,6 +694,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                           )}
                         </div>
                       </div>
+
 
                       <div>
                         <label className="mb-2 block text-xs font-medium text-[#7d6e63]">
@@ -728,6 +745,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
               </div>
             )}
           </div>
+
 
           {/* Panel Derecho - Habitaciones Disponibles */}
           <div className="w-96 overflow-y-auto rounded-2xl border border-[#eadfd6] bg-white p-4">
@@ -783,6 +801,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                         <div className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#4b2b21]">
                           <CheckCircle size={16} className="text-white" />
                         </div>
+
                       )}
                     </div>
                     <div className="p-3 bg-white">
@@ -805,9 +824,8 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
 
       {showAdminAuth && (
         <AdminPasswordModal
-          isOpen={showAdminAuth}
           onClose={() => setShowAdminAuth(false)}
-          onAuthorize={onAdminAuthorized}
+          onSuccess={onAdminAuthorized}
         />
       )}
     </div>

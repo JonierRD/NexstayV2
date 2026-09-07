@@ -364,68 +364,123 @@ export async function deleteLaundryRequest(id: number): Promise<{ message: strin
   });
 }
 
-export type Inventory = {
+export type Product = {
   id: number;
-  category: string;
   name: string;
+  price: number;
+  category: string;
   description: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StockItem = {
+  id: number;
+  productId: number;
   quantity: number;
   minStock: number;
   location: string | null;
   status: string;
   createdAt: string;
   updatedAt: string;
+  product: Product;
 };
 
-export async function inventoryRequest(): Promise<Inventory[]> {
-  return apiRequest<Inventory[]>('/inventory');
+export type Inventory = StockItem;
+
+export async function inventoryRequest(): Promise<StockItem[]> {
+  return apiRequest<StockItem[]>('/inventory', { method: 'GET' });
 }
 
-export async function inventoryByCategoryRequest(category: string): Promise<Inventory[]> {
-  return apiRequest<Inventory[]>(`/inventory/category/${category}`);
+export async function inventoryByCategoryRequest(category: string): Promise<StockItem[]> {
+  return apiRequest<StockItem[]>(`/inventory/category/${encodeURIComponent(category)}`, { method: 'GET' });
 }
 
-export async function createInventoryRequest(data: {
-  category: string;
+export type StoreStock = {
+  id: number;
+  quantity: number;
+  product: { id: number; name: string; price: number };
+};
+
+export async function storeStockRequest(): Promise<StoreStock[]> {
+  return apiRequest<StoreStock[]>('/inventory/category/TIENDA', { method: 'GET' });
+}
+
+export async function createProductRequest(data: {
   name: string;
+  price: number;
+  category?: string;
   description?: string;
-  quantity?: number;
-  minStock?: number;
-  location?: string;
-  status?: string;
-}): Promise<Inventory> {
-  return apiRequest<Inventory>('/inventory', {
+}): Promise<Product> {
+  return apiRequest<Product>('/inventory/product', {
     method: 'POST',
     body: data
   });
 }
 
-export async function updateInventoryRequest(id: number, data: {
+export async function createInventoryRequest(data: {
+  name: string;
+  price: number;
   category?: string;
-  name?: string;
   description?: string;
-  quantity?: number;
-  minStock?: number;
-  location?: string;
-  status?: string;
-}): Promise<Inventory> {
-  return apiRequest<Inventory>(`/inventory/${id}`, {
+}): Promise<Product> {
+  return apiRequest<Product>('/inventory/product', {
+    method: 'POST',
+    body: data
+  });
+}
+
+export async function updateProductRequest(
+  id: number,
+  data: {
+    name?: string;
+    price?: number;
+    category?: string;
+    description?: string;
+  }
+): Promise<Product> {
+  return apiRequest<Product>(`/inventory/product/${id}`, {
     method: 'PUT',
     body: data
   });
 }
 
-export async function adjustInventoryQuantityRequest(id: number, quantity: number, operation: 'ADD' | 'SUBTRACT'): Promise<Inventory> {
-  return apiRequest<Inventory>(`/inventory/${id}/adjust`, {
+export async function updateStockRequest(
+  id: number,
+  data: {
+    quantity?: number;
+    minStock?: number;
+    location?: string;
+    status?: string;
+  }
+): Promise<StockItem> {
+  return apiRequest<StockItem>(`/inventory/stock/${id}`, {
+    method: 'PUT',
+    body: data
+  });
+}
+
+export async function adjustInventoryQuantityRequest(
+  stockId: number,
+  quantity: number,
+  operation: 'ADD' | 'SUBTRACT'
+): Promise<StockItem> {
+  return apiRequest<StockItem>(`/inventory/stock/${stockId}/adjust`, {
     method: 'POST',
     body: { quantity, operation }
   });
 }
 
-export async function deleteInventoryRequest(id: number): Promise<{ message: string }> {
-  return apiRequest<{ message: string }>(`/inventory/${id}`, {
+export async function deleteInventoryRequest(stockId: number): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/inventory/${stockId}`, {
     method: 'DELETE'
   });
+}
+
+export type StaySale = { id: number; productId: number; stayId: number | null; quantity: number; unitPrice: number; product?: { name: string } };
+
+export async function createStaySaleRequest(input: { stockId: number; stayId: number; quantity: number }): Promise<StaySale> {
+  return apiRequest<StaySale>('/inventory/sale', { method: 'POST', body: input });
 }
 
 // Clientes
