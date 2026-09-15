@@ -34,6 +34,7 @@ export function ClientesPage({ user }: Props): ReactElement {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  //carga clientes dede la api
   async function load(): Promise<void> {
     setLoading(true);
     try { setClients(await clientesRequest()); setError(''); }
@@ -41,7 +42,7 @@ export function ClientesPage({ user }: Props): ReactElement {
     finally { setLoading(false); }
   }
   useEffect(() => { void load(); }, []);
-
+//filtro 
   const filtered = useMemo(() => {
     const value = query.trim().toLowerCase();
     if (!value) return clients;

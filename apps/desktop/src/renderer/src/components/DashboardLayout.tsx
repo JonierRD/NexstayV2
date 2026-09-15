@@ -8,6 +8,7 @@ import { LavanderiaPage } from './LavanderiaPage';
 import { ClientesPage } from './ClientesPage';
 import { HuespedesPage } from './HuespedesPage';
 import { InventarioPage } from './InventarioPage';
+import { VentasPage } from './VentasPage';
 import { type ModuleKey, Sidebar } from './Sidebar';
 import { AssistantChat } from './AssistantChat';
 
@@ -20,7 +21,7 @@ const pages: Record<ModuleKey, PageComponent> = {
   huespedes: ({ user }) => <HuespedesPage user={user} />,
   habitaciones: ({ user }) => <HabitacionesPage user={user} />,
   clientes: ({ user }) => <ClientesPage user={user} />,
-  ventas: () => <PageShell title="Ventas" subtitle="Inventario y ventas de tienda" />,
+  ventas: ({ user }) => <VentasPage user={user} />,
   parqueadero: () => <PageShell title="Parqueadero" subtitle="Parqueadero mensual" />,
   auditoria: ({ user }) => <AuditoriaPage user={user} />,
   lavanderia: ({ user }) => <LavanderiaPage user={user} />,

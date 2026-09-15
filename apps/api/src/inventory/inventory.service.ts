@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 import { AuditoriaService } from '../auditoria/auditoria.service';
@@ -30,6 +30,10 @@ export class InventoryService {
   }
 
   async findOne(id: number) {
+    if (!Number.isInteger(id) || id <= 0) {
+      throw new BadRequestException('El identificador del inventario es inválido');
+    }
+
     const stock = await this.prisma.stock.findUnique({
       where: { id },
       include: { product: true }
@@ -77,32 +81,119 @@ export class InventoryService {
     return product;
   }
 
+  async findSales() {
+    return this.prisma.sale.findMany({
+      include: {
+        product: true,
+        stay: {
+          include: {
+            client: true,
+            room: true
+          }
+        }
+      },
+      orderBy: { date: 'desc' }
+    });
+  }
+
   async createSale(data: { stockId: number; stayId: number; quantity: number }, user: JwtPayload) {
-    if (!Number.isInteger(data.quantity) || data.quantity < 1) {
-      throw new NotFoundException('La cantidad debe ser mayor que cero');
+    return this.createSalesBatch({
+      items: [{ stockId: data.stockId, quantity: data.quantity }],
+      stayId: data.stayId
+    }, user);
+  }
+
+  async createSalesBatch(data: { items: Array<{ stockId: number; quantity: number }>; stayId?: number | null; customerName?: string | null }, user: JwtPayload) {
+    if (!Array.isArray(data.items) || data.items.length === 0) {
+      throw new BadRequestException('Debe indicar al menos un producto para la venta');
     }
 
-    const sale = await this.prisma.$transaction(async (tx) => {
-      const stock = await tx.stock.findUnique({ where: { id: data.stockId }, include: { product: true } });
-      if (!stock) throw new NotFoundException('Item de inventario no encontrado');
-      if (stock.quantity < data.quantity) throw new NotFoundException('No hay suficiente inventario disponible');
-      const stay = await tx.stay.findUnique({ where: { id: data.stayId } });
-      if (!stay || stay.status !== 'ACTIVA') throw new NotFoundException('Hospedaje activo no encontrado');
-      await tx.stock.update({ where: { id: stock.id }, data: { quantity: { decrement: data.quantity } } });
-      return tx.sale.create({
-        data: { productId: stock.productId, stayId: data.stayId, date: new Date(), quantity: data.quantity, unitPrice: stock.product.price, saleType: 'FIADO' },
-        include: { product: true }
+    const normalizedItems = data.items.map((item) => ({
+      stockId: Number(item.stockId),
+      quantity: Number(item.quantity)
+    }));
+
+    for (const item of normalizedItems) {
+      if (!Number.isInteger(item.stockId) || item.stockId <= 0) {
+        throw new BadRequestException('El identificador del producto es inválido');
+      }
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+        throw new BadRequestException('La cantidad de cada producto debe ser mayor que cero');
+      }
+    }
+
+    const stayId = data.stayId !== undefined && data.stayId !== null ? Number(data.stayId) : null;
+
+    if (stayId) {
+      const stay = await this.prisma.stay.findUnique({
+        where: { id: stayId },
+        include: { client: true, room: true }
       });
+      if (!stay || stay.status !== 'ACTIVA') {
+        throw new NotFoundException('La habitación seleccionada no tiene un huésped activo');
+      }
+    }
+
+    const createdSales = await this.prisma.$transaction(async (tx) => {
+      const result: any[] = [];
+
+      for (const item of normalizedItems) {
+        const stock = await tx.stock.findUnique({
+          where: { id: item.stockId },
+          include: { product: true }
+        });
+
+        if (!stock) {
+          throw new NotFoundException(`No se encontró el producto con stock ID ${item.stockId}`);
+        }
+
+        if (stock.quantity < item.quantity) {
+          throw new BadRequestException(`No hay suficientes existencias de ${stock.product.name}. Disponibles: ${stock.quantity}`);
+        }
+
+        await tx.stock.update({
+          where: { id: stock.id },
+          data: { quantity: { decrement: item.quantity } }
+        });
+
+        const sale = await tx.sale.create({
+          data: {
+            productId: stock.productId,
+            stayId: stayId,
+            date: new Date(),
+            quantity: item.quantity,
+            unitPrice: stock.product.price,
+            saleType: stayId ? 'FIADO' : 'CONTADO'
+          },
+          include: {
+            product: true,
+            stay: {
+              include: {
+                client: true,
+                room: true
+              }
+            }
+          }
+        });
+
+        result.push(sale);
+      }
+
+      return result;
     });
 
+    const firstSale = createdSales[0];
     await this.auditoria.log(user, {
       action: 'CREATE' as any,
       entity: 'VENTA',
-      entityId: sale.id.toString(),
-      description: `Cargó ${data.quantity} unidad(es) de ${sale.product.name} al hospedaje ${data.stayId}`,
-      newValue: JSON.stringify(sale)
+      entityId: firstSale?.id?.toString() ?? 'batch',
+      description: stayId
+        ? `Registró venta a huésped ${stayId} con ${createdSales.length} producto(s)`
+        : `Registró venta externa con ${createdSales.length} producto(s)`,
+      newValue: JSON.stringify(createdSales)
     });
-    return sale;
+
+    return createdSales;
   }
 
   async updateProduct(id: number, data: {

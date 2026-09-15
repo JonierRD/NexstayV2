@@ -477,10 +477,47 @@ export async function deleteInventoryRequest(stockId: number): Promise<{ message
   });
 }
 
-export type StaySale = { id: number; productId: number; stayId: number | null; quantity: number; unitPrice: number; product?: { name: string } };
+export type SaleItemInput = {
+  stockId: number;
+  quantity: number;
+};
+
+export type BatchSaleInput = {
+  items: SaleItemInput[];
+  stayId?: number | null;
+  customerName?: string | null;
+};
+
+export type StaySale = {
+  id: number;
+  productId: number;
+  stayId: number | null;
+  quantity: number;
+  unitPrice: number;
+  saleType?: string;
+  date: string;
+  product?: { name: string; price: number };
+  stay?: {
+    id: number;
+    roomNumber: string;
+    client?: {
+      firstName: string;
+      lastName: string;
+      cc: string;
+    };
+  };
+};
+
+export async function salesRequest(): Promise<StaySale[]> {
+  return apiRequest<StaySale[]>('/inventory/sales', { method: 'GET' });
+}
 
 export async function createStaySaleRequest(input: { stockId: number; stayId: number; quantity: number }): Promise<StaySale> {
   return apiRequest<StaySale>('/inventory/sale', { method: 'POST', body: input });
+}
+
+export async function createSalesRequest(input: BatchSaleInput): Promise<StaySale[]> {
+  return apiRequest<StaySale[]>('/inventory/sales', { method: 'POST', body: input });
 }
 
 // Clientes
