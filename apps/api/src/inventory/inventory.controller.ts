@@ -19,9 +19,14 @@ export class InventoryController {
     return this.service.findByCategory(category);
   }
 
+  @Get('sales')
+  async findSales() {
+    return this.service.findSales();
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.service.findOne(parseInt(id));
+    return this.service.findOne(parseInt(id, 10));
   }
 
   @Post('product')
@@ -32,6 +37,14 @@ export class InventoryController {
   @Post('sale')
   async createSale(@Body() data: { stockId: number; stayId: number; quantity: number }, @CurrentUser() user: JwtPayload) {
     return this.service.createSale(data, user);
+  }
+
+  @Post('sales')
+  async createSalesBatch(
+    @Body() data: { items: Array<{ stockId: number; quantity: number }>; stayId?: number | null; customerName?: string | null },
+    @CurrentUser() user: JwtPayload
+  ) {
+    return this.service.createSalesBatch(data, user);
   }
 
   @Put('product/:id')
