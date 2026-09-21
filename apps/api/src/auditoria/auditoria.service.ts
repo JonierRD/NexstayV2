@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { $Enums } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 
-export type AuditAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT' | 'CHECK_IN' | 'CHECK_OUT' | 'STATUS_CHANGE';
+export type AuditAction = $Enums.AuditAction;
 
 export interface AuditLogOptions {
   action: AuditAction;
@@ -19,10 +20,10 @@ export class AuditoriaService {
   constructor(private prisma: PrismaService) {}
 
   async log(user: JwtPayload, options: AuditLogOptions) {
-    return (this.prisma as any).auditLog.create({
+    return this.prisma.auditLog.create({
       data: {
         userId: user.sub,
-        action: options.action as any,
+        action: options.action,
         entity: options.entity,
         entityId: options.entityId,
         oldValue: options.oldValue,
@@ -72,7 +73,7 @@ export class AuditoriaService {
     }
 
     const [logs, total] = await Promise.all([
-      (this.prisma as any).auditLog.findMany({
+      this.prisma.auditLog.findMany({
         where,
         include: {
           user: {
@@ -88,14 +89,14 @@ export class AuditoriaService {
         take: filters?.limit || 100,
         skip: filters?.offset || 0
       }),
-      (this.prisma as any).auditLog.count({ where })
+      this.prisma.auditLog.count({ where })
     ]);
 
     return { logs, total };
   }
 
   async findByEntity(entity: string, entityId: string) {
-    return (this.prisma as any).auditLog.findMany({
+    return this.prisma.auditLog.findMany({
       where: { entity, entityId },
       include: {
         user: {

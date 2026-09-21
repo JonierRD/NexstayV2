@@ -3,6 +3,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
 import { InventoryService } from './inventory.service';
+import type { CreateProductInput, UpdateProductInput, UpdateStockInput, SaleInput, SalesBatchInput } from './inventory.service';
 
 @Controller('inventory')
 @UseGuards(JwtAuthGuard)
@@ -30,30 +31,30 @@ export class InventoryController {
   }
 
   @Post('product')
-  async createProduct(@Body() data: any, @CurrentUser() user: JwtPayload) {
+  async createProduct(@Body() data: CreateProductInput, @CurrentUser() user: JwtPayload) {
     return this.service.createProduct(data, user);
   }
 
   @Post('sale')
-  async createSale(@Body() data: { stockId: number; stayId: number; quantity: number }, @CurrentUser() user: JwtPayload) {
+  async createSale(@Body() data: SaleInput, @CurrentUser() user: JwtPayload) {
     return this.service.createSale(data, user);
   }
 
   @Post('sales')
   async createSalesBatch(
-    @Body() data: { items: Array<{ stockId: number; quantity: number }>; stayId?: number | null; customerName?: string | null },
+    @Body() data: SalesBatchInput,
     @CurrentUser() user: JwtPayload
   ) {
     return this.service.createSalesBatch(data, user);
   }
 
   @Put('product/:id')
-  async updateProduct(@Param('id') id: string, @Body() data: any, @CurrentUser() user: JwtPayload) {
+  async updateProduct(@Param('id') id: string, @Body() data: UpdateProductInput, @CurrentUser() user: JwtPayload) {
     return this.service.updateProduct(parseInt(id), data, user);
   }
 
   @Put('stock/:id')
-  async updateStock(@Param('id') id: string, @Body() data: any, @CurrentUser() user: JwtPayload) {
+  async updateStock(@Param('id') id: string, @Body() data: UpdateStockInput, @CurrentUser() user: JwtPayload) {
     return this.service.updateStock(parseInt(id), data, user);
   }
 

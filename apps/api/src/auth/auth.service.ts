@@ -18,6 +18,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { hashPassword, verifyPassword } from './password';
+import { assertAdminPassword } from './admin-password';
 import type { AuthenticatedUser, JwtPayload, PublicUser } from './auth.types';
 import jwtConfig from './jwt.config';
 
@@ -126,30 +127,12 @@ export class AuthService {
       throw new ConflictException('Ya existe un usuario con esa cédula o correo.');
     }
 
-    if (!dto.adminPassword?.trim()) {
-      throw new UnauthorizedException(
-        'Debes ingresar la contraseña de un administrador activo para registrar un nuevo usuario.'
-      );
-    }
-
-    const adminUser = await this.prisma.user.findFirst({
-      where: {
-        role: Role.ADMIN,
-        isActive: true
-      }
+    await assertAdminPassword(this.prisma, dto.adminPassword, {
+      missing:
+        'Debes ingresar la contraseña de un administrador activo para registrar un nuevo usuario.',
+      noAdmin: 'No hay un administrador autorizado para registrar nuevos usuarios.',
+      invalid: 'La contraseña del administrador no es correcta.'
     });
-
-    if (!adminUser) {
-      throw new ForbiddenException(
-        'No hay un administrador autorizado para registrar nuevos usuarios.'
-      );
-    }
-
-    const isAdminPasswordValid = await verifyPassword(dto.adminPassword, adminUser.passwordHash);
-
-    if (!isAdminPasswordValid) {
-      throw new UnauthorizedException('La contraseña del administrador no es correcta.');
-    }
 
     const passwordHash = await hashPassword(dto.password);
 

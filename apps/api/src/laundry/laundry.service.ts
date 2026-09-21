@@ -1,7 +1,36 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { $Enums } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 import { AuditoriaService } from '../auditoria/auditoria.service';
+
+export type LaundryItem = $Enums.LaundryItem;
+export type LaundryStatus = $Enums.LaundryStatus;
+
+export interface CreateLaundryInput {
+  item: LaundryItem;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  deliveryDate?: Date;
+  clientName: string;
+  roomNumber?: string;
+  notes?: string;
+}
+
+export interface UpdateLaundryInput {
+  item?: LaundryItem;
+  description?: string;
+  quantity?: number;
+  unitPrice?: number;
+  totalPrice?: number;
+  status?: LaundryStatus;
+  deliveryDate?: Date;
+  clientName?: string;
+  roomNumber?: string;
+  notes?: string;
+}
 
 @Injectable()
 export class LaundryService {
@@ -24,24 +53,14 @@ export class LaundryService {
     return laundry;
   }
 
-  async create(data: {
-    item: string;
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-    deliveryDate?: Date;
-    clientName: string;
-    roomNumber?: string;
-    notes?: string;
-  }, user: JwtPayload) {
+  async create(data: CreateLaundryInput, user: JwtPayload) {
     const laundry = await this.prisma.laundry.create({
-      data: data as any
+      data
     });
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
-      action: 'CREATE' as any,
+      action: 'CREATE',
       entity: 'LAVANDERIA',
       entityId: laundry.id.toString(),
       description: `Creó registro de lavandería: ${data.item} x${data.quantity} para ${data.clientName}`,
@@ -51,28 +70,17 @@ export class LaundryService {
     return laundry;
   }
 
-  async update(id: number, data: {
-    item?: string;
-    description?: string;
-    quantity?: number;
-    unitPrice?: number;
-    totalPrice?: number;
-    status?: string;
-    deliveryDate?: Date;
-    clientName?: string;
-    roomNumber?: string;
-    notes?: string;
-  }, user: JwtPayload) {
+  async update(id: number, data: UpdateLaundryInput, user: JwtPayload) {
     const existing = await this.findOne(id);
 
     const laundry = await this.prisma.laundry.update({
       where: { id },
-      data: data as any
+      data
     });
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
-      action: 'UPDATE' as any,
+      action: 'UPDATE',
       entity: 'LAVANDERIA',
       entityId: id.toString(),
       description: `Actualizó registro de lavandería ID ${id}`,
@@ -90,7 +98,7 @@ export class LaundryService {
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
-      action: 'DELETE' as any,
+      action: 'DELETE',
       entity: 'LAVANDERIA',
       entityId: id.toString(),
       description: `Eliminó registro de lavandería ID ${id}`,

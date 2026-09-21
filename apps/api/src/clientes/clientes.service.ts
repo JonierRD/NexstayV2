@@ -1,13 +1,11 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
-  UnauthorizedException,
-  ForbiddenException
+  ConflictException
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { verifyPassword } from '../auth/password';
+import { assertAdminPassword } from '../auth/admin-password';
 import type { JwtPayload } from '../auth/auth.types';
 import type { CreateClienteDto } from './dto/create-cliente.dto';
 import type { UpdateClienteDto } from './dto/update-cliente.dto';
@@ -105,7 +103,7 @@ export class ClientesService {
 
     // Auditoría
     await this.auditoria.log(user, {
-      action: 'CREATE' as any,
+      action: 'CREATE',
       entity: 'CLIENTE',
       entityId: client.id.toString(),
       description: `Creó cliente: ${client.firstName} ${client.lastName} (CC: ${client.cc})`,
@@ -156,7 +154,7 @@ export class ClientesService {
 
     if (changes.length > 0) {
       await this.auditoria.log(user, {
-        action: 'UPDATE' as any,
+        action: 'UPDATE',
         entity: 'CLIENTE',
         entityId: id.toString(),
         description: `Actualizó cliente ID ${id}: ${changes.join(', ')}`,
@@ -205,7 +203,7 @@ export class ClientesService {
 
     // Auditoría
     await this.auditoria.log(user, {
-      action: 'DELETE' as any,
+      action: 'DELETE',
       entity: 'CLIENTE',
       entityId: id.toString(),
       description: `Eliminó cliente: ${client.firstName} ${client.lastName} (CC: ${client.cc})`,
@@ -216,23 +214,6 @@ export class ClientesService {
   }
 
   private async requireAdminPassword(password?: string): Promise<void> {
-    if (!password?.trim()) {
-      throw new UnauthorizedException(
-        'Se requiere la contraseña de un administrador activo para esta acción.'
-      );
-    }
-
-    const adminUser = await this.prisma.user.findFirst({
-      where: { role: Role.ADMIN, isActive: true }
-    });
-
-    if (!adminUser) {
-      throw new ForbiddenException('No hay un administrador activo en el sistema.');
-    }
-
-    const isValid = await verifyPassword(password, adminUser.passwordHash);
-    if (!isValid) {
-      throw new UnauthorizedException('La contraseña del administrador no es correcta.');
-    }
+    return assertAdminPassword(this.prisma, password);
   }
 }

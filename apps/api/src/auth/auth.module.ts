@@ -17,12 +17,14 @@ import { PrismaModule } from '../prisma/prisma.module';
     ConfigModule.forFeature(jwtConfig),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
-      imports: [ConfigModule.forFeature(jwtConfig)],
       inject: [ConfigService],
-      useFactory: () => ({
-        secret: process.env.JWT_SECRET ?? 'sapay-dev-secret-change-me',
-        signOptions: { expiresIn: process.env.JWT_EXPIRES_IN ?? '12h' }
-      })
+      useFactory: (config: ConfigService) => {
+        const jwt = config.getOrThrow<{ secret: string; expiresIn: string }>('jwt');
+        return {
+          secret: jwt.secret,
+          signOptions: { expiresIn: jwt.expiresIn }
+        };
+      }
     })
   ],
   controllers: [AuthController],

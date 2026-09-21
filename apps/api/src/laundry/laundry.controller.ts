@@ -3,6 +3,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
 import { LaundryService } from './laundry.service';
+import type { CreateLaundryInput, UpdateLaundryInput } from './laundry.service';
 
 @Controller('laundry')
 @UseGuards(JwtAuthGuard)
@@ -20,12 +21,12 @@ export class LaundryController {
   }
 
   @Post()
-  async create(@Body() data: any, @CurrentUser() user: JwtPayload) {
+  async create(@Body() data: CreateLaundryInput, @CurrentUser() user: JwtPayload) {
     return this.service.create(data, user);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() data: any, @CurrentUser() user: JwtPayload) {
+  async update(@Param('id') id: string, @Body() data: UpdateLaundryInput, @CurrentUser() user: JwtPayload) {
     return this.service.update(parseInt(id), data, user);
   }
 

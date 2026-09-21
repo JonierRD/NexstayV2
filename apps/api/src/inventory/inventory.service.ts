@@ -3,6 +3,39 @@ import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 import { AuditoriaService } from '../auditoria/auditoria.service';
 
+export interface CreateProductInput {
+  name: string;
+  price: number;
+  category?: string;
+  description?: string;
+}
+
+export interface UpdateProductInput {
+  name?: string;
+  price?: number;
+  category?: string;
+  description?: string;
+}
+
+export interface UpdateStockInput {
+  quantity?: number;
+  minStock?: number;
+  location?: string;
+  status?: string;
+}
+
+export interface SaleInput {
+  stockId: number;
+  stayId: number;
+  quantity: number;
+}
+
+export interface SalesBatchInput {
+  items: Array<{ stockId: number; quantity: number }>;
+  stayId?: number | null;
+  customerName?: string | null;
+}
+
 @Injectable()
 export class InventoryService {
   constructor(
@@ -44,12 +77,7 @@ export class InventoryService {
     return stock;
   }
 
-  async createProduct(data: {
-    name: string;
-    price: number;
-    category?: string;
-    description?: string;
-  }, user: JwtPayload) {
+  async createProduct(data: CreateProductInput, user: JwtPayload) {
     const product = await this.prisma.product.create({
       data: {
         name: data.name,
@@ -71,7 +99,7 @@ export class InventoryService {
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
-      action: 'CREATE' as any,
+      action: 'CREATE',
       entity: 'INVENTARIO',
       entityId: product.id.toString(),
       description: `Creó producto: ${data.name} (${data.category || 'TIENDA'})`,
@@ -96,14 +124,14 @@ export class InventoryService {
     });
   }
 
-  async createSale(data: { stockId: number; stayId: number; quantity: number }, user: JwtPayload) {
+  async createSale(data: SaleInput, user: JwtPayload) {
     return this.createSalesBatch({
       items: [{ stockId: data.stockId, quantity: data.quantity }],
       stayId: data.stayId
     }, user);
   }
 
-  async createSalesBatch(data: { items: Array<{ stockId: number; quantity: number }>; stayId?: number | null; customerName?: string | null }, user: JwtPayload) {
+  async createSalesBatch(data: SalesBatchInput, user: JwtPayload) {
     if (!Array.isArray(data.items) || data.items.length === 0) {
       throw new BadRequestException('Debe indicar al menos un producto para la venta');
     }
@@ -184,7 +212,7 @@ export class InventoryService {
 
     const firstSale = createdSales[0];
     await this.auditoria.log(user, {
-      action: 'CREATE' as any,
+      action: 'CREATE',
       entity: 'VENTA',
       entityId: firstSale?.id?.toString() ?? 'batch',
       description: stayId
@@ -196,12 +224,7 @@ export class InventoryService {
     return createdSales;
   }
 
-  async updateProduct(id: number, data: {
-    name?: string;
-    price?: number;
-    category?: string;
-    description?: string;
-  }, user: JwtPayload) {
+  async updateProduct(id: number, data: UpdateProductInput, user: JwtPayload) {
     const existing = await this.prisma.product.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('Producto no encontrado');
@@ -217,7 +240,7 @@ export class InventoryService {
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
-      action: 'UPDATE' as any,
+      action: 'UPDATE',
       entity: 'INVENTARIO',
       entityId: id.toString(),
       description: `Actualizó producto ID ${id}`,
@@ -228,12 +251,7 @@ export class InventoryService {
     return product;
   }
 
-  async updateStock(id: number, data: {
-    quantity?: number;
-    minStock?: number;
-    location?: string;
-    status?: string;
-  }, user: JwtPayload) {
+  async updateStock(id: number, data: UpdateStockInput, user: JwtPayload) {
     const existing = await this.findOne(id);
 
     const stock = await this.prisma.stock.update({
@@ -243,7 +261,7 @@ export class InventoryService {
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
-      action: 'UPDATE' as any,
+      action: 'UPDATE',
       entity: 'INVENTARIO',
       entityId: id.toString(),
       description: `Actualizó stock del producto ID ${id}`,
@@ -265,7 +283,7 @@ export class InventoryService {
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
-      action: 'DELETE' as any,
+      action: 'DELETE',
       entity: 'INVENTARIO',
       entityId: id.toString(),
       description: `Eliminó producto ${stock.product.name}`,
@@ -293,7 +311,7 @@ export class InventoryService {
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
-      action: 'UPDATE' as any,
+      action: 'UPDATE',
       entity: 'INVENTARIO',
       entityId: id.toString(),
       description: `${operation === 'ADD' ? 'Agregó' : 'Restó'} ${quantity} unidades a ${existing.product.name}`,

@@ -1,13 +1,11 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
-  UnauthorizedException,
-  ForbiddenException
+  NotFoundException
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { verifyPassword } from '../auth/password';
+import { assertAdminPassword } from '../auth/admin-password';
 import type { JwtPayload } from '../auth/auth.types';
 import type { CheckinDto } from './dto/checkin.dto';
 import type { CheckoutDto } from './dto/checkout.dto';
@@ -129,7 +127,7 @@ export class StaysService {
 
       // Auditoría de creación de cliente
       await this.auditoria.log(user, {
-        action: 'CREATE' as any,
+        action: 'CREATE',
         entity: 'CLIENTE',
         entityId: client.id.toString(),
         description: `Creó cliente: ${client.firstName} ${client.lastName} (CC: ${client.cc})`,
@@ -199,7 +197,7 @@ export class StaysService {
 
     // 10. Auditoría del check-in
     await this.auditoria.log(user, {
-      action: 'CHECK_IN' as any,
+      action: 'CHECK_IN',
       entity: 'STAY',
       entityId: stay.id.toString(),
       description: `Check-in: ${client.firstName} ${client.lastName} en habitación ${dto.roomNumber} (${dto.acType}, ${nights} noches)`,
@@ -278,7 +276,7 @@ export class StaysService {
 
     // 6. Auditoría del check-out
     await this.auditoria.log(user, {
-      action: 'CHECK_OUT' as any,
+      action: 'CHECK_OUT',
       entity: 'STAY',
       entityId: stay.id.toString(),
       description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsReal} noches, total: $${Math.round(grandTotal).toLocaleString('es-CO')})`,
@@ -315,7 +313,7 @@ export class StaysService {
     }
 
     // 3. Preparar datos de actualización
-    const updateData: any = {};
+    const updateData: Prisma.StayUncheckedUpdateInput = {};
 
     if (dto.nights !== undefined) {
       updateData.nights = dto.nights;
@@ -368,7 +366,7 @@ export class StaysService {
 
     if (changes.length > 0) {
       await this.auditoria.log(user, {
-        action: 'UPDATE' as any,
+        action: 'UPDATE',
         entity: 'STAY',
         entityId: id.toString(),
         description: `Actualizó hospedaje ID ${id}: ${changes.join(', ')}`,
@@ -423,7 +421,7 @@ export class StaysService {
 
     // 5. Auditoría
     await this.auditoria.log(user, {
-      action: 'UPDATE' as any,
+      action: 'UPDATE',
       entity: 'STAY',
       entityId: id.toString(),
       description: `Canceló hospedaje: ${stay.client.firstName} ${stay.client.lastName} en habitación ${stay.roomNumber}`,
@@ -435,23 +433,6 @@ export class StaysService {
   }
 
   private async requireAdminPassword(password?: string): Promise<void> {
-    if (!password?.trim()) {
-      throw new UnauthorizedException(
-        'Se requiere la contraseña de un administrador activo para esta acción.'
-      );
-    }
-
-    const adminUser = await this.prisma.user.findFirst({
-      where: { role: Role.ADMIN, isActive: true }
-    });
-
-    if (!adminUser) {
-      throw new ForbiddenException('No hay un administrador activo en el sistema.');
-    }
-
-    const isValid = await verifyPassword(password, adminUser.passwordHash);
-    if (!isValid) {
-      throw new UnauthorizedException('La contraseña del administrador no es correcta.');
-    }
+    return assertAdminPassword(this.prisma, password);
   }
 }
