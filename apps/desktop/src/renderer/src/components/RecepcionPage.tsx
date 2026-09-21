@@ -34,6 +34,13 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   const [acType, setAcType] = useState<'AIRE' | 'VENTILADOR'>('AIRE');
   // Noches estimadas del hospedaje
   const [nights, setNights] = useState<number>(1);
+  // Fecha de ingreso (por defecto hoy, editable)
+  const [checkInDate, setCheckInDate] = useState<string>(() => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${today.getFullYear()}-${month}-${day}`;
+  });
   // Contraseña del admin (se pide si el usuario es RECEPTION)
   const [adminPassword, setAdminPassword] = useState<string | null>(null);
   const [showAdminAuth, setShowAdminAuth] = useState(false);
@@ -221,6 +228,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
       roomNumber: selectedRoom.number,
       acType,
       nights: nights || undefined,
+      checkIn: checkInDate ? new Date(checkInDate + 'T12:00:00').toISOString() : undefined,
       adminPassword: adminPassword || undefined
     };
 
@@ -255,6 +263,12 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     setSelectedRoom(null);
     setAcType('AIRE');
     setNights(1);
+    setCheckInDate(() => {
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${today.getFullYear()}-${month}-${day}`;
+    });
     setClientData({
       firstName: '',
       lastName: '',
@@ -402,6 +416,18 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                     type="text"
                     value={clientData.phone}
                     onChange={(e) => setClientData({ ...clientData, phone: e.target.value })}
+                    className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+                    Fecha de Ingreso
+                  </label>
+                  <input
+                    type="date"
+                    value={checkInDate}
+                    onChange={(e) => setCheckInDate(e.target.value)}
                     className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
                   />
                 </div>
@@ -607,6 +633,18 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
 
                     <div>
                       <label className="mb-2 block text-xs font-medium text-[#7d6e63]">
+                        Fecha de Ingreso
+                      </label>
+                      <input
+                        type="date"
+                        value={checkInDate}
+                        onChange={(e) => setCheckInDate(e.target.value)}
+                        className="w-full rounded-lg border border-[#dccfca] px-4 py-3 text-sm focus:border-[#bfa89d] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-[#7d6e63]">
                         Noches Estimadas
                       </label>
                       <input
@@ -728,6 +766,18 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                         </div>
                       </div>
 
+
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-[#7d6e63]">
+                          Fecha de Ingreso
+                        </label>
+                        <input
+                          type="date"
+                          value={checkInDate}
+                          onChange={(e) => setCheckInDate(e.target.value)}
+                          className="w-full rounded-lg border border-[#dccfca] px-4 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+                        />
+                      </div>
 
                       <div>
                         <label className="mb-2 block text-xs font-medium text-[#7d6e63]">

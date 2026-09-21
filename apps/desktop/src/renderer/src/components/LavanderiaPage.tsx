@@ -3,11 +3,9 @@ import {
     Clock3,
     CheckCircle,
     PackageCheck,
-    ChevronRight,
     Eye,
     PencilLine,
     Plus,
-    Search,
     Trash2,
     X
 } from 'lucide-react';
@@ -23,6 +21,13 @@ import {
 import { cn } from '../lib/utils';
 import { AdminPasswordModal } from './AdminPasswordModal';
 import { ConfirmModal } from './ConfirmModal';
+import { AccentButton } from './ui/accent-button';
+import { DetailLine } from './ui/detail-line';
+import { FilterSelect } from './ui/filter-select';
+import { IconButton } from './ui/icon-button';
+import { SearchInput } from './ui/search-input';
+import { StatCard } from './ui/stat-card';
+import { StatusPill } from './ui/status-pill';
 
 type LaundryStatus = 'PENDIENTE' | 'EN_PROCESO' | 'LISTO' | 'ENTREGADO';
 type LaundryItemType = 'CAMISA' | 'PANTALON' | 'TOALLA' | 'SABANA' | 'FUNDAS_ALMOHADA' | 'EDREDON' | 'OTRO';
@@ -64,142 +69,8 @@ function fmtDate(iso: string | null): string {
     return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function StatCard({
-    icon: Icon,
-    title,
-    value,
-    detail,
-    tone
-}: {
-    icon: React.ElementType;
-    title: string;
-    value: string;
-    detail: string;
-    tone: string;
-}): ReactElement {
-    return (
-        <article className="rounded-[16px] border border-[#eadfd6] bg-white p-3 shadow-[0_12px_30px_rgba(67,42,27,0.06)]">
-            <div className="flex items-center gap-3">
-                <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br', tone)}>
-                    <Icon size={18} className="text-[#4b2b21]" aria-hidden="true" />
-                </div>
-                <div className="min-w-0">
-                    <p className="text-[10px] font-medium text-[#7d6e63]">{title}</p>
-                    <p className="text-[18px] leading-none font-semibold tracking-tight text-[#2b1b14]">{value}</p>
-                    <p className="text-[10px] text-[#8b7b70]">{detail}</p>
-                </div>
-            </div>
-        </article>
-    );
-}
-
-function StatusPill({ status }: { status: LaundryStatus }): ReactElement {
-    return (
-        <span className={cn('inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide', statusStyles[status])}>
-            {statusLabels[status]}
-        </span>
-    );
-}
-
-function AccentButton({
-    children,
-    active,
-    onClick,
-    className
-}: {
-    children: React.ReactNode;
-    active?: boolean;
-    onClick?: () => void;
-    className?: string;
-}): ReactElement {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={cn(
-                'inline-flex h-9 items-center justify-center rounded-xl border px-3 text-[12px] font-medium transition',
-                active
-                    ? 'border-[#4b2b21] bg-[#4b2b21] text-white shadow-[0_10px_26px_rgba(75,43,33,0.28)]'
-                    : 'border-[#dccfca] bg-white text-[#4b2b21] hover:border-[#bfa89d] hover:bg-[#faf6f2]',
-                className
-            )}
-        >
-            {children}
-        </button>
-    );
-}
-
-function DetailLine({ label, value }: { label: string; value: string }): ReactElement {
-    return (
-        <div className="flex items-start justify-between gap-3">
-            <dt className="min-w-0 text-[#7d6d61]">{label}:</dt>
-            <dd className="min-w-0 text-right font-medium text-[#2b1b14]">{value}</dd>
-        </div>
-    );
-}
-
-function IconButton({
-    icon: Icon,
-    label,
-    onClick,
-    danger
-}: {
-    icon: React.ElementType;
-    label: string;
-    onClick?: () => void;
-    danger?: boolean;
-}): ReactElement {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={cn(
-                'inline-flex h-[38px] w-[38px] items-center justify-center rounded-full border bg-white shadow-sm transition',
-                danger
-                    ? 'border-[#f0c8c4] text-[#c94a43] hover:border-[#e5a0a0] hover:bg-[#fff5f5]'
-                    : 'border-[#ddd2c8] text-[#5a463a] hover:border-[#bfa89d] hover:bg-[#faf6f2]'
-            )}
-            title={label}
-            aria-label={label}
-        >
-            <Icon size={18} aria-hidden="true" />
-        </button>
-    );
-}
-
-function FilterSelect<T extends string>({
-    label,
-    value,
-    onChange,
-    options,
-    labels
-}: {
-    label: string;
-    value: T | 'TODOS';
-    onChange: (value: T | 'TODOS') => void;
-    options: T[];
-    labels?: Record<T, string>;
-}): ReactElement {
-    return (
-        <label className="flex h-8 min-w-[130px] shrink-0 cursor-pointer items-center gap-1 rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-2.5 text-[#8d7b70] transition focus-within:border-[#b08f7c] focus-within:bg-white">
-            <select
-                value={value}
-                onChange={(event) => onChange(event.target.value as T | 'TODOS')}
-                className="min-w-0 flex-1 appearance-none bg-transparent text-[11px] text-[#2b1b14] outline-none"
-            >
-                <option value="TODOS">{label}</option>
-                {options.map((option) => (
-                    <option key={option} value={option}>
-                        {labels ? labels[option] : option}
-                    </option>
-                ))}
-            </select>
-            <ChevronRight size={12} className="shrink-0 rotate-90 text-[#8d7b70] pointer-events-none" aria-hidden="true" />
-        </label>
-    );
-}
-
-// ---------- Modal de creación / edición ----------
+// ---------- Modal de creación / edición de órdenes ----------
+// PROCESO: Crear orden (Nueva Orden) y Editar orden existente.
 
 type LaundryFormState = {
     item: LaundryItemType;
@@ -254,12 +125,14 @@ function LaundryFormModal({
 
     const quantityNum = Number(form.quantity) || 0;
     const unitPriceNum = Number(form.unitPrice) || 0;
+    // PROCESO: Cálculo automático del total (cantidad × precio unitario)
     const total = quantityNum * unitPriceNum;
 
     function update<K extends keyof LaundryFormState>(key: K, value: LaundryFormState[K]) {
         setForm((prev) => ({ ...prev, [key]: value }));
     }
 
+    // PROCESO: Validación de campos (cliente, descripción, cantidad > 0, precio > 0)
     async function handleSubmit() {
         setError('');
 
@@ -282,6 +155,7 @@ function LaundryFormModal({
 
         setSaving(true);
         try {
+            // PROCESO: Envío a la API. Si hay 'laundry' → actualizar (PUT) / si no → crear (POST)
             const payload = {
                 item: form.item,
                 description: form.description.trim(),
@@ -295,8 +169,10 @@ function LaundryFormModal({
             };
 
             if (laundry) {
+                // PROCESO: Editar / actualizar orden existente (PUT /laundry/:id)
                 await updateLaundryRequest(laundry.id, { ...payload, status: form.status });
             } else {
+                // PROCESO: Crear nueva orden (POST /laundry)
                 await createLaundryRequest(payload);
             }
             onSave();
@@ -455,7 +331,8 @@ function LaundryFormModal({
     );
 }
 
-// ---------- Panel de detalle ----------
+// ---------- Panel de detalle de una orden ----------
+// PROCESO: Ver el detalle completo de una orden + botones avanzar estado / editar / eliminar.
 
 function LaundryDetailCard({
     laundry,
@@ -485,7 +362,7 @@ function LaundryDetailCard({
                         </h3>
                         <p className="text-[12px] text-[#6f6055]">Orden #{laundry.id}</p>
                     </div>
-                    <StatusPill status={status} />
+                    <StatusPill className={statusStyles[status]}>{statusLabels[status]}</StatusPill>
                 </div>
 
                 <div className="rounded-xl border border-[#ece0d7] bg-[#fcf7f1] px-4 py-3 text-[12px]">
@@ -552,6 +429,7 @@ function LaundryDetailCard({
 // ---------- Componente principal ----------
 
 export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
+    // Estado de la página (listado, filtros, selección, modales)
     const [orders, setOrders] = useState<Laundry[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -568,6 +446,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
 
     const isAdmin = user.role === 'ADMIN';
 
+    // PROCESO: Cargar el listado de órdenes desde la API (GET /laundry)
     const loadOrders = useCallback(() => {
         setLoading(true);
         laundryRequest()
@@ -586,6 +465,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // PROCESO: Búsqueda y filtros por estado y prenda
     const filteredOrders = orders.filter((order) => {
         const normalizedSearch = search.trim().toLowerCase();
         const matchesSearch =
@@ -602,6 +482,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
 
     const selectedOrder = filteredOrders.find((o) => o.id === selectedId) ?? filteredOrders[0];
 
+    // PROCESO: Cálculo de estadísticas (totales por estado)
     const stats = {
         total: orders.length,
         pendientes: orders.filter((o) => o.status === 'PENDIENTE').length,
@@ -615,6 +496,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
         setConfirmAction(() => onConfirm);
     }
 
+    // PROCESO: Avanzar el estado de la orden (PENDIENTE → EN_PROCESO → LISTO → ENTREGADO)
     function handleAdvanceStatus(order: Laundry) {
         const next: Partial<Record<LaundryStatus, LaundryStatus>> = {
             PENDIENTE: 'EN_PROCESO',
@@ -629,6 +511,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
             .catch((error) => console.error('Error updating status:', error));
     }
 
+    // PROCESO: Solicitar eliminación (admin → confirmación directa; otros → requiere contraseña admin)
     function requestDelete(id: number) {
         if (isAdmin) {
             confirmDelete(id);
@@ -638,6 +521,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
         }
     }
 
+    // PROCESO: Confirmar y eliminar la orden (DELETE /laundry/:id)
     function confirmDelete(id: number) {
         showConfirm(
             '¿Eliminar esta orden de lavandería?',
@@ -650,6 +534,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
         );
     }
 
+    // PROCESO: Al autorizar la contraseña admin, procede con la eliminación pendiente
     function onAdminAuthorized() {
         setShowAdminAuth(false);
         if (pendingDeleteId !== null) {
@@ -670,6 +555,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#f6f1eb] text-[#2b1b14]">
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
                 <div className="grid gap-2 py-2 xl:grid-cols-4">
+                    {/* PROCESO: Panel de estadísticas (total, pendientes, en proceso, listos) */}
                     <StatCard
                         icon={Shirt}
                         title="Total Órdenes"
@@ -708,16 +594,8 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                             </div>
 
                             <div className="flex items-center gap-1.5 flex-1 justify-end overflow-x-auto">
-                                <label className="flex h-8 min-w-[160px] items-center gap-1.5 rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-2.5 text-[#8d7b70] transition focus-within:border-[#b08f7c] focus-within:bg-white">
-                                    <Search size={14} aria-hidden="true" />
-                                    <input
-                                        type="text"
-                                        value={search}
-                                        onChange={(event) => setSearch(event.target.value)}
-                                        placeholder="Buscar cliente, habitación..."
-                                        className="w-full bg-transparent text-[10px] text-[#2b1b14] outline-none placeholder:text-[#a49486]"
-                                    />
-                                </label>
+                                {/* PROCESO: Buscador (cliente, habitación, descripción) */}
+                                <SearchInput value={search} onChange={setSearch} placeholder="Buscar cliente, habitación..." />
 
                                 <FilterSelect
                                     label="Estado"
@@ -726,6 +604,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                                     options={statusOptions}
                                     labels={statusLabels}
                                 />
+                                {/* PROCESO: Filtro por prenda */}
                                 <FilterSelect
                                     label="Prenda"
                                     value={itemFilter}
@@ -741,6 +620,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                                     }}
                                     className="gap-1.5 bg-[#4b2b21] text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
                                 >
+                                    {/* PROCESO: Botón para abrir el modal de creación de nueva orden */}
                                     <Plus size={14} aria-hidden="true" />
                                     Nueva Orden
                                 </AccentButton>
@@ -791,7 +671,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                                             </div>
 
                                             <div className="flex justify-center">
-                                                <StatusPill status={order.status as LaundryStatus} />
+                                                <StatusPill className={statusStyles[order.status as LaundryStatus]}>{statusLabels[order.status as LaundryStatus]}</StatusPill>
                                             </div>
 
                                             <div className="flex items-center justify-center gap-1.5">
@@ -836,6 +716,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
             </div>
 
             {showForm && (
+                // PROCESO: Modal de creación / edición (con 'editingOrder' presente → editar)
                 <LaundryFormModal
                     laundry={editingOrder ?? undefined}
                     onSave={() => {
@@ -851,6 +732,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
             )}
 
             {showAdminAuth && (
+                // PROCESO: Modal de autorización con contraseña de admin (para eliminar sin ser admin)
                 <AdminPasswordModal
                     onSuccess={onAdminAuthorized}
                     onClose={() => {
@@ -861,6 +743,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
             )}
 
             {confirmAction && (
+                // PROCESO: Modal de confirmación de eliminación
                 <ConfirmModal
                     title={confirmTitle}
                     message={confirmMessage}

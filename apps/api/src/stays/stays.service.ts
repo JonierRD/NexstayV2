@@ -178,7 +178,7 @@ export class StaysService {
       data: {
         clientId: client.id,
         roomNumber: dto.roomNumber,
-        checkIn: new Date(),
+        checkIn: dto.checkIn ? new Date(dto.checkIn) : new Date(),
         nights,
         pricePerNight,
         total,

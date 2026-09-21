@@ -616,6 +616,7 @@ export type CheckinInput = {
   roomNumber: string;
   acType: 'AIRE' | 'VENTILADOR';
   nights?: number;
+  checkIn?: string;
   adminPassword?: string;
 };
 

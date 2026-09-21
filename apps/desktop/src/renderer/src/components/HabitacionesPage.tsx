@@ -1,13 +1,11 @@
 import {
   BedDouble,
   CheckCircle,
-  ChevronRight,
   Clock3,
   Eye,
   Gavel,
   PencilLine,
   Plus,
-  Search,
   Wrench
 } from 'lucide-react';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
@@ -19,6 +17,13 @@ import { cn } from '../lib/utils';
 import { AdminPasswordModal } from './AdminPasswordModal';
 import { ConfirmModal } from './ConfirmModal';
 import { RoomFormModal } from './RoomFormModal';
+import { AccentButton } from './ui/accent-button';
+import { DetailLine } from './ui/detail-line';
+import { FilterSelect } from './ui/filter-select';
+import { IconButton } from './ui/icon-button';
+import { SearchInput } from './ui/search-input';
+import { StatCard } from './ui/stat-card';
+import { StatusPill } from './ui/status-pill';
 
 type RoomStatus = 'DISPONIBLE' | 'OCUPADA' | 'RESERVADA' | 'MANTENIMIENTO';
 type RoomType = 'DOSCAMAS' | 'MATRIMONIAL' | 'SENCILLA';
@@ -131,73 +136,6 @@ const statusStyles: Record<RoomStatus, string> = {
   RESERVADA: 'bg-[#fff5df] text-[#c78b14] border-[#f2dbab]',
   MANTENIMIENTO: 'bg-[#f5efe9] text-[#8f5e3d] border-[#dcc5b1]'
 };
-
-// Tarjeta de estadística del top (total, ocupadas, disponibles, reservadas, mantenimiento)
-function StatCard({
-  icon: Icon,
-  title,
-  value,
-  detail,
-  tone
-}: {
-  icon: React.ElementType;
-  title: string;
-  value: string;
-  detail: string;
-  tone: string;
-}): ReactElement {
-  return (
-    <article className="rounded-[16px] border border-[#eadfd6] bg-white p-3 shadow-[0_12px_30px_rgba(67,42,27,0.06)]">
-      <div className="flex items-center gap-3">
-        <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br', tone)}>
-          <Icon size={18} className="text-[#4b2b21]" aria-hidden="true" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-[10px] font-medium text-[#7d6e63]">{title}</p>
-          <p className="text-[18px] leading-none font-semibold tracking-tight text-[#2b1b14]">{value}</p>
-          <p className="text-[10px] text-[#8b7b70]">{detail}</p>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-// Etiqueta de estado con colores (verde=disponible, rojo=ocupada, etc.)
-function StatusPill({ status }: { status: RoomStatus }): ReactElement {
-  return (
-    <span className={cn('inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide', statusStyles[status])}>
-      {status}
-    </span>
-  );
-}
-
-function AccentButton({
-  children,
-  active,
-  onClick,
-  className
-}: {
-  children: React.ReactNode;
-  active?: boolean;
-  onClick?: () => void;
-  className?: string;
-}): ReactElement {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'inline-flex h-9 items-center justify-center rounded-xl border px-3 text-[12px] font-medium transition',
-        active
-          ? 'border-[#4b2b21] bg-[#4b2b21] text-white shadow-[0_10px_26px_rgba(75,43,33,0.28)]'
-          : 'border-[#dccfca] bg-white text-[#4b2b21] hover:border-[#bfa89d] hover:bg-[#faf6f2]',
-        className
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 // Panel derecho: detalle de la habitación seleccionada + botón "Liberar"
 function RoomDetailCard({
@@ -320,23 +258,6 @@ function RoomDetailCard({
         </div>
       </div>
     </section>
-  );
-}
-
-function DetailLine({
-  label,
-  value,
-  compact = false
-}: {
-  label: string;
-  value: string;
-  compact?: boolean;
-}): ReactElement {
-  return (
-    <div className={cn('flex items-start justify-between gap-3', compact && 'sm:block')}>
-      <dt className="min-w-0 text-[#7d6d61]">{label}:</dt>
-      <dd className={cn('min-w-0 text-right font-medium text-[#2b1b14]', compact && 'sm:text-left')}>{value}</dd>
-    </div>
   );
 }
 
@@ -699,16 +620,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
               </div>
 
               <div className="flex items-center gap-1.5 flex-1 justify-end overflow-x-auto">
-                <label className="flex h-8 min-w-[160px] items-center gap-1.5 rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-2.5 text-[#8d7b70] transition focus-within:border-[#b08f7c] focus-within:bg-white">
-                  <Search size={14} aria-hidden="true" />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Buscar habitación..."
-                    className="w-full bg-transparent text-[10px] text-[#2b1b14] outline-none placeholder:text-[#a49486]"
-                  />
-                </label>
+                <SearchInput value={search} onChange={setSearch} placeholder="Buscar habitación..." />
 
                 <FilterSelect label="Estado" value={statusFilter} onChange={setStatusFilter} options={['TODOS', 'DISPONIBLE', 'OCUPADA', 'RESERVADA', 'MANTENIMIENTO']} />
                 <FilterSelect label="Estilo" value={styleFilter} onChange={setStyleFilter} options={['TODOS', 'SENCILLA', 'MATRIMONIAL', 'DOS CAMAS']} />
@@ -764,7 +676,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
                       </div>
 
                       <div className="flex justify-center">
-                        <StatusPill status={room.status} />
+                        <StatusPill className={statusStyles[room.status]}>{room.status}</StatusPill>
                       </div>
 
                       <div className="text-[10px] text-[#5d4d42] text-center">{room.acType}</div>
@@ -859,57 +771,5 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
         />
       )}
     </div>
-  );
-}
-
-function FilterSelect<T extends string>({
-  label,
-  value,
-  onChange,
-  options
-}: {
-  label: string;
-  value: T;
-  onChange: (value: T) => void;
-  options: T[];
-}): ReactElement {
-  return (
-    <label className="flex h-8 min-w-[100px] shrink-0 cursor-pointer items-center gap-1 rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-2.5 text-[#8d7b70] transition focus-within:border-[#b08f7c] focus-within:bg-white">
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value as T)}
-        className="min-w-0 flex-1 appearance-none bg-transparent text-[11px] text-[#2b1b14] outline-none"
-      >
-        <option value="TODOS">{label}</option>
-        {options.filter((o) => o !== 'TODOS').map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      <ChevronRight size={12} className="shrink-0 rotate-90 text-[#8d7b70] pointer-events-none" aria-hidden="true" />
-    </label>
-  );
-}
-
-function IconButton({
-  icon: Icon,
-  label,
-  onClick
-}: {
-  icon: React.ElementType;
-  label: string;
-  onClick?: () => void;
-}): ReactElement {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex h-[38px] w-[38px] items-center justify-center rounded-full border border-[#ddd2c8] bg-white text-[#5a463a] shadow-sm hover:border-[#bfa89d] hover:bg-[#faf6f2] transition"
-      title={label}
-      aria-label={label}
-    >
-      <Icon size={18} aria-hidden="true" />
-    </button>
   );
 }

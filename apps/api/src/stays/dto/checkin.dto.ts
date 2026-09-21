@@ -50,5 +50,9 @@ export class CheckinDto {
 
   @IsString()
   @IsOptional()
+  checkIn?: string;
+
+  @IsString()
+  @IsOptional()
   adminPassword?: string;
 }
