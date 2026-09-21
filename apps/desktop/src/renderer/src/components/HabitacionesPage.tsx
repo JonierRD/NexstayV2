@@ -1,257 +1,16 @@
-import {
-  BedDouble,
-  CheckCircle,
-  Clock3,
-  Eye,
-  Gavel,
-  PencilLine,
-  Plus,
-  Wrench
-} from 'lucide-react';
+import { BedDouble, CheckCircle, Clock3, Gavel, Plus } from 'lucide-react';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { type Habitacion, type PublicUser, habitacionesRequest, updateHabitacionRequest, staysByRoomRequest, checkoutRequest, staysActiveRequest } from '../lib/api';
-import { cn } from '../lib/utils';
-import { formatCOP } from '../lib/format';
 import { AdminPasswordModal } from './AdminPasswordModal';
 import { ConfirmModal } from './ConfirmModal';
 import { RoomFormModal } from './RoomFormModal';
+import { RoomDetailCard } from './habitaciones/RoomDetailCard';
+import { RoomsTable } from './habitaciones/RoomsTable';
+import { mapApiRoom, type Room, type RoomStatus } from './habitaciones/types';
 import { AccentButton } from './ui/accent-button';
-import { DetailLine } from './ui/detail-line';
 import { FilterSelect } from './ui/filter-select';
-import { IconButton } from './ui/icon-button';
 import { SearchInput } from './ui/search-input';
 import { StatCard } from './ui/stat-card';
-import { StatusPill } from './ui/status-pill';
-
-type RoomStatus = 'DISPONIBLE' | 'OCUPADA' | 'RESERVADA' | 'MANTENIMIENTO';
-type RoomType = 'DOSCAMAS' | 'MATRIMONIAL' | 'SENCILLA';
-
-// Estructura de habitación para la UI (mezcla datos de Room API + Stay activo)
-type Room = {
-  number: string;
-  type: RoomType;
-  status: RoomStatus;
-  acType: string;
-  description: string;
-  image: string | null;
-  guest?: string;       // huésped actual (del stay activo)
-  checkIn?: string;
-  checkOut?: string;
-  nights?: number;
-  selectedAc?: string;
-  priceDisplay: string;
-  priceWithAir: number;
-  priceWithFan: number;
-  storeDebt: number;
-  heroTone: string;     // gradientes visuales
-  accentTone: string;
-  stayId?: number; // ID del hospedaje actual para editar
-  hasAir: boolean;
-  hasFan: boolean;
-};
-
-const heroTones = [
-  'from-[#8f654c] via-[#caa27f] to-[#f4e5d5]',
-  'from-[#9e8a74] via-[#d6c2aa] to-[#f8efe4]',
-  'from-[#937252] via-[#ccb090] to-[#f4eadf]',
-  'from-[#9f8163] via-[#dcc5aa] to-[#f7efe5]',
-  'from-[#84614a] via-[#c8a27d] to-[#f0e1d0]',
-  'from-[#8f7764] via-[#d7c2a9] to-[#f8f1e8]',
-  'from-[#927255] via-[#d7b794] to-[#f6ebe0]',
-  'from-[#8a6e58] via-[#d2baa1] to-[#f8f0e7]',
-  'from-[#9a7a5c] via-[#d9c4ad] to-[#f7efe4]',
-  'from-[#91765f] via-[#d3bda5] to-[#f7efe6]',
-  'from-[#9a816d] via-[#e0cdb6] to-[#f8f2ea]',
-  'from-[#8e7159] via-[#d6bfa6] to-[#f8f0e7]',
-  'from-[#95755e] via-[#d6c1aa] to-[#f8f0e8]',
-  'from-[#90705a] via-[#d2bca6] to-[#f8efe6]',
-  'from-[#8c6f58] via-[#d0baa2] to-[#f6eee4]',
-  'from-[#9a7c63] via-[#dcc8b2] to-[#f8efe6]',
-  'from-[#8a6f58] via-[#d4c0a9] to-[#f7efe7]'
-];
-
-const accentTones = [
-  'from-[#7a4a34] to-[#b97455]',
-  'from-[#9b7250] to-[#d7b18d]',
-  'from-[#7d4f31] to-[#b6805c]',
-  'from-[#926645] to-[#c89d75]',
-  'from-[#74462d] to-[#ad7854]',
-  'from-[#7d5439] to-[#c39970]',
-  'from-[#7e563c] to-[#c39573]',
-  'from-[#73472f] to-[#b37e58]',
-  'from-[#88583b] to-[#c29570]',
-  'from-[#7a4e35] to-[#b98260]',
-  'from-[#7d4f32] to-[#b58359]',
-  'from-[#825237] to-[#c28f6c]',
-  'from-[#7b4d34] to-[#be8e67]',
-  'from-[#7a4b31] to-[#b58462]',
-  'from-[#73482f] to-[#ad7e5a]',
-  'from-[#84553a] to-[#c0946c]',
-  'from-[#73472d] to-[#b8845d]'
-];
-
-// Convierte una habitación de la API (Habitacion) a la estructura local Room
-function mapApiRoom(apiRoom: Habitacion, index: number): Room {
-  const typeLabel: Record<string, string> = {
-    DOSCAMAS: 'Dos Camas',
-    MATRIMONIAL: 'Matrimonial',
-    SENCILLA: 'Sencilla'
-  };
-  const fmtPrice = (v: number | null) => v !== null ? formatCOP(v) : null;
-  const priceFanDsp = fmtPrice(apiRoom.priceWithFan);
-  const priceAirDsp = fmtPrice(apiRoom.priceWithAir);
-  const priceFanNum = apiRoom.priceWithFan ?? 0;
-  const priceAirNum = apiRoom.priceWithAir ?? 0;
-  const acLabel = apiRoom.hasAir && apiRoom.hasFan ? 'Aire / Ventilador' : apiRoom.hasAir ? 'Aire acondicionado' : apiRoom.hasFan ? 'Ventilador' : '---';
-  return {
-    number: apiRoom.number,
-    type: apiRoom.type,
-    status: apiRoom.status,
-    image: apiRoom.image,
-    acType: acLabel,
-    description: `Habitación ${typeLabel[apiRoom.type]}`,
-    selectedAc: apiRoom.hasAir ? 'Aire' : apiRoom.hasFan ? 'Ventilador' : '---',
-    priceDisplay: priceAirDsp && priceFanDsp ? `${priceAirDsp} / ${priceFanDsp}` : (priceAirDsp || priceFanDsp || '---'),
-    priceWithAir: priceAirNum,
-    priceWithFan: priceFanNum,
-    storeDebt: 0,
-    heroTone: heroTones[index % heroTones.length],
-    accentTone: accentTones[index % accentTones.length],
-    hasAir: apiRoom.hasAir,
-    hasFan: apiRoom.hasFan
-  };
-}
-
-const statusStyles: Record<RoomStatus, string> = {
-  DISPONIBLE: 'bg-[#e9f6eb] text-[#2f8f4e] border-[#c6e8cf]',
-  OCUPADA: 'bg-[#fff0ee] text-[#c94a43] border-[#f0c8c4]',
-  RESERVADA: 'bg-[#fff5df] text-[#c78b14] border-[#f2dbab]',
-  MANTENIMIENTO: 'bg-[#f5efe9] text-[#8f5e3d] border-[#dcc5b1]'
-};
-
-// Panel derecho: detalle de la habitación seleccionada + botón "Liberar"
-function RoomDetailCard({
-  room,
-  canManageImage,
-  onLiberar,
-  onAddImage,
-  onRemoveImage
-}: {
-  room: Room;
-  canManageImage: boolean; // solo admin puede cambiar/eliminar imagen
-  onLiberar: () => void;
-  onAddImage: () => void;
-  onRemoveImage: () => void;
-}): ReactElement {
-  // Cálculo del total a cobrar según el A/C que seleccionó el huésped
-  const nights = room.nights ?? 1;
-  const selectedPrice = room.selectedAc === 'Aire' && room.priceWithAir > 0 ? room.priceWithAir : room.priceWithFan > 0 ? room.priceWithFan : 0;
-  const roomTotal = nights * selectedPrice;
-  const grandTotal = roomTotal + room.storeDebt;
-  const fmt = formatCOP;
-
-  return (
-    <section className="flex min-h-0 w-full flex-col rounded-[26px] border border-[#eadfd6] bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[420px]">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px]">
-        <div className="relative h-[240px] overflow-hidden group">
-          {room.image ? (
-            <>
-              <img src={room.image} alt={room.type} className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.05),rgba(0,0,0,0.35))]" />
-            </>
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[#f6f1eb] text-center">
-              <div>
-                <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#8d7b70] shadow-sm">
-                  <Wrench size={22} aria-hidden="true" />
-                </div>
-                <p className="text-[12px] font-medium text-[#6f6055]">Sin imagen</p>
-                <p className="mt-1 text-[10px] text-[#8d7b70]">El administrador puede agregar o reemplazar una imagen</p>
-              </div>
-            </div>
-          )}
-
-          {canManageImage && (
-            <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-              <button
-                type="button"
-                onClick={onAddImage}
-                className="flex items-center justify-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm hover:bg-black/60"
-              >
-                <PencilLine size={13} aria-hidden="true" />
-                Reemplazar imagen
-              </button>
-              <button
-                type="button"
-                onClick={onRemoveImage}
-                className="flex items-center justify-center gap-1.5 rounded-full bg-[#a53b35]/85 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm hover:bg-[#8f2f2a]"
-              >
-                <Wrench size={13} aria-hidden="true" />
-                Eliminar imagen
-              </button>
-            </div>
-          )}
-
-          <div className={cn('absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-lg', room.accentTone)}>
-            {room.status}
-          </div>
-          <div className="absolute bottom-3 right-3 text-right">
-            <p className="text-[13px] font-bold text-white drop-shadow-lg">{room.priceDisplay}</p>
-            <p className="text-[10px] text-white/80 drop-shadow">por noche</p>
-          </div>
-        </div>
-
-        <div className="flex flex-1 flex-col gap-2 p-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-[18px] font-bold tracking-tight text-[#2b1b14]">{room.number}</h3>
-              <p className="text-[12px] text-[#6f6055]">{room.description}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-xl border border-[#ece0d7] bg-[#fcf7f1] px-4 py-3 text-[12px]">
-            <DetailLine label="Tipo" value={room.type === 'DOSCAMAS' ? 'Dos Camas' : room.type === 'MATRIMONIAL' ? 'Matrimonial' : 'Sencilla'} />
-            <DetailLine label="A/C" value={room.acType} />
-          </div>
-
-          <div className="rounded-xl border border-[#c3b5a8] bg-[#f9f0e6] px-4 py-3">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8d7b70]">Precios</h4>
-            <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
-              {room.priceWithAir > 0 && <DetailLine label="Con aire" value={fmt(room.priceWithAir)} />}
-              {room.priceWithFan > 0 && <DetailLine label="Con ventilador" value={fmt(room.priceWithFan)} />}
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[#ece0d7] bg-[#fcf7f1] px-4 py-3">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8d7b70]">Huésped Actual</h4>
-            <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
-              <DetailLine label="Nombre" value={room.guest ?? 'Sin huésped'} />
-              <DetailLine label="Noches" value={room.nights?.toString() ?? '1'} />
-              <DetailLine label="Seleccionó" value={room.selectedAc ?? '---'} />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[#c3b5a8] bg-[#f9f0e6] px-4 py-3">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8d7b70]">Total a Cobrar</h4>
-            <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
-              <DetailLine label="Habitación" value={`${fmt(selectedPrice)} × ${nights} ${nights === 1 ? 'noche' : 'noches'}`} />
-              <DetailLine label="Subtotal hospedaje" value={fmt(roomTotal)} />
-              <DetailLine label="Servicios Extra" value={fmt(room.storeDebt)} />
-              <DetailLine label="Total" value={fmt(grandTotal)} />
-            </div>
-          </div>
-
-          <div className="mt-auto flex gap-2 pt-1">
-            <AccentButton onClick={onLiberar} className="flex-1 gap-1.5 h-8 text-[11px] border-[#efb7b7] bg-white text-[#d13d3d] hover:border-[#e5a0a0] hover:bg-[#fff5f5]">
-              <Wrench size={13} aria-hidden="true" />
-              Liberar
-            </AccentButton>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
   const [rooms, setRooms] = useState<Room[]>([]);      // habitaciones ya mapeadas para UI
@@ -296,7 +55,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
     ])
       .then(([roomsData, staysData]) => {
         setApiRooms(roomsData);
-        
+
         // Mapa para cruzar cada habitación con su stay activo
         const staysByRoom = new Map();
         staysData.forEach(stay => {
@@ -306,7 +65,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
         const mapped = roomsData.map((r, i) => {
           const room = mapApiRoom(r, i);
           const activeStay = staysByRoom.get(r.number);
-          
+
           if (activeStay && activeStay.client) {
             room.guest = `${activeStay.client.firstName} ${activeStay.client.lastName}`;
             room.nights = activeStay.nights;
@@ -315,10 +74,10 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
             room.selectedAc = activeStay.acTypeUsed;
             room.stayId = activeStay.id;
           }
-          
+
           return room;
         });
-        
+
         setRooms(mapped);
         if (mapped.length > 0 && !mapped.find((r) => r.number === selectedRoomNumber)) {
           setSelectedRoomNumber(mapped[0].number);
@@ -494,7 +253,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
           ...(adminAuthPassword ? { adminPassword: adminAuthPassword } : {})
         });
       }
-      
+
       loadRooms();
     } catch (err) {
       // Si el error es por hospedaje activo, mostrar mensaje específico
@@ -628,78 +387,21 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
               </div>
             </div>
 
-            <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-[#ebe1d8]">
-              <div className="grid grid-cols-[100px_60px_1fr_120px_1fr_100px] gap-2 border-b border-[#ece2d8] bg-[#fbf7f2] px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#8f7c70] min-w-[600px]">
-                <div>Habitación</div>
-                <div />
-                <div>Descripción</div>
-                <div className="text-center">Estado</div>
-                <div className="text-center">A/V</div>
-                <div className="text-center">Acción</div>
-              </div>
-
-              <div className="flex-1 overflow-auto min-w-[600px]">
-                {filteredRooms.map((room) => {
-                  const isSelected = room.number === selectedRoom?.number;
-                  return (
-                    <button
-                      key={room.number}
-                      type="button"
-                      onClick={() => setSelectedRoomNumber(room.number)}
-                      className={cn(
-                        'grid w-full grid-cols-[100px_60px_1fr_120px_1fr_100px] items-center gap-2 border-b border-[#f1e7de] px-3 py-2 text-left transition last:border-b-0',
-                        isSelected ? 'bg-[#fff7ef]' : 'bg-white hover:bg-[#fdfaf7]'
-                      )}
-                    >
-                      <div className="flex h-[90px] items-center justify-center overflow-hidden rounded-[16px] bg-[#f6f1eb]">
-                        {room.image ? (
-                          <img src={room.image} alt={room.type} className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-[#8d7b70]">Sin imagen</div>
-                        )}
-                      </div>
-
-                      <div>
-                        <p className="text-[14px] font-semibold text-[#2b1b14]">{room.number}</p>
-                      </div>
-
-                      <div className="min-w-0">
-                        <p className="text-[11px] leading-4 text-[#4e4037]">{room.description}</p>
-                      </div>
-
-                      <div className="flex justify-center">
-                        <StatusPill className={statusStyles[room.status]}>{room.status}</StatusPill>
-                      </div>
-
-                      <div className="text-[10px] text-[#5d4d42] text-center">{room.acType}</div>
-
-                      <div className="flex items-center justify-center gap-2">
-                        <IconButton
-                          label="Editar"
-                          icon={PencilLine}
-                          onClick={() => requireAuth('edit', room.number)}
-                        />
-                        <IconButton
-                          label="Ver"
-                          icon={Eye}
-                          onClick={() => setSelectedRoomNumber(room.number)}
-                        />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
+            <RoomsTable
+              rooms={filteredRooms}
+              selectedNumber={selectedRoom?.number}
+              onSelect={setSelectedRoomNumber}
+              onEdit={(number) => requireAuth('edit', number)}
+            />
           </section>
 
           {selectedRoom && (
             <RoomDetailCard
               room={selectedRoom}
-                canManageImage={isAdmin}
+              canManageImage={isAdmin}
               onLiberar={() => requireAuth('liberar', selectedRoom.number)}
-                onAddImage={() => handleAddImage(selectedRoom.number)}
-                onRemoveImage={() => handleRemoveImage(selectedRoom.number)}
+              onAddImage={() => handleAddImage(selectedRoom.number)}
+              onRemoveImage={() => handleRemoveImage(selectedRoom.number)}
             />
           )}
 
