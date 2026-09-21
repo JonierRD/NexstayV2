@@ -40,16 +40,16 @@ export function RoomsTable({
                 isSelected ? 'bg-[#fff7ef]' : 'bg-white hover:bg-[#fdfaf7]'
               )}
             >
-              <div className="flex h-[90px] items-center justify-center overflow-hidden rounded-[16px] bg-[#f6f1eb]">
+              <div className="flex h-[90px] items-center justify-center overflow-hidden rounded-[16px] bg-sapay-250">
                 {room.image ? (
                   <img src={room.image} alt={room.type} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-[#8d7b70]">Sin imagen</div>
+                  <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-sapay-650">Sin imagen</div>
                 )}
               </div>
 
               <div>
-                <p className="text-[14px] font-semibold text-[#2b1b14]">{room.number}</p>
+                <p className="text-[14px] font-semibold text-sapay-950">{room.number}</p>
               </div>
 
               <div className="min-w-0">

@@ -46,8 +46,8 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   return (
     <div className="flex h-full flex-col p-4">
       <div className="mb-4">
-        <h1 className="text-lg font-semibold text-[#2b1b14]">Recepción - Check-In</h1>
-        <p className="text-xs text-[#7d6e63]">Registro de huéspedes y asignación de habitaciones</p>
+        <h1 className="text-lg font-semibold text-sapay-950">Recepción - Check-In</h1>
+        <p className="text-xs text-sapay-700">Registro de huéspedes y asignación de habitaciones</p>
       </div>
 
       {error && (
@@ -68,7 +68,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
       {!success && (
         <div className="flex flex-1 gap-4 overflow-hidden">
           {/* Panel Izquierdo - Formulario */}
-          <div className="flex-1 overflow-y-auto rounded-2xl border border-[#eadfd6] bg-white p-6">
+          <div className="flex-1 overflow-y-auto rounded-2xl border border-sapay-350 bg-white p-6">
             {step === 'CLIENT_DATA' && (
               <ClientDataStep
                 ccSearch={ccSearch}

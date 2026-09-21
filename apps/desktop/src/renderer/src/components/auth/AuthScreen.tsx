@@ -52,10 +52,10 @@ export function AuthScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
         <div className="w-full max-w-[430px] overflow-hidden rounded-2xl border border-white/75 bg-white px-6 py-5 text-foreground shadow-[0_30px_90px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:px-7 sm:py-6">
           <div className="flex flex-col items-center text-center">
             <img src={Logo} alt="SAPAY Hotel" className="h-[102px] w-[102px] object-contain" />
-            <p className="-mt-1 text-[13px] font-semibold uppercase tracking-[0.24em] text-[#24140f]">
+            <p className="-mt-1 text-[13px] font-semibold uppercase tracking-[0.24em] text-sapay-1000">
               - HOTEL-
             </p>
-            <h2 className="mt-3 text-[20px] font-semibold tracking-tight text-[#24140f]">
+            <h2 className="mt-3 text-[20px] font-semibold tracking-tight text-sapay-1000">
               {mode === 'login'
                 ? 'Bienvenido a SAPAY'
                 : mode === 'register'
@@ -76,7 +76,7 @@ export function AuthScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
                     : 'Ingresa el código y tu nueva contraseña.'}
             </p>
             {mode === 'register' ? (
-              <p className="mt-2 text-[11px] font-medium text-[#4b2b21]">
+              <p className="mt-2 text-[11px] font-medium text-sapay-900">
                 Para registrar un usuario debes ingresar la contraseña de un administrador activo.
               </p>
             ) : null}
@@ -87,8 +87,8 @@ export function AuthScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
               <div
                 className={`rounded-md border px-3 py-2 text-[12px] ${
                   auth.status.kind === 'success'
-                    ? 'border-[#bfe4c9] bg-[#eef9f1] text-[#2f8f4e]'
-                    : 'border-[#f1c2c2] bg-[#fff0f0] text-[#b33a3a]'
+                    ? 'border-[#bfe4c9] bg-[#eef9f1] text-success'
+                    : 'border-danger-200 bg-danger-100 text-[#b33a3a]'
                 }`}
               >
                 {auth.status.message}
@@ -172,24 +172,24 @@ export function AuthScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
                   onClick={() => auth.handleAccessCardClick(card.role)}
                   className={`rounded-md border bg-white px-3 py-3 text-left transition hover:border-[#bcbcbc] hover:shadow-[0_8px_18px_rgba(0,0,0,0.06)] ${
                     (mode === 'login' ? auth.login.role : auth.register.role) === card.role
-                      ? 'border-[#4b2b21] ring-1 ring-[#4b2b21]/20'
+                      ? 'border-sapay-900 ring-1 ring-sapay-900/20'
                       : 'border-[#dcdcdc]'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div
                       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                        card.title === 'Recepcionista' ? 'bg-[#f3c331]' : 'bg-[#4b2b21]'
+                        card.title === 'Recepcionista' ? 'bg-[#f3c331]' : 'bg-sapay-900'
                       }`}
                     >
                       <card.icon
-                        className={card.title === 'Recepcionista' ? 'text-[#24140f]' : 'text-white'}
+                        className={card.title === 'Recepcionista' ? 'text-sapay-1000' : 'text-white'}
                         size={17}
                         aria-hidden="true"
                       />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-[13px] font-semibold text-[#24140f]">{card.title}</h3>
+                      <h3 className="text-[13px] font-semibold text-sapay-1000">{card.title}</h3>
                       <p className="mt-0.5 text-[10px] leading-4 text-[#474747]">{card.description}</p>
                     </div>
                   </div>

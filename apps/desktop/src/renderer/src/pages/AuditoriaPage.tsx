@@ -15,14 +15,14 @@ const actionLabels: Record<AuditAction, string> = {
 };
 
 const actionColors: Record<AuditAction, string> = {
-  CREATE: 'bg-[#e9f6eb] text-[#2f8f4e] border-[#c6e8cf]',
-  UPDATE: 'bg-[#fff5df] text-[#c78b14] border-[#f2dbab]',
-  DELETE: 'bg-[#fff0ee] text-[#c94a43] border-[#f0c8c4]',
-  LOGIN: 'bg-[#e9f6eb] text-[#2f8f4e] border-[#c6e8cf]',
+  CREATE: 'bg-success-50 text-success border-success-100',
+  UPDATE: 'bg-[#fff5df] text-gold border-[#f2dbab]',
+  DELETE: 'bg-danger-50 text-danger border-danger-150',
+  LOGIN: 'bg-success-50 text-success border-success-100',
   LOGOUT: 'bg-[#f5efe9] text-[#8f5e3d] border-[#dcc5b1]',
-  CHECK_IN: 'bg-[#e9f6eb] text-[#2f8f4e] border-[#c6e8cf]',
+  CHECK_IN: 'bg-success-50 text-success border-success-100',
   CHECK_OUT: 'bg-[#f5efe9] text-[#8f5e3d] border-[#dcc5b1]',
-  STATUS_CHANGE: 'bg-[#fff5df] text-[#c78b14] border-[#f2dbab]'
+  STATUS_CHANGE: 'bg-[#fff5df] text-gold border-[#f2dbab]'
 };
 
 function formatDate(dateString: string): string {
@@ -83,30 +83,30 @@ export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
 
   if (loading) {
     return (
-      <div className="flex min-h-0 flex-1 items-center justify-center bg-[#f6f1eb]">
-        <div className="text-[11px] text-[#7d6d61]">Cargando historial...</div>
+      <div className="flex min-h-0 flex-1 items-center justify-center bg-sapay-250">
+        <div className="text-[11px] text-sapay-750">Cargando historial...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#f6f1eb] text-[#2b1b14]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-sapay-250 text-sapay-950">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
         <div className="mb-3">
-          <h2 className="text-[13px] font-semibold text-[#2b1b14]">Historial de Cambios</h2>
-          <p className="text-[10px] text-[#7d6d61]">Registro de todas las acciones importantes en el sistema</p>
+          <h2 className="text-[13px] font-semibold text-sapay-950">Historial de Cambios</h2>
+          <p className="text-[10px] text-sapay-750">Registro de todas las acciones importantes en el sistema</p>
         </div>
 
         <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-1 items-center gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8d7b70]" size={14} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-sapay-650" size={14} />
               <input
                 type="text"
                 placeholder="Buscar en historial..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-[#e0d4ca] bg-white px-3 py-2 pl-9 text-[11px] outline-none focus:border-[#b08f7c] placeholder:text-[#a49486]"
+                className="w-full rounded-xl border border-sapay-400 bg-white px-3 py-2 pl-9 text-[11px] outline-none focus:border-sapay-600 placeholder:text-sapay-550"
               />
             </div>
           </div>
@@ -115,7 +115,7 @@ export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
             <select
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value as AuditAction | 'TODOS')}
-              className="rounded-xl border border-[#e0d4ca] bg-white px-3 py-2 text-[11px] outline-none focus:border-[#b08f7c]"
+              className="rounded-xl border border-sapay-400 bg-white px-3 py-2 text-[11px] outline-none focus:border-sapay-600"
             >
               <option value="TODOS">Todas las acciones</option>
               <option value="CREATE">Crear</option>
@@ -131,7 +131,7 @@ export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
             <select
               value={entityFilter}
               onChange={(e) => setEntityFilter(e.target.value)}
-              className="rounded-xl border border-[#e0d4ca] bg-white px-3 py-2 text-[11px] outline-none focus:border-[#b08f7c]"
+              className="rounded-xl border border-sapay-400 bg-white px-3 py-2 text-[11px] outline-none focus:border-sapay-600"
             >
               <option value="TODOS">Todas las entidades</option>
               {uniqueEntities.map((entity) => (
@@ -143,35 +143,35 @@ export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
           </div>
         </div>
 
-        <div className="mb-2 rounded-xl border border-[#eadfd6] bg-white px-4 py-2">
-          <p className="text-[10px] text-[#7d6d61]">
+        <div className="mb-2 rounded-xl border border-sapay-350 bg-white px-4 py-2">
+          <p className="text-[10px] text-sapay-750">
             Mostrando {filteredLogs.length} de {total} registros
           </p>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
-          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-[20px] border border-[#eadfd6] bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)]">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-[20px] border border-sapay-350 bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)]">
             {filteredLogs.length === 0 ? (
               <div className="flex h-full items-center justify-center text-center">
                 <div>
-                  <Filter className="mx-auto mb-2 text-[#8d7b70]" size={24} />
-                  <p className="text-[11px] text-[#7d6d61]">No se encontraron registros</p>
+                  <Filter className="mx-auto mb-2 text-sapay-650" size={24} />
+                  <p className="text-[11px] text-sapay-750">No se encontraron registros</p>
                 </div>
               </div>
             ) : (
               filteredLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="flex flex-col gap-2 rounded-xl border border-[#ece0d7] bg-[#fcfaf8] p-3 transition hover:border-[#d4c8be]"
+                  className="flex flex-col gap-2 rounded-xl border border-sapay-300 bg-sapay-100 p-3 transition hover:border-[#d4c8be]"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f0dfc9]">
-                        <User size={14} className="text-[#4b2b21]" />
+                        <User size={14} className="text-sapay-900" />
                       </div>
                       <div>
-                        <p className="text-[11px] font-medium text-[#2b1b14]">{log.user.fullName}</p>
-                        <p className="text-[10px] text-[#7d6d61]">
+                        <p className="text-[11px] font-medium text-sapay-950">{log.user.fullName}</p>
+                        <p className="text-[10px] text-sapay-750">
                           {log.user.role === 'ADMIN' ? 'Administrador' : 'Recepcionista'}
                         </p>
                       </div>
@@ -182,7 +182,7 @@ export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
                       >
                         {actionLabels[log.action]}
                       </span>
-                      <div className="flex items-center gap-1 text-[10px] text-[#7d6d61]">
+                      <div className="flex items-center gap-1 text-[10px] text-sapay-750">
                         <Calendar size={12} />
                         {formatDate(log.createdAt)}
                       </div>
@@ -190,9 +190,9 @@ export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
                   </div>
 
                   <div className="mt-1 rounded-lg border border-[#e9ddd3] bg-white px-3 py-2">
-                    <p className="text-[11px] text-[#2b1b14]">{log.description}</p>
+                    <p className="text-[11px] text-sapay-950">{log.description}</p>
                     {log.entity && (
-                      <p className="mt-1 text-[10px] text-[#8d7b70]">
+                      <p className="mt-1 text-[10px] text-sapay-650">
                         Entidad: <span className="font-medium">{log.entity}</span>
                         {log.entityId && <span className="ml-1">({log.entityId})</span>}
                       </p>

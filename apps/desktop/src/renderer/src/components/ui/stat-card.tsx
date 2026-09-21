@@ -15,14 +15,14 @@ export function StatCard({
   tone: string;
 }): ReactElement {
   return (
-    <article className="rounded-[16px] border border-[#eadfd6] bg-white p-3 shadow-[0_12px_30px_rgba(67,42,27,0.06)]">
+    <article className="rounded-[16px] border border-sapay-350 bg-white p-3 shadow-[0_12px_30px_rgba(67,42,27,0.06)]">
       <div className="flex items-center gap-3">
         <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br', tone)}>
-          <Icon size={18} className="text-[#4b2b21]" aria-hidden="true" />
+          <Icon size={18} className="text-sapay-900" aria-hidden="true" />
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] font-medium text-[#7d6e63]">{title}</p>
-          <p className="text-[18px] leading-none font-semibold tracking-tight text-[#2b1b14]">{value}</p>
+          <p className="text-[10px] font-medium text-sapay-700">{title}</p>
+          <p className="text-[18px] leading-none font-semibold tracking-tight text-sapay-950">{value}</p>
           <p className="text-[10px] text-[#8b7b70]">{detail}</p>
         </div>
       </div>

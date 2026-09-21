@@ -23,15 +23,15 @@ export function InventoryStats({
   return (
     <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
       {/* Total Productos */}
-      <div className="rounded-2xl border border-[#eadfd6] bg-white p-3 shadow-sm">
+      <div className="rounded-2xl border border-sapay-350 bg-white p-3 shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-[#7d6d61]">Total Productos</span>
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#faf6f2] text-[#4b2b21]">
+          <span className="text-[11px] font-medium text-sapay-750">Total Productos</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sapay-200 text-sapay-900">
             <Boxes size={14} />
           </div>
         </div>
-        <p className="mt-1.5 text-xl font-bold text-[#2b1b14]">{metrics.totalItems}</p>
-        <p className="text-[10px] text-[#7d6d61]">{metrics.totalUnits} unidades en stock</p>
+        <p className="mt-1.5 text-xl font-bold text-sapay-950">{metrics.totalItems}</p>
+        <p className="text-[10px] text-sapay-750">{metrics.totalUnits} unidades en stock</p>
       </div>
 
       {/* Stock Normal */}
@@ -40,18 +40,18 @@ export function InventoryStats({
         className={cn(
           'cursor-pointer rounded-2xl border p-3 transition shadow-sm',
           stockFilter === 'NORMAL'
-            ? 'border-[#2f8f4e] bg-[#f2faf3]'
-            : 'border-[#eadfd6] bg-white hover:border-[#c6e8cf]'
+            ? 'border-success bg-[#f2faf3]'
+            : 'border-sapay-350 bg-white hover:border-success-100'
         )}
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-[#2f8f4e]">Stock Normal</span>
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#e9f6eb] text-[#2f8f4e]">
+          <span className="text-[11px] font-medium text-success">Stock Normal</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-success-50 text-success">
             <CheckCircle2 size={14} />
           </div>
         </div>
-        <p className="mt-1.5 text-xl font-bold text-[#2f8f4e]">{metrics.normalCount}</p>
-        <p className="text-[10px] text-[#2f8f4e]/80">Existencias óptimas</p>
+        <p className="mt-1.5 text-xl font-bold text-success">{metrics.normalCount}</p>
+        <p className="text-[10px] text-success/80">Existencias óptimas</p>
       </div>
 
       {/* Stock Bajo / Alerta */}
@@ -60,18 +60,18 @@ export function InventoryStats({
         className={cn(
           'cursor-pointer rounded-2xl border p-3 transition shadow-sm',
           stockFilter === 'LOW'
-            ? 'border-[#c78b14] bg-[#fffbf2]'
-            : 'border-[#eadfd6] bg-white hover:border-[#f2dbab]'
+            ? 'border-gold bg-[#fffbf2]'
+            : 'border-sapay-350 bg-white hover:border-[#f2dbab]'
         )}
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-[#c78b14]">Stock Crítico</span>
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fff5df] text-[#c78b14]">
+          <span className="text-[11px] font-medium text-gold">Stock Crítico</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fff5df] text-gold">
             <AlertTriangle size={14} />
           </div>
         </div>
-        <p className="mt-1.5 text-xl font-bold text-[#c78b14]">{metrics.lowStockCount}</p>
-        <p className="text-[10px] text-[#c78b14]/80">Cerca del mín.</p>
+        <p className="mt-1.5 text-xl font-bold text-gold">{metrics.lowStockCount}</p>
+        <p className="text-[10px] text-gold/80">Cerca del mín.</p>
       </div>
 
       {/* Agotados */}
@@ -80,18 +80,18 @@ export function InventoryStats({
         className={cn(
           'cursor-pointer rounded-2xl border p-3 transition shadow-sm',
           stockFilter === 'OUT'
-            ? 'border-[#c94a43] bg-[#fff5f5]'
-            : 'border-[#eadfd6] bg-white hover:border-[#f0c8c4]'
+            ? 'border-danger bg-[#fff5f5]'
+            : 'border-sapay-350 bg-white hover:border-danger-150'
         )}
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-[#c94a43]">Agotados</span>
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fff0ee] text-[#c94a43]">
+          <span className="text-[11px] font-medium text-danger">Agotados</span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-danger-50 text-danger">
             <TrendingDown size={14} />
           </div>
         </div>
-        <p className="mt-1.5 text-xl font-bold text-[#c94a43]">{metrics.outOfStockCount}</p>
-        <p className="text-[10px] text-[#c94a43]/80">Sin existencias</p>
+        <p className="mt-1.5 text-xl font-bold text-danger">{metrics.outOfStockCount}</p>
+        <p className="text-[10px] text-danger/80">Sin existencias</p>
       </div>
     </div>
   );

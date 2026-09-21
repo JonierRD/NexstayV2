@@ -4,9 +4,9 @@ export type LaundryStatus = 'PENDIENTE' | 'EN_PROCESO' | 'LISTO' | 'ENTREGADO';
 export type LaundryItemType = 'CAMISA' | 'PANTALON' | 'TOALLA' | 'SABANA' | 'FUNDAS_ALMOHADA' | 'EDREDON' | 'OTRO';
 
 export const statusStyles: Record<LaundryStatus, string> = {
-    PENDIENTE: 'bg-[#fff5df] text-[#c78b14] border-[#f2dbab]',
+    PENDIENTE: 'bg-[#fff5df] text-gold border-[#f2dbab]',
     EN_PROCESO: 'bg-[#eaf1fb] text-[#2f6f9f] border-[#c6dcf0]',
-    LISTO: 'bg-[#e9f6eb] text-[#2f8f4e] border-[#c6e8cf]',
+    LISTO: 'bg-success-50 text-success border-success-100',
     ENTREGADO: 'bg-[#f5efe9] text-[#8f5e3d] border-[#dcc5b1]'
 };
 

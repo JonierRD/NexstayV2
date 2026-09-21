@@ -16,8 +16,8 @@ export function AccentButton({
       className={cn(
         'inline-flex h-9 items-center justify-center rounded-xl border px-3 text-[12px] font-medium transition',
         active
-          ? 'border-[#4b2b21] bg-[#4b2b21] text-white shadow-[0_10px_26px_rgba(75,43,33,0.28)]'
-          : 'border-[#dccfca] bg-white text-[#4b2b21] hover:border-[#bfa89d] hover:bg-[#faf6f2]',
+          ? 'border-sapay-900 bg-sapay-900 text-white shadow-[0_10px_26px_rgba(75,43,33,0.28)]'
+          : 'border-sapay-450 bg-white text-sapay-900 hover:border-sapay-500 hover:bg-sapay-200',
         className
       )}
       {...rest}

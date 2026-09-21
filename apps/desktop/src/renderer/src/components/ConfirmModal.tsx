@@ -22,28 +22,28 @@ export function ConfirmModal({
 }: ConfirmModalProps): ReactElement {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40">
-      <div className="relative w-full max-w-[360px] rounded-2xl border border-[#eadfd6] bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
+      <div className="relative w-full max-w-[360px] rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 text-[#8d7b70] hover:text-[#4b2b21] transition"
+          className="absolute right-3 top-3 text-sapay-650 hover:text-sapay-900 transition"
         >
           <X size={18} />
         </button>
 
         <div className="flex flex-col items-center text-center">
-          <div className={cn('flex h-12 w-12 items-center justify-center rounded-full', confirmDanger ? 'bg-[#fff0ee]' : 'bg-[#fff5df]')}>
-            <AlertTriangle size={24} className={confirmDanger ? 'text-[#c94a43]' : 'text-[#c78b14]'} />
+          <div className={cn('flex h-12 w-12 items-center justify-center rounded-full', confirmDanger ? 'bg-danger-50' : 'bg-[#fff5df]')}>
+            <AlertTriangle size={24} className={confirmDanger ? 'text-danger' : 'text-gold'} />
           </div>
-          <h3 className="mt-3 text-[15px] font-semibold text-[#2b1b14]">{title}</h3>
-          <p className="mt-1 text-[11px] text-[#7d6d61]">{message}</p>
+          <h3 className="mt-3 text-[15px] font-semibold text-sapay-950">{title}</h3>
+          <p className="mt-1 text-[11px] text-sapay-750">{message}</p>
         </div>
 
         <div className="mt-5 flex gap-2">
           <Button
             type="button"
             onClick={onClose}
-            className="flex-1 h-9 rounded-xl border border-[#dccfca] bg-white text-[11px] font-medium text-[#4b2b21] hover:bg-[#faf6f2]"
+            className="flex-1 h-9 rounded-xl border border-sapay-450 bg-white text-[11px] font-medium text-sapay-900 hover:bg-sapay-200"
           >
             Cancelar
           </Button>
@@ -54,7 +54,7 @@ export function ConfirmModal({
               'flex-1 h-9 rounded-xl text-[11px] font-medium text-white disabled:opacity-70',
               confirmDanger
                 ? 'bg-[#d13d3d] hover:bg-[#b83030]'
-                : 'bg-[#4b2b21] hover:bg-[#5a3429]'
+                : 'bg-sapay-900 hover:bg-sapay-850'
             )}
           >
             {confirmLabel}

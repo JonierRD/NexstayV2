@@ -150,14 +150,14 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
 
     if (loading) {
         return (
-            <div className="flex min-h-0 flex-1 items-center justify-center bg-[#f6f1eb]">
-                <div className="text-[11px] text-[#7d6d61]">Cargando lavandería...</div>
+            <div className="flex min-h-0 flex-1 items-center justify-center bg-sapay-250">
+                <div className="text-[11px] text-sapay-750">Cargando lavandería...</div>
             </div>
         );
     }
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#f6f1eb] text-[#2b1b14]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-sapay-250 text-sapay-950">
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
                 <div className="grid gap-2 py-2 xl:grid-cols-4">
                     {/* PROCESO: Panel de estadísticas (total, pendientes, en proceso, listos) */}
@@ -192,10 +192,10 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                 </div>
 
                 <div className="flex min-h-0 flex-1 flex-col gap-3 xl:flex-row">
-                    <section className="flex min-h-0 flex-1 flex-col rounded-[20px] border border-[#eadfd6] bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)]">
+                    <section className="flex min-h-0 flex-1 flex-col rounded-[20px] border border-sapay-350 bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)]">
                         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between w-full">
                             <div className="min-w-[200px]">
-                                <h2 className="text-[13px] font-semibold text-[#2b1b14]">Órdenes de Lavandería</h2>
+                                <h2 className="text-[13px] font-semibold text-sapay-950">Órdenes de Lavandería</h2>
                             </div>
 
                             <div className="flex items-center gap-1.5 flex-1 justify-end overflow-x-auto">
@@ -223,7 +223,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                                         setEditingOrder(null);
                                         setShowForm(true);
                                     }}
-                                    className="gap-1.5 bg-[#4b2b21] text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
+                                    className="gap-1.5 bg-sapay-900 text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
                                 >
                                     {/* PROCESO: Botón para abrir el modal de creación de nueva orden */}
                                     <Plus size={14} aria-hidden="true" />
@@ -251,10 +251,10 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                             onDelete={() => requestDelete(selectedOrder.id)}
                         />
                     ) : (
-                        <section className="flex min-h-0 w-full flex-col items-center justify-center rounded-[26px] border border-[#eadfd6] bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[380px]">
+                        <section className="flex min-h-0 w-full flex-col items-center justify-center rounded-[26px] border border-sapay-350 bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[380px]">
                             <div className="text-center">
-                                <p className="text-[13px] font-medium text-[#8d7b70]">Sin órdenes registradas</p>
-                                <p className="mt-1 text-[11px] text-[#a49486]">Crea una nueva orden para comenzar</p>
+                                <p className="text-[13px] font-medium text-sapay-650">Sin órdenes registradas</p>
+                                <p className="mt-1 text-[11px] text-sapay-550">Crea una nueva orden para comenzar</p>
                             </div>
                         </section>
                     )}

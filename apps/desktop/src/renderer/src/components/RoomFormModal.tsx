@@ -220,22 +220,22 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="relative w-full max-w-[460px] rounded-2xl border border-[#eadfd6] bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
+      <div className="relative w-full max-w-[460px] rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-3 top-3 text-[#8d7b70] hover:text-[#4b2b21] transition"
+          className="absolute right-3 top-3 text-sapay-650 hover:text-sapay-900 transition"
         >
           <X size={18} />
         </button>
 
-        <h3 className="text-[15px] font-semibold text-[#2b1b14]">
+        <h3 className="text-[15px] font-semibold text-sapay-950">
           {isEdit ? 'Editar Habitación' : 'Nueva Habitación'}
         </h3>
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           {error && (
-            <div className="rounded-lg border border-[#f1c2c2] bg-[#fff0f0] px-3 py-2 text-[11px] text-[#b33a3a]">{error}</div>
+            <div className="rounded-lg border border-danger-200 bg-danger-100 px-3 py-2 text-[11px] text-[#b33a3a]">{error}</div>
           )}
 
           <div className="grid grid-cols-2 gap-3">
@@ -244,7 +244,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                 type="text"
                 value={form.number}
                 onChange={(e) => update('number', e.target.value)}
-                className="w-full bg-transparent text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486]"
+                className="w-full bg-transparent text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550"
                 placeholder="Ej: 101"
                 required={!isEdit}
               />
@@ -254,7 +254,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
               <select
                 value={form.type}
                 onChange={(e) => update('type', e.target.value)}
-                className="w-full bg-transparent text-[12px] text-[#2b1b14] outline-none"
+                className="w-full bg-transparent text-[12px] text-sapay-950 outline-none"
               >
                 <option value="SENCILLA">Sencilla</option>
                 <option value="MATRIMONIAL">Matrimonial</option>
@@ -267,7 +267,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                 <select
                   value={form.status}
                   onChange={(e) => update('status', e.target.value)}
-                  className="w-full bg-transparent text-[12px] text-[#2b1b14] outline-none"
+                  className="w-full bg-transparent text-[12px] text-sapay-950 outline-none"
                 >
                   <option value="DISPONIBLE" disabled={room?.status === 'OCUPADA'}>
                     {room?.status === 'OCUPADA' ? 'Disponible (usar botón Liberar)' : 'Disponible'}
@@ -277,7 +277,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                   <option value="MANTENIMIENTO">Mantenimiento</option>
                 </select>
                 {room?.status === 'OCUPADA' && (
-                  <p className="mt-1 text-[10px] text-[#8d7b70]">
+                  <p className="mt-1 text-[10px] text-sapay-650">
                     La habitación está ocupada. Usa el botón "Liberar" en la vista principal para cambiar a disponible.
                   </p>
                 )}
@@ -290,7 +290,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                 min="0"
                 value={form.priceWithAir}
                 onChange={(e) => update('priceWithAir', e.target.value)}
-                className="w-full bg-transparent text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486]"
+                className="w-full bg-transparent text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550"
                 placeholder="0"
               />
             </Field>
@@ -301,7 +301,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                 min="0"
                 value={form.priceWithFan}
                 onChange={(e) => update('priceWithFan', e.target.value)}
-                className="w-full bg-transparent text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486]"
+                className="w-full bg-transparent text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550"
                 placeholder="0"
               />
             </Field>
@@ -314,10 +314,10 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="block w-full text-[11px] text-[#4e4037] file:mr-3 file:rounded-xl file:border-0 file:bg-[#4b2b21] file:px-3 file:py-1.5 file:text-[11px] file:font-medium file:text-white hover:file:bg-[#5a3429]"
+                  className="block w-full text-[11px] text-[#4e4037] file:mr-3 file:rounded-xl file:border-0 file:bg-sapay-900 file:px-3 file:py-1.5 file:text-[11px] file:font-medium file:text-white hover:file:bg-sapay-850"
                 />
-                <p className="text-[10px] text-[#8d7b70]">Máximo permitido: 2MB</p>
-                <div className="flex items-center justify-between gap-2 rounded-xl border border-[#e9ddd3] bg-[#fcfaf8] px-3 py-2">
+                <p className="text-[10px] text-sapay-650">Máximo permitido: 2MB</p>
+                <div className="flex items-center justify-between gap-2 rounded-xl border border-[#e9ddd3] bg-sapay-100 px-3 py-2">
                   <p className="truncate text-[11px] text-[#4e4037]">
                     {selectedFileName ? selectedFileName : form.image ? 'Imagen cargada' : 'Sin archivo seleccionado'}
                   </p>
@@ -333,7 +333,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                     <button
                       type="button"
                       onClick={revertImage}
-                      className="text-[11px] font-medium text-[#4b2b21] hover:text-[#6b3a2d]"
+                      className="text-[11px] font-medium text-sapay-900 hover:text-sapay-800"
                     >
                       Revertir
                     </button>
@@ -348,7 +348,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                 type="checkbox"
                 checked={form.hasAir}
                 onChange={(e) => update('hasAir', e.target.checked)}
-                className="h-4 w-4 rounded border-[#dccfca] accent-[#4b2b21]"
+                className="h-4 w-4 rounded border-sapay-450 accent-sapay-900"
               />
               <span className="text-[11px] text-[#4e4037]">Tiene aire</span>
             </label>
@@ -357,7 +357,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
                 type="checkbox"
                 checked={form.hasFan}
                 onChange={(e) => update('hasFan', e.target.checked)}
-                className="h-4 w-4 rounded border-[#dccfca] accent-[#4b2b21]"
+                className="h-4 w-4 rounded border-sapay-450 accent-sapay-900"
               />
               <span className="text-[11px] text-[#4e4037]">Tiene ventilador</span>
             </label>
@@ -367,7 +367,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
             <textarea
               value={form.notes}
               onChange={(e) => update('notes', e.target.value)}
-              className="w-full bg-transparent text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486] resize-none"
+              className="w-full bg-transparent text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550 resize-none"
               placeholder="Notas opcionales..."
               rows={2}
             />
@@ -388,14 +388,14 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
             <Button
               type="button"
               onClick={onClose}
-              className="flex-1 h-9 rounded-xl border border-[#dccfca] bg-white text-[11px] font-medium text-[#4b2b21] hover:bg-[#faf6f2]"
+              className="flex-1 h-9 rounded-xl border border-sapay-450 bg-white text-[11px] font-medium text-sapay-900 hover:bg-sapay-200"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={submitting}
-              className="flex-1 h-9 rounded-xl bg-[#4b2b21] text-[11px] font-medium text-white hover:bg-[#5a3429] disabled:opacity-70"
+              className="flex-1 h-9 rounded-xl bg-sapay-900 text-[11px] font-medium text-white hover:bg-sapay-850 disabled:opacity-70"
             >
               {submitting ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear habitación'}
             </Button>
@@ -420,8 +420,8 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-[#8d7b70]">{label}</span>
-      <div className="flex items-center gap-2 rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 py-2 transition focus-within:border-[#b08f7c] focus-within:bg-white">
+      <span className="mb-1 block text-[10px] font-medium uppercase tracking-[0.12em] text-sapay-650">{label}</span>
+      <div className="flex items-center gap-2 rounded-xl border border-sapay-400 bg-sapay-100 px-3 py-2 transition focus-within:border-sapay-600 focus-within:bg-white">
         {children}
       </div>
     </label>

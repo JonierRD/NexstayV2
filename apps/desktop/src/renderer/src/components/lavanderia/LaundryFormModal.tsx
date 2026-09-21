@@ -106,15 +106,15 @@ export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElem
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-lg rounded-[22px] border border-[#eadfd6] bg-white p-5 shadow-[0_24px_60px_rgba(67,42,27,0.18)]">
+            <div className="w-full max-w-lg rounded-[22px] border border-sapay-350 bg-white p-5 shadow-[0_24px_60px_rgba(67,42,27,0.18)]">
                 <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-[15px] font-semibold text-[#2b1b14]">
+                    <h3 className="text-[15px] font-semibold text-sapay-950">
                         {laundry ? 'Editar Orden de Lavandería' : 'Nueva Orden de Lavandería'}
                     </h3>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-[#8d7b70] hover:bg-[#f6f1eb]"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-sapay-650 hover:bg-sapay-250"
                         aria-label="Cerrar"
                     >
                         <X size={16} aria-hidden="true" />
@@ -122,18 +122,18 @@ export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElem
                 </div>
 
                 {error && (
-                    <div className="mb-3 rounded-xl border border-[#f1c2c2] bg-[#fff0f0] px-3 py-2 text-[11px] text-[#b33a3a]">
+                    <div className="mb-3 rounded-xl border border-danger-200 bg-danger-100 px-3 py-2 text-[11px] text-[#b33a3a]">
                         {error}
                     </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-3">
                     <div className="col-span-2 sm:col-span-1">
-                        <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Prenda</label>
+                        <label className="mb-1 block text-[11px] font-medium text-sapay-750">Prenda</label>
                         <select
                             value={form.item}
                             onChange={(e) => update('item', e.target.value as LaundryItemType)}
-                            className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none focus:border-[#b08f7c]"
+                            className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none focus:border-sapay-600"
                         >
                             {itemOptions.map((opt) => (
                                 <option key={opt} value={opt}>{itemLabels[opt]}</option>
@@ -143,11 +143,11 @@ export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElem
 
                     {laundry && (
                         <div className="col-span-2 sm:col-span-1">
-                            <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Estado</label>
+                            <label className="mb-1 block text-[11px] font-medium text-sapay-750">Estado</label>
                             <select
                                 value={form.status}
                                 onChange={(e) => update('status', e.target.value as LaundryStatus)}
-                                className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none focus:border-[#b08f7c]"
+                                className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none focus:border-sapay-600"
                             >
                                 {statusOptions.map((opt) => (
                                     <option key={opt} value={opt}>{statusLabels[opt]}</option>
@@ -157,36 +157,36 @@ export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElem
                     )}
 
                     <div className="col-span-2">
-                        <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Descripción</label>
+                        <label className="mb-1 block text-[11px] font-medium text-sapay-750">Descripción</label>
                         <input
                             type="text"
                             value={form.description}
                             onChange={(e) => update('description', e.target.value)}
                             placeholder="Ej: 3 camisas blancas, 2 pantalones de dril"
-                            className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486] focus:border-[#b08f7c]"
+                            className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550 focus:border-sapay-600"
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Cantidad</label>
+                        <label className="mb-1 block text-[11px] font-medium text-sapay-750">Cantidad</label>
                         <input
                             type="number"
                             min={1}
                             value={form.quantity}
                             onChange={(e) => update('quantity', e.target.value)}
-                            className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none focus:border-[#b08f7c]"
+                            className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none focus:border-sapay-600"
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Precio unitario</label>
+                        <label className="mb-1 block text-[11px] font-medium text-sapay-750">Precio unitario</label>
                         <input
                             type="number"
                             min={0}
                             value={form.unitPrice}
                             onChange={(e) => update('unitPrice', e.target.value)}
                             placeholder="$"
-                            className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486] focus:border-[#b08f7c]"
+                            className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550 focus:border-sapay-600"
                         />
                     </div>
 
@@ -195,45 +195,45 @@ export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElem
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Cliente / Huésped</label>
+                        <label className="mb-1 block text-[11px] font-medium text-sapay-750">Cliente / Huésped</label>
                         <input
                             type="text"
                             value={form.clientName}
                             onChange={(e) => update('clientName', e.target.value)}
                             placeholder="Nombre completo"
-                            className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486] focus:border-[#b08f7c]"
+                            className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550 focus:border-sapay-600"
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Habitación (opcional)</label>
+                        <label className="mb-1 block text-[11px] font-medium text-sapay-750">Habitación (opcional)</label>
                         <input
                             type="text"
                             value={form.roomNumber}
                             onChange={(e) => update('roomNumber', e.target.value)}
                             placeholder="Ej: 12"
-                            className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486] focus:border-[#b08f7c]"
+                            className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550 focus:border-sapay-600"
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Fecha de entrega</label>
+                        <label className="mb-1 block text-[11px] font-medium text-sapay-750">Fecha de entrega</label>
                         <input
                             type="date"
                             value={form.deliveryDate}
                             onChange={(e) => update('deliveryDate', e.target.value)}
-                            className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none focus:border-[#b08f7c]"
+                            className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none focus:border-sapay-600"
                         />
                     </div>
 
                     <div className="col-span-2">
-                        <label className="mb-1 block text-[11px] font-medium text-[#7d6d61]">Notas (opcional)</label>
+                        <label className="mb-1 block text-[11px] font-medium text-sapay-750">Notas (opcional)</label>
                         <input
                             type="text"
                             value={form.notes}
                             onChange={(e) => update('notes', e.target.value)}
                             placeholder="Observaciones adicionales"
-                            className="h-9 w-full rounded-xl border border-[#e0d4ca] bg-[#fcfaf8] px-3 text-[12px] text-[#2b1b14] outline-none placeholder:text-[#a49486] focus:border-[#b08f7c]"
+                            className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550 focus:border-sapay-600"
                         />
                     </div>
                 </div>
@@ -242,7 +242,7 @@ export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElem
                     <AccentButton onClick={onClose}>Cancelar</AccentButton>
                     <AccentButton
                         onClick={handleSubmit}
-                        className="bg-[#4b2b21] text-white hover:bg-[#5b3428]"
+                        className="bg-sapay-900 text-white hover:bg-[#5b3428]"
                     >
                         {saving ? 'Guardando...' : laundry ? 'Guardar Cambios' : 'Crear Orden'}
                     </AccentButton>

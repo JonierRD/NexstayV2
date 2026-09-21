@@ -39,24 +39,24 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#eadfd6] bg-white p-4 shadow-[0_12px_28px_rgba(52,39,28,0.04)]">
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-sapay-350 bg-white p-4 shadow-[0_12px_28px_rgba(52,39,28,0.04)]">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f7efe8] text-[#2b1b14]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f7efe8] text-sapay-950">
             <ShoppingCart size={20} />
           </div>
           <div>
-            <h2 className="text-[18px] font-bold text-[#2b1b14]">Ventas</h2>
-            <p className="text-[11px] text-[#7d6d61]">Gestiona la venta de productos y consulta el historial de ventas.</p>
+            <h2 className="text-[18px] font-bold text-sapay-950">Ventas</h2>
+            <p className="text-[11px] text-sapay-750">Gestiona la venta de productos y consulta el historial de ventas.</p>
           </div>
         </div>
-        <div className="hidden items-center gap-2 rounded-full border border-[#eadfd6] bg-[#fffaf5] px-3 py-1.5 text-[11px] font-medium text-[#4b2b21] sm:flex">
+        <div className="hidden items-center gap-2 rounded-full border border-sapay-350 bg-sapay-50 px-3 py-1.5 text-[11px] font-medium text-sapay-900 sm:flex">
           <Sparkles size={14} className="text-[#946f2d]" />
           Panel de comercio
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-[#f1c2c2] bg-[#fff0f0] px-3 py-2 text-[11px] text-[#a23b3b]">
+        <div className="rounded-xl border border-danger-200 bg-danger-100 px-3 py-2 text-[11px] text-[#a23b3b]">
           {error}
         </div>
       )}
@@ -67,30 +67,30 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
         ))}
       </div>
 
-      <section className="rounded-[26px] border border-[#eadfd6] bg-white p-4 shadow-[0_14px_36px_rgba(52,39,28,0.04)]">
+      <section className="rounded-[26px] border border-sapay-350 bg-white p-4 shadow-[0_14px_36px_rgba(52,39,28,0.04)]">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="text-[15px] font-bold text-[#2b1b14]">Productos disponibles</h3>
-            <p className="text-[11px] text-[#7d6d61]">Solo se muestran artículos con stock disponible.</p>
+            <h3 className="text-[15px] font-bold text-sapay-950">Productos disponibles</h3>
+            <p className="text-[11px] text-sapay-750">Solo se muestran artículos con stock disponible.</p>
           </div>
           <div className="relative w-full max-w-md">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7d6d61]" />
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sapay-750" />
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar producto..."
-              className="w-full rounded-xl border border-[#eadfd6] bg-[#fffaf5] py-2.5 pl-9 pr-3 text-[12px] text-[#2b1b14] outline-none placeholder:text-[#9d8d85] focus:border-[#d7b778]"
+              className="w-full rounded-xl border border-sapay-350 bg-sapay-50 py-2.5 pl-9 pr-3 text-[12px] text-sapay-950 outline-none placeholder:text-[#9d8d85] focus:border-[#d7b778]"
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-[#d8c7b8] bg-[#fffaf5] text-[12px] text-[#7d6d61]">
+          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-[#d8c7b8] bg-sapay-50 text-[12px] text-sapay-750">
             Cargando productos reales...
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-[#d8c7b8] bg-[#fffaf5] text-center text-[12px] text-[#7d6d61]">
+          <div className="flex min-h-[180px] items-center justify-center rounded-2xl border border-dashed border-[#d8c7b8] bg-sapay-50 text-center text-[12px] text-sapay-750">
             No se encontraron productos.
           </div>
         ) : (
@@ -102,13 +102,13 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
         )}
       </section>
 
-      <section className="rounded-[26px] border border-[#eadfd6] bg-white p-4 shadow-[0_14px_36px_rgba(52,39,28,0.04)]">
+      <section className="rounded-[26px] border border-sapay-350 bg-white p-4 shadow-[0_14px_36px_rgba(52,39,28,0.04)]">
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="text-[15px] font-bold text-[#2b1b14]">Historial de ventas</h3>
-            <p className="text-[11px] text-[#7d6d61]">Consulta ventas anteriores y filtra el registro.</p>
+            <h3 className="text-[15px] font-bold text-sapay-950">Historial de ventas</h3>
+            <p className="text-[11px] text-sapay-750">Consulta ventas anteriores y filtra el registro.</p>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-[#eadfd6] bg-[#fffaf5] px-2.5 py-1.5 text-[10px] font-medium text-[#4b2b21]">
+          <div className="flex items-center gap-2 rounded-full border border-sapay-350 bg-sapay-50 px-2.5 py-1.5 text-[10px] font-medium text-sapay-900">
             <CalendarRange size={13} />
             Ventas reales
           </div>
@@ -116,20 +116,20 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
 
         <div className="mb-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <div className="relative">
-            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#7d6d61]" />
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sapay-750" />
             <input
               type="text"
               value={historySearch}
               onChange={(event) => setHistorySearch(event.target.value)}
               placeholder="Buscar"
-              className="w-full rounded-xl border border-[#eadfd6] bg-[#fffaf5] py-2 pl-8 pr-3 text-[12px] text-[#2b1b14] outline-none placeholder:text-[#9d8d85]"
+              className="w-full rounded-xl border border-sapay-350 bg-sapay-50 py-2 pl-8 pr-3 text-[12px] text-sapay-950 outline-none placeholder:text-[#9d8d85]"
             />
           </div>
 
           <select
             value={historyType}
             onChange={(event) => setHistoryType(event.target.value)}
-            className="rounded-xl border border-[#eadfd6] bg-[#fffaf5] px-3 py-2 text-[12px] text-[#2b1b14] outline-none"
+            className="rounded-xl border border-sapay-350 bg-sapay-50 px-3 py-2 text-[12px] text-sapay-950 outline-none"
           >
             <option value="Todos">Todos</option>
             <option value="Huésped">Huésped</option>
@@ -140,14 +140,14 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
             type="date"
             value={historyDate}
             onChange={(event) => setHistoryDate(event.target.value)}
-            className="rounded-xl border border-[#eadfd6] bg-[#fffaf5] px-3 py-2 text-[12px] text-[#2b1b14] outline-none"
+            className="rounded-xl border border-sapay-350 bg-sapay-50 px-3 py-2 text-[12px] text-sapay-950 outline-none"
           />
         </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full border-separate border-spacing-y-2 text-left">
             <thead>
-              <tr className="text-[10px] uppercase tracking-[0.08em] text-[#7d6d61]">
+              <tr className="text-[10px] uppercase tracking-[0.08em] text-sapay-750">
                 <th className="px-3 py-2 font-semibold">Fecha</th>
                 <th className="px-3 py-2 font-semibold">Producto</th>
                 <th className="px-3 py-2 font-semibold">Cantidad</th>
@@ -160,13 +160,13 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
             <tbody>
               {filteredSales.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-[12px] text-[#7d6d61]">
+                  <td colSpan={7} className="px-3 py-8 text-center text-[12px] text-sapay-750">
                     No hay ventas con los filtros actuales.
                   </td>
                 </tr>
               ) : (
                 filteredSales.map((sale) => (
-                  <tr key={sale.id} className="rounded-2xl bg-[#fdfaf7] text-[12px] text-[#2b1b14] shadow-sm ring-1 ring-[#f2e7e0]">
+                  <tr key={sale.id} className="rounded-2xl bg-[#fdfaf7] text-[12px] text-sapay-950 shadow-sm ring-1 ring-[#f2e7e0]">
                     <td className="rounded-l-2xl px-3 py-3">{formatDate(sale.fecha)}</td>
                     <td className="px-3 py-3 font-medium">{sale.producto}</td>
                     <td className="px-3 py-3">{sale.cantidad}</td>

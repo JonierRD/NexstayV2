@@ -33,12 +33,12 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
       <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-[#2b1b14]">Inventario</h1>
-            <span className="rounded-full bg-[#eadfd6] px-2.5 py-0.5 text-[11px] font-semibold text-[#4b2b21]">
+            <h1 className="text-xl font-bold tracking-tight text-sapay-950">Inventario</h1>
+            <span className="rounded-full bg-sapay-350 px-2.5 py-0.5 text-[11px] font-semibold text-sapay-900">
               {inv.items.length} {inv.items.length === 1 ? 'artículo' : 'artículos'}
             </span>
           </div>
-          <p className="text-[12px] text-[#7d6d61]">
+          <p className="text-[12px] text-sapay-750">
             Control de existencias, suministros, mecato y bebidas para huéspedes y recepción.
           </p>
         </div>
@@ -47,7 +47,7 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
           <Button
             onClick={inv.fetchInventory}
             disabled={inv.loading}
-            className="flex h-9 items-center gap-1.5 rounded-xl border border-[#dccfca] bg-white px-3 text-[12px] font-medium text-[#4b2b21] hover:bg-[#faf6f2] shadow-sm"
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-sapay-450 bg-white px-3 text-[12px] font-medium text-sapay-900 hover:bg-sapay-200 shadow-sm"
           >
             <RefreshCw size={14} className={cn(inv.loading && 'animate-spin')} />
             Actualizar
@@ -55,7 +55,7 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
 
           <Button
             onClick={inv.openCreateModal}
-            className="flex h-9 items-center gap-1.5 rounded-xl bg-[#4b2b21] px-4 text-[12px] font-medium text-white hover:bg-[#5a3429] shadow-sm transition"
+            className="flex h-9 items-center gap-1.5 rounded-xl bg-sapay-900 px-4 text-[12px] font-medium text-white hover:bg-sapay-850 shadow-sm transition"
           >
             <Plus size={16} />
             Nuevo Producto
@@ -65,24 +65,24 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
 
       {/* Mensajes de Alerta / Éxito */}
       {inv.error && (
-        <div className="mb-4 flex items-center justify-between rounded-xl border border-[#f0c8c4] bg-[#fff0ee] px-4 py-3 text-[12px] text-[#c94a43]">
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-danger-150 bg-danger-50 px-4 py-3 text-[12px] text-danger">
           <div className="flex items-center gap-2">
             <AlertTriangle size={16} className="shrink-0" />
             <span>{inv.error}</span>
           </div>
-          <button onClick={() => inv.setError(null)} className="text-[#c94a43] hover:opacity-80">
+          <button onClick={() => inv.setError(null)} className="text-danger hover:opacity-80">
             <X size={14} />
           </button>
         </div>
       )}
 
       {inv.successMsg && (
-        <div className="mb-4 flex items-center justify-between rounded-xl border border-[#c6e8cf] bg-[#e9f6eb] px-4 py-3 text-[12px] text-[#2f8f4e]">
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-success-100 bg-success-50 px-4 py-3 text-[12px] text-success">
           <div className="flex items-center gap-2">
             <CheckCircle2 size={16} className="shrink-0" />
             <span>{inv.successMsg}</span>
           </div>
-          <button onClick={() => inv.setSuccessMsg(null)} className="text-[#2f8f4e] hover:opacity-80">
+          <button onClick={() => inv.setSuccessMsg(null)} className="text-success hover:opacity-80">
             <X size={14} />
           </button>
         </div>
@@ -107,19 +107,19 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
 
       {/* Lista / Tabla de Productos estilo Excel */}
       {inv.loading ? (
-        <div className="flex h-64 items-center justify-center rounded-[20px] border border-dashed border-[#eadfd6] bg-white">
-          <div className="flex flex-col items-center gap-2 text-[#7d6d61]">
-            <RefreshCw size={24} className="animate-spin text-[#4b2b21]" />
+        <div className="flex h-64 items-center justify-center rounded-[20px] border border-dashed border-sapay-350 bg-white">
+          <div className="flex flex-col items-center gap-2 text-sapay-750">
+            <RefreshCw size={24} className="animate-spin text-sapay-900" />
             <p className="text-[12px] font-medium">Cargando inventario...</p>
           </div>
         </div>
       ) : inv.filteredItems.length === 0 ? (
-        <div className="flex h-64 flex-col items-center justify-center rounded-[20px] border border-dashed border-[#eadfd6] bg-white p-6 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#faf6f2] text-[#4b2b21]">
+        <div className="flex h-64 flex-col items-center justify-center rounded-[20px] border border-dashed border-sapay-350 bg-white p-6 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sapay-200 text-sapay-900">
             <Package size={22} />
           </div>
-          <h3 className="mt-3 text-[14px] font-semibold text-[#2b1b14]">No se encontraron artículos</h3>
-          <p className="mt-1 max-w-sm text-[11px] text-[#7d6d61]">
+          <h3 className="mt-3 text-[14px] font-semibold text-sapay-950">No se encontraron artículos</h3>
+          <p className="mt-1 max-w-sm text-[11px] text-sapay-750">
             {filterActive
               ? 'No hay productos que coincidan con los filtros aplicados. Intenta restablecer la búsqueda.'
               : 'El catálogo de inventario está vacío. Comienza registrando tu primer producto.'}
@@ -131,7 +131,7 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
                 inv.setSelectedCategory('TODAS');
                 inv.setStockFilter('ALL');
               }}
-              className="mt-4 h-8 rounded-xl border border-[#dccfca] bg-white px-3 text-[11px] text-[#4b2b21] hover:bg-[#faf6f2]"
+              className="mt-4 h-8 rounded-xl border border-sapay-450 bg-white px-3 text-[11px] text-sapay-900 hover:bg-sapay-200"
             >
               Restablecer filtros
             </Button>

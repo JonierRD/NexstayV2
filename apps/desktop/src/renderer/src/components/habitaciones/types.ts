@@ -69,9 +69,9 @@ export const accentTones = [
 ];
 
 export const statusStyles: Record<RoomStatus, string> = {
-  DISPONIBLE: 'bg-[#e9f6eb] text-[#2f8f4e] border-[#c6e8cf]',
-  OCUPADA: 'bg-[#fff0ee] text-[#c94a43] border-[#f0c8c4]',
-  RESERVADA: 'bg-[#fff5df] text-[#c78b14] border-[#f2dbab]',
+  DISPONIBLE: 'bg-success-50 text-success border-success-100',
+  OCUPADA: 'bg-danger-50 text-danger border-danger-150',
+  RESERVADA: 'bg-[#fff5df] text-gold border-[#f2dbab]',
   MANTENIMIENTO: 'bg-[#f5efe9] text-[#8f5e3d] border-[#dcc5b1]'
 };
 

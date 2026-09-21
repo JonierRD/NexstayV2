@@ -37,7 +37,7 @@ export function ClientDataStep({
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-2 block text-sm font-medium text-[#4b2b21]">
+        <label className="mb-2 block text-sm font-medium text-sapay-900">
           Cédula del Cliente
         </label>
         <div className="flex gap-2">
@@ -48,7 +48,7 @@ export function ClientDataStep({
               onChange={(e) => setCcSearch(e.target.value)}
               placeholder="Ingresa cédula del cliente"
               list="cc-history"
-              className="w-full rounded-lg border border-[#dccfca] px-4 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+              className="w-full rounded-lg border border-sapay-450 px-4 py-2 text-sm focus:border-sapay-500 focus:outline-none"
               onKeyPress={(e) => e.key === 'Enter' && handleSearchClient()}
             />
             <datalist id="cc-history">
@@ -60,7 +60,7 @@ export function ClientDataStep({
           <button
             onClick={handleSearchClient}
             disabled={loading}
-            className="flex items-center gap-2 rounded-lg bg-[#4b2b21] px-4 py-2 text-sm font-medium text-white hover:bg-[#3a1a12] disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-sapay-900 px-4 py-2 text-sm font-medium text-white hover:bg-[#3a1a12] disabled:opacity-50"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
             Buscar
@@ -86,113 +86,113 @@ export function ClientDataStep({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+          <label className="mb-1 block text-xs font-medium text-sapay-700">
             Nombre *
           </label>
           <input
             type="text"
             value={clientData.firstName}
             onChange={(e) => setClientData({ ...clientData, firstName: e.target.value })}
-            className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+            className="w-full rounded-lg border border-sapay-450 px-3 py-2 text-sm focus:border-sapay-500 focus:outline-none"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+          <label className="mb-1 block text-xs font-medium text-sapay-700">
             Apellido *
           </label>
           <input
             type="text"
             value={clientData.lastName}
             onChange={(e) => setClientData({ ...clientData, lastName: e.target.value })}
-            className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+            className="w-full rounded-lg border border-sapay-450 px-3 py-2 text-sm focus:border-sapay-500 focus:outline-none"
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+        <label className="mb-1 block text-xs font-medium text-sapay-700">
           Teléfono
         </label>
         <input
           type="text"
           value={clientData.phone}
           onChange={(e) => setClientData({ ...clientData, phone: e.target.value })}
-          className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+          className="w-full rounded-lg border border-sapay-450 px-3 py-2 text-sm focus:border-sapay-500 focus:outline-none"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+        <label className="mb-1 block text-xs font-medium text-sapay-700">
           Fecha de Ingreso
         </label>
         <input
           type="date"
           value={checkInDate}
           onChange={(e) => setCheckInDate(e.target.value)}
-          className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+          className="w-full rounded-lg border border-sapay-450 px-3 py-2 text-sm focus:border-sapay-500 focus:outline-none"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+          <label className="mb-1 block text-xs font-medium text-sapay-700">
             Ciudad Origen
           </label>
           <input
             type="text"
             value={clientData.cityOrigin}
             onChange={(e) => setClientData({ ...clientData, cityOrigin: e.target.value })}
-            className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+            className="w-full rounded-lg border border-sapay-450 px-3 py-2 text-sm focus:border-sapay-500 focus:outline-none"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+          <label className="mb-1 block text-xs font-medium text-sapay-700">
             Ciudad Destino
           </label>
           <input
             type="text"
             value={clientData.cityDestination}
             onChange={(e) => setClientData({ ...clientData, cityDestination: e.target.value })}
-            className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+            className="w-full rounded-lg border border-sapay-450 px-3 py-2 text-sm focus:border-sapay-500 focus:outline-none"
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+        <label className="mb-1 block text-xs font-medium text-sapay-700">
           Profesión
         </label>
         <input
           type="text"
           value={clientData.profession}
           onChange={(e) => setClientData({ ...clientData, profession: e.target.value })}
-          className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+          className="w-full rounded-lg border border-sapay-450 px-3 py-2 text-sm focus:border-sapay-500 focus:outline-none"
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-medium text-[#7d6e63]">
+        <label className="mb-1 block text-xs font-medium text-sapay-700">
           Notas
         </label>
         <textarea
           value={clientData.notes}
           onChange={(e) => setClientData({ ...clientData, notes: e.target.value })}
           rows={3}
-          className="w-full rounded-lg border border-[#dccfca] px-3 py-2 text-sm focus:border-[#bfa89d] focus:outline-none"
+          className="w-full rounded-lg border border-sapay-450 px-3 py-2 text-sm focus:border-sapay-500 focus:outline-none"
         />
       </div>
 
       <div className="flex gap-2">
         <button
           onClick={onClear}
-          className="flex-1 rounded-lg border border-[#dccfca] px-4 py-2 text-sm font-medium text-[#4b2b21] hover:bg-[#faf6f2]"
+          className="flex-1 rounded-lg border border-sapay-450 px-4 py-2 text-sm font-medium text-sapay-900 hover:bg-sapay-200"
         >
           Limpiar
         </button>
         <button
           onClick={handleContinueToRoom}
           disabled={!ccSearch || !clientData.firstName || !clientData.lastName}
-          className="flex-1 rounded-lg bg-[#4b2b21] px-4 py-2 text-sm font-medium text-white hover:bg-[#3a1a12] disabled:opacity-50"
+          className="flex-1 rounded-lg bg-sapay-900 px-4 py-2 text-sm font-medium text-white hover:bg-[#3a1a12] disabled:opacity-50"
         >
           Continuar
         </button>

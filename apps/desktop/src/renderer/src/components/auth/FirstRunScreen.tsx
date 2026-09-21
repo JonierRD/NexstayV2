@@ -35,11 +35,11 @@ export function FirstRunScreen({
       <section className="relative z-10 flex h-full items-center justify-center px-4 sm:px-8">
         <div className="w-full max-w-[460px] overflow-hidden rounded-2xl border border-white/75 bg-white px-7 py-6 shadow-[0_30px_90px_rgba(0,0,0,0.3)] backdrop-blur-xl">
           <div className="flex flex-col items-center text-center">
-            <Sparkles className="text-[#4b2b21]" size={36} aria-hidden="true" />
-            <p className="mt-3 text-[12px] font-semibold uppercase tracking-[0.28em] text-[#4b2b21]">
+            <Sparkles className="text-sapay-900" size={36} aria-hidden="true" />
+            <p className="mt-3 text-[12px] font-semibold uppercase tracking-[0.28em] text-sapay-900">
               SAPAY Hotel
             </p>
-            <h2 className="mt-1 text-[22px] font-semibold tracking-tight text-[#24140f]">
+            <h2 className="mt-1 text-[22px] font-semibold tracking-tight text-sapay-1000">
               Bienvenido, primer arranque
             </h2>
             <p className="mt-2 text-[12px] text-[#5e5e5e]">
@@ -52,7 +52,7 @@ export function FirstRunScreen({
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#8a6a55]">
               Administrador inicial
             </p>
-            <dl className="mt-3 space-y-1.5 text-[13px] text-[#24140f]">
+            <dl className="mt-3 space-y-1.5 text-[13px] text-sapay-1000">
               <div className="flex justify-between gap-3">
                 <dt className="text-[#7e7e7e]">Nombre</dt>
                 <dd className="font-medium text-right">{admin.fullName}</dd>
@@ -67,7 +67,7 @@ export function FirstRunScreen({
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-[#7e7e7e]">Contraseña</dt>
-                <dd className="select-all font-mono font-semibold text-[#4b2b21]">
+                <dd className="select-all font-mono font-semibold text-sapay-900">
                   {admin.temporaryPassword}
                 </dd>
               </div>
@@ -83,7 +83,7 @@ export function FirstRunScreen({
             <Button
               type="button"
               onClick={copyCommand}
-              className="h-10 rounded-sm border border-[#4b2b21] bg-white px-4 text-[13px] font-medium text-[#4b2b21] shadow-none transition hover:bg-[#f4ebe5]"
+              className="h-10 rounded-sm border border-sapay-900 bg-white px-4 text-[13px] font-medium text-sapay-900 shadow-none transition hover:bg-[#f4ebe5]"
             >
               <span className="flex items-center justify-center gap-2">
                 <Copy size={15} aria-hidden="true" />
@@ -93,7 +93,7 @@ export function FirstRunScreen({
             <Button
               type="button"
               onClick={() => onContinue(admin.cc)}
-              className="h-10 rounded-sm bg-[#4b2b21] px-4 text-[13px] font-medium shadow-none transition hover:bg-[#5a3429]"
+              className="h-10 rounded-sm bg-sapay-900 px-4 text-[13px] font-medium shadow-none transition hover:bg-sapay-850"
             >
               <span className="flex items-center justify-center gap-2">
                 <ArrowRight size={16} aria-hidden="true" />

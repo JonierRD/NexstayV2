@@ -93,8 +93,8 @@ export function AssistantChat({ user, pageKey, pageTitle }: AssistantChatProps) 
   return (
     <div className="fixed bottom-5 right-5 z-50">
       {isOpen ? (
-        <div className="flex h-[500px] w-[360px] flex-col overflow-hidden rounded-2xl border border-[#eadfd6] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
-          <div className="flex items-center justify-between border-b border-[#eadfd6] bg-[#2e1c16] px-4 py-3 text-white">
+        <div className="flex h-[500px] w-[360px] flex-col overflow-hidden rounded-2xl border border-sapay-350 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)]">
+          <div className="flex items-center justify-between border-b border-sapay-350 bg-[#2e1c16] px-4 py-3 text-white">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
                 <Bot size={16} />
@@ -136,8 +136,8 @@ export function AssistantChat({ user, pageKey, pageTitle }: AssistantChatProps) 
                   key={`${message.role}-${index}`}
                   className={`max-w-[85%] rounded-2xl px-3 py-2 text-[12px] leading-relaxed ${
                     message.role === 'user'
-                      ? 'ml-auto bg-[#4b2b21] text-white'
-                      : 'bg-white text-[#2b1b14] shadow-sm ring-1 ring-[#f0e4dc]'
+                      ? 'ml-auto bg-sapay-900 text-white'
+                      : 'bg-white text-sapay-950 shadow-sm ring-1 ring-[#f0e4dc]'
                   }`}
                 >
                   {message.content}
@@ -160,7 +160,7 @@ export function AssistantChat({ user, pageKey, pageTitle }: AssistantChatProps) 
             <div ref={endOfMessagesRef} />
           </div>
 
-          <div className="border-t border-[#eadfd6] bg-white p-3">
+          <div className="border-t border-sapay-350 bg-white p-3">
             <div className="flex items-center gap-2">
               <input
                 value={input}
@@ -172,7 +172,7 @@ export function AssistantChat({ user, pageKey, pageTitle }: AssistantChatProps) 
                   }
                 }}
                 placeholder="Pregunta sobre esta pantalla..."
-                className="h-9 flex-1 rounded-xl border border-[#eadfd6] bg-[#fffdfb] px-3 text-[12px] text-[#2b1b14] outline-none ring-0 placeholder:text-[#9b8e85] focus:border-[#4b2b21]"
+                className="h-9 flex-1 rounded-xl border border-sapay-350 bg-[#fffdfb] px-3 text-[12px] text-sapay-950 outline-none ring-0 placeholder:text-[#9b8e85] focus:border-sapay-900"
                 aria-label="Escribe tu pregunta al asistente"
               />
               <Button
@@ -194,7 +194,7 @@ export function AssistantChat({ user, pageKey, pageTitle }: AssistantChatProps) 
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#4b2b21] text-white shadow-[0_20px_40px_rgba(75,43,33,0.35)] transition hover:scale-[1.02]"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-sapay-900 text-white shadow-[0_20px_40px_rgba(75,43,33,0.35)] transition hover:scale-[1.02]"
           aria-label="Abrir asistente"
         >
           <MessageCircle size={24} />

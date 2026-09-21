@@ -34,7 +34,7 @@ export function LaundryOrdersTable({ orders, selectedId, onSelect, onDelete }: P
 
             <div className="flex-1 overflow-auto min-w-[700px]">
                 {orders.length === 0 && (
-                    <div className="flex h-32 items-center justify-center text-[11px] text-[#a49486]">
+                    <div className="flex h-32 items-center justify-center text-[11px] text-sapay-550">
                         No hay órdenes que coincidan con los filtros.
                     </div>
                 )}
@@ -50,18 +50,18 @@ export function LaundryOrdersTable({ orders, selectedId, onSelect, onDelete }: P
                                 isSelected ? 'bg-[#fff7ef]' : 'bg-white hover:bg-[#fdfaf7]'
                             )}
                         >
-                            <div className="text-[12px] font-semibold text-[#2b1b14]">
+                            <div className="text-[12px] font-semibold text-sapay-950">
                                 {itemLabels[order.item as LaundryItemType]}
                             </div>
 
                             <div className="min-w-0">
-                                <p className="truncate text-[12px] font-medium text-[#2b1b14]">{order.clientName}</p>
-                                <p className="truncate text-[10px] text-[#8d7b70]">{order.description}</p>
+                                <p className="truncate text-[12px] font-medium text-sapay-950">{order.clientName}</p>
+                                <p className="truncate text-[10px] text-sapay-650">{order.description}</p>
                             </div>
 
                             <div className="text-center text-[11px] text-[#5d4d42]">{order.roomNumber ?? '---'}</div>
 
-                            <div className="text-center text-[12px] font-semibold text-[#2b1b14]">
+                            <div className="text-center text-[12px] font-semibold text-sapay-950">
                                 {fmtMoney(order.totalPrice)}
                             </div>
 

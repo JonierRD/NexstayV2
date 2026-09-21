@@ -76,18 +76,18 @@ export function SaleModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
-      <div className="w-full max-w-[700px] rounded-[26px] border border-[#eadfd6] bg-white p-5 shadow-[0_26px_80px_rgba(0,0,0,0.28)]">
+      <div className="w-full max-w-[700px] rounded-[26px] border border-sapay-350 bg-white p-5 shadow-[0_26px_80px_rgba(0,0,0,0.28)]">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#7d6d61]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-sapay-750">
               {mode === 'guest' ? 'Venta a huésped' : 'Venta externa'}
             </p>
-            <h3 className="mt-1 text-[20px] font-bold text-[#2b1b14]">Detalle de la venta</h3>
+            <h3 className="mt-1 text-[20px] font-bold text-sapay-950">Detalle de la venta</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#eadfd6] bg-[#fffaf5] text-[#4b2b21] hover:border-[#d8c5b8]"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-sapay-350 bg-sapay-50 text-sapay-900 hover:border-[#d8c5b8]"
             aria-label="Cerrar modal"
           >
             <X size={16} />
@@ -97,15 +97,15 @@ export function SaleModal({
         <div className="space-y-4">
           {mode === 'guest' && (
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[#eadfd6] bg-[#fcfaf8] p-3">
-                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7d6d61]">
+              <div className="rounded-2xl border border-sapay-350 bg-sapay-100 p-3">
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-sapay-750">
                   Habitación
                 </label>
                 <div className="relative">
                   <select
                     value={selectedStayId ?? ''}
                     onChange={(event) => setSelectedStayId(event.target.value ? Number(event.target.value) : null)}
-                    className="w-full appearance-none rounded-xl border border-[#eadfd6] bg-white px-3 py-2 pr-8 text-[12px] text-[#2b1b14] outline-none"
+                    className="w-full appearance-none rounded-xl border border-sapay-350 bg-white px-3 py-2 pr-8 text-[12px] text-sapay-950 outline-none"
                   >
                     <option value="">Selecciona una habitación</option>
                     {activeStays.map((stay) => (
@@ -114,16 +114,16 @@ export function SaleModal({
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#7d6d61]" size={14} />
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sapay-750" size={14} />
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#eadfd6] bg-[#fcfaf8] p-3">
-                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7d6d61]">
+              <div className="rounded-2xl border border-sapay-350 bg-sapay-100 p-3">
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-sapay-750">
                   Huésped
                 </label>
-                <div className="flex items-center gap-2 rounded-xl border border-[#eadfd6] bg-white px-3 py-2 text-[12px] text-[#2b1b14]">
-                  <UserRound size={14} className="text-[#7d6d61]" />
+                <div className="flex items-center gap-2 rounded-xl border border-sapay-350 bg-white px-3 py-2 text-[12px] text-sapay-950">
+                  <UserRound size={14} className="text-sapay-750" />
                   <span>
                     {selectedStayId
                       ? activeStays.find((stay) => stay.id === selectedStayId)?.clientName ?? 'Sin huésped'
@@ -135,8 +135,8 @@ export function SaleModal({
           )}
 
           {mode === 'external' && (
-            <div className="rounded-2xl border border-[#eadfd6] bg-[#fcfaf8] p-3">
-              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7d6d61]">
+            <div className="rounded-2xl border border-sapay-350 bg-sapay-100 p-3">
+              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.08em] text-sapay-750">
                 Cliente
               </label>
               <input
@@ -144,42 +144,42 @@ export function SaleModal({
                 value={externalName}
                 onChange={(event) => setExternalName(event.target.value)}
                 placeholder="Nombre del cliente"
-                className="w-full rounded-xl border border-[#eadfd6] bg-white px-3 py-2 text-[12px] text-[#2b1b14] outline-none placeholder:text-[#9d8d85]"
+                className="w-full rounded-xl border border-sapay-350 bg-white px-3 py-2 text-[12px] text-sapay-950 outline-none placeholder:text-[#9d8d85]"
               />
             </div>
           )}
 
-          <div className="rounded-2xl border border-[#eadfd6] bg-[#fcfaf8] p-3">
+          <div className="rounded-2xl border border-sapay-350 bg-sapay-100 p-3">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7d6d61]">Productos</span>
-              <span className="text-[10px] text-[#7d6d61]">{cart.length} en la venta</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-sapay-750">Productos</span>
+              <span className="text-[10px] text-sapay-750">{cart.length} en la venta</span>
             </div>
 
             <div className="space-y-2">
               {cart.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#d7c6bb] bg-white px-3 py-4 text-center text-[11px] text-[#7d6d61]">
+                <div className="rounded-xl border border-dashed border-[#d7c6bb] bg-white px-3 py-4 text-center text-[11px] text-sapay-750">
                   Agrega un producto para iniciar la venta.
                 </div>
               ) : (
                 cart.map((item) => (
-                  <div key={item.productId} className="flex flex-col gap-2 rounded-xl border border-[#eadfd6] bg-white p-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div key={item.productId} className="flex flex-col gap-2 rounded-xl border border-sapay-350 bg-white p-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="text-[12px] font-semibold text-[#2b1b14]">{item.nombre}</p>
-                      <p className="text-[10px] text-[#7d6d61]">{currencyFormatter.format(item.precio)} c/u</p>
+                      <p className="text-[12px] font-semibold text-sapay-950">{item.nombre}</p>
+                      <p className="text-[10px] text-sapay-750">{currencyFormatter.format(item.precio)} c/u</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#eadfd6] bg-[#fffaf5] text-[#4b2b21]"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-sapay-350 bg-sapay-50 text-sapay-900"
                       >
                         −
                       </button>
-                      <span className="w-8 text-center text-[12px] font-semibold text-[#2b1b14]">{item.quantity}</span>
+                      <span className="w-8 text-center text-[12px] font-semibold text-sapay-950">{item.quantity}</span>
                       <button
                         type="button"
                         onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#eadfd6] bg-[#fffaf5] text-[#4b2b21]"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-sapay-350 bg-sapay-50 text-sapay-900"
                       >
                         +
                       </button>
@@ -206,7 +206,7 @@ export function SaleModal({
                     event.target.value = '';
                   }
                 }}
-                className="flex-1 rounded-xl border border-[#eadfd6] bg-white px-3 py-2 text-[12px] text-[#2b1b14] outline-none"
+                className="flex-1 rounded-xl border border-sapay-350 bg-white px-3 py-2 text-[12px] text-sapay-950 outline-none"
               >
                 <option value="">Agregar producto...</option>
                 {availableProducts
@@ -220,10 +220,10 @@ export function SaleModal({
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-2xl border border-[#eadfd6] bg-[#fffaf5] p-3">
+          <div className="flex items-center justify-between rounded-2xl border border-sapay-350 bg-sapay-50 p-3">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#7d6d61]">Total</p>
-              <p className="mt-1 text-[18px] font-bold text-[#2b1b14]">{currencyFormatter.format(subtotal)}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-sapay-750">Total</p>
+              <p className="mt-1 text-[18px] font-bold text-sapay-950">{currencyFormatter.format(subtotal)}</p>
             </div>
             <div className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
               {cart.reduce((total, item) => total + item.quantity, 0)} unidades
@@ -235,7 +235,7 @@ export function SaleModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-[#d7c6bb] bg-white px-4 py-2 text-[12px] font-semibold text-[#4b2b21] transition hover:bg-[#fff9f5]"
+            className="rounded-xl border border-[#d7c6bb] bg-white px-4 py-2 text-[12px] font-semibold text-sapay-900 transition hover:bg-[#fff9f5]"
           >
             Cancelar
           </button>

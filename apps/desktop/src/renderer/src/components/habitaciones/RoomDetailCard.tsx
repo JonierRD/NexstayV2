@@ -28,7 +28,7 @@ export function RoomDetailCard({
   const fmt = formatCOP;
 
   return (
-    <section className="flex min-h-0 w-full flex-col rounded-[26px] border border-[#eadfd6] bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[420px]">
+    <section className="flex min-h-0 w-full flex-col rounded-[26px] border border-sapay-350 bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[420px]">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px]">
         <div className="relative h-[240px] overflow-hidden group">
           {room.image ? (
@@ -37,13 +37,13 @@ export function RoomDetailCard({
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.05),rgba(0,0,0,0.35))]" />
             </>
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[#f6f1eb] text-center">
+            <div className="flex h-full w-full items-center justify-center bg-sapay-250 text-center">
               <div>
-                <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#8d7b70] shadow-sm">
+                <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-white text-sapay-650 shadow-sm">
                   <Wrench size={22} aria-hidden="true" />
                 </div>
                 <p className="text-[12px] font-medium text-[#6f6055]">Sin imagen</p>
-                <p className="mt-1 text-[10px] text-[#8d7b70]">El administrador puede agregar o reemplazar una imagen</p>
+                <p className="mt-1 text-[10px] text-sapay-650">El administrador puede agregar o reemplazar una imagen</p>
               </div>
             </div>
           )}
@@ -81,26 +81,26 @@ export function RoomDetailCard({
         <div className="flex flex-1 flex-col gap-2 p-3">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-[18px] font-bold tracking-tight text-[#2b1b14]">{room.number}</h3>
+              <h3 className="text-[18px] font-bold tracking-tight text-sapay-950">{room.number}</h3>
               <p className="text-[12px] text-[#6f6055]">{room.description}</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-xl border border-[#ece0d7] bg-[#fcf7f1] px-4 py-3 text-[12px]">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-xl border border-sapay-300 bg-sapay-150 px-4 py-3 text-[12px]">
             <DetailLine label="Tipo" value={room.type === 'DOSCAMAS' ? 'Dos Camas' : room.type === 'MATRIMONIAL' ? 'Matrimonial' : 'Sencilla'} />
             <DetailLine label="A/C" value={room.acType} />
           </div>
 
           <div className="rounded-xl border border-[#c3b5a8] bg-[#f9f0e6] px-4 py-3">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8d7b70]">Precios</h4>
+            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sapay-650">Precios</h4>
             <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
               {room.priceWithAir > 0 && <DetailLine label="Con aire" value={fmt(room.priceWithAir)} />}
               {room.priceWithFan > 0 && <DetailLine label="Con ventilador" value={fmt(room.priceWithFan)} />}
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#ece0d7] bg-[#fcf7f1] px-4 py-3">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8d7b70]">Huésped Actual</h4>
+          <div className="rounded-xl border border-sapay-300 bg-sapay-150 px-4 py-3">
+            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sapay-650">Huésped Actual</h4>
             <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
               <DetailLine label="Nombre" value={room.guest ?? 'Sin huésped'} />
               <DetailLine label="Noches" value={room.nights?.toString() ?? '1'} />
@@ -109,7 +109,7 @@ export function RoomDetailCard({
           </div>
 
           <div className="rounded-xl border border-[#c3b5a8] bg-[#f9f0e6] px-4 py-3">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8d7b70]">Total a Cobrar</h4>
+            <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sapay-650">Total a Cobrar</h4>
             <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
               <DetailLine label="Habitación" value={`${fmt(selectedPrice)} × ${nights} ${nights === 1 ? 'noche' : 'noches'}`} />
               <DetailLine label="Subtotal hospedaje" value={fmt(roomTotal)} />

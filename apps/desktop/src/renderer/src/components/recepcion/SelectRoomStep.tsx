@@ -34,12 +34,12 @@ export function SelectRoomStep({
   return (
     <div className="space-y-6">
       <div>
-        <label className="mb-3 block text-sm font-medium text-[#4b2b21]">
+        <label className="mb-3 block text-sm font-medium text-sapay-900">
           Asignar Habitación
         </label>
 
         <div className="mb-4">
-          <label className="mb-2 block text-xs font-medium text-[#7d6e63]">
+          <label className="mb-2 block text-xs font-medium text-sapay-700">
             Habitación Disponible
           </label>
           <select
@@ -47,7 +47,7 @@ export function SelectRoomStep({
             onChange={(e) => {
               handleSelectRoom(rooms.find(r => r.number === e.target.value) || null);
             }}
-            className="w-full rounded-lg border border-[#dccfca] px-4 py-3 text-sm focus:border-[#bfa89d] focus:outline-none"
+            className="w-full rounded-lg border border-sapay-450 px-4 py-3 text-sm focus:border-sapay-500 focus:outline-none"
           >
             <option value="">Selecciona una habitación</option>
             {availableRooms.map((room) => (
@@ -59,30 +59,30 @@ export function SelectRoomStep({
         </div>
 
         {selectedRoom && (
-          <div className="rounded-xl border border-[#ece0d7] bg-[#fcf7f1] p-5">
+          <div className="rounded-xl border border-sapay-300 bg-sapay-150 p-5">
             <div className="flex items-center gap-4 mb-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[#4b2b21]">
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-sapay-900">
                 <BedDouble size={28} className="text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-lg font-bold text-[#2b1b14]">Habitación {selectedRoom.number}</p>
-                <p className="text-sm text-[#7d6e63]">{selectedRoom.type}</p>
+                <p className="text-lg font-bold text-sapay-950">Habitación {selectedRoom.number}</p>
+                <p className="text-sm text-sapay-700">{selectedRoom.type}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               {selectedRoom.hasAir && (
-                <div className="rounded-lg border border-[#dccfca] bg-white p-3">
-                  <p className="text-xs text-[#7d6e63] mb-1">Precio Aire</p>
-                  <p className="text-lg font-bold text-[#2b1b14]">
+                <div className="rounded-lg border border-sapay-450 bg-white p-3">
+                  <p className="text-xs text-sapay-700 mb-1">Precio Aire</p>
+                  <p className="text-lg font-bold text-sapay-950">
                     ${Math.round(selectedRoom.priceWithAir || 0).toLocaleString('es-CO')}
                   </p>
                 </div>
               )}
               {selectedRoom.hasFan && (
-                <div className="rounded-lg border border-[#dccfca] bg-white p-3">
-                  <p className="text-xs text-[#7d6e63] mb-1">Precio Ventilador</p>
-                  <p className="text-lg font-bold text-[#2b1b14]">
+                <div className="rounded-lg border border-sapay-450 bg-white p-3">
+                  <p className="text-xs text-sapay-700 mb-1">Precio Ventilador</p>
+                  <p className="text-lg font-bold text-sapay-950">
                     ${Math.round(selectedRoom.priceWithFan || 0).toLocaleString('es-CO')}
                   </p>
                 </div>
@@ -93,7 +93,7 @@ export function SelectRoomStep({
 
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-xs font-medium text-[#7d6e63]">
+            <label className="mb-2 block text-xs font-medium text-sapay-700">
               Tipo de Aire Acondicionado
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -104,8 +104,8 @@ export function SelectRoomStep({
                   className={cn(
                     'flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition',
                     acType === 'AIRE'
-                      ? 'border-[#4b2b21] bg-[#4b2b21] text-white shadow-lg shadow-[#4b2b21]/20'
-                      : 'border-[#dccfca] bg-white text-[#4b2b21] hover:border-[#bfa89d]'
+                      ? 'border-sapay-900 bg-sapay-900 text-white shadow-lg shadow-sapay-900/20'
+                      : 'border-sapay-450 bg-white text-sapay-900 hover:border-sapay-500'
                   )}
                 >
                   ❄️ Aire
@@ -118,8 +118,8 @@ export function SelectRoomStep({
                   className={cn(
                     'flex items-center justify-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium transition',
                     acType === 'VENTILADOR'
-                      ? 'border-[#4b2b21] bg-[#4b2b21] text-white shadow-lg shadow-[#4b2b21]/20'
-                      : 'border-[#dccfca] bg-white text-[#4b2b21] hover:border-[#bfa89d]'
+                      ? 'border-sapay-900 bg-sapay-900 text-white shadow-lg shadow-sapay-900/20'
+                      : 'border-sapay-450 bg-white text-sapay-900 hover:border-sapay-500'
                   )}
                 >
                   🌀 Ventilador
@@ -129,19 +129,19 @@ export function SelectRoomStep({
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-medium text-[#7d6e63]">
+            <label className="mb-2 block text-xs font-medium text-sapay-700">
               Fecha de Ingreso
             </label>
             <input
               type="date"
               value={checkInDate}
               onChange={(e) => setCheckInDate(e.target.value)}
-              className="w-full rounded-lg border border-[#dccfca] px-4 py-3 text-sm focus:border-[#bfa89d] focus:outline-none"
+              className="w-full rounded-lg border border-sapay-450 px-4 py-3 text-sm focus:border-sapay-500 focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-medium text-[#7d6e63]">
+            <label className="mb-2 block text-xs font-medium text-sapay-700">
               Noches Estimadas
             </label>
             <input
@@ -149,7 +149,7 @@ export function SelectRoomStep({
               min="1"
               value={nights}
               onChange={(e) => setNights(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full rounded-lg border border-[#dccfca] px-4 py-3 text-sm focus:border-[#bfa89d] focus:outline-none"
+              className="w-full rounded-lg border border-sapay-450 px-4 py-3 text-sm focus:border-sapay-500 focus:outline-none"
             />
           </div>
         </div>
@@ -157,7 +157,7 @@ export function SelectRoomStep({
         <div className="flex gap-3 pt-2">
           <button
             onClick={() => setStep('CLIENT_DATA')}
-            className="flex-1 rounded-lg border border-[#dccfca] px-4 py-3 text-sm font-medium text-[#4b2b21] hover:bg-[#faf6f2]"
+            className="flex-1 rounded-lg border border-sapay-450 px-4 py-3 text-sm font-medium text-sapay-900 hover:bg-sapay-200"
           >
             ← Volver
           </button>
@@ -168,7 +168,7 @@ export function SelectRoomStep({
               }
             }}
             disabled={!selectedRoom}
-            className="flex-1 rounded-lg bg-[#4b2b21] px-4 py-3 text-sm font-medium text-white hover:bg-[#3a1a12] disabled:opacity-50"
+            className="flex-1 rounded-lg bg-sapay-900 px-4 py-3 text-sm font-medium text-white hover:bg-[#3a1a12] disabled:opacity-50"
           >
             Continuar →
           </button>
