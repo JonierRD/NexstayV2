@@ -10,10 +10,8 @@ import {
 } from 'lucide-react';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { type Habitacion, type PublicUser, habitacionesRequest, updateHabitacionRequest, staysByRoomRequest, checkoutRequest, staysActiveRequest } from '../lib/api';
-import sencillaImg from '../assets/habitaciones/sencilla.png';
-import matrimonialImg from '../assets/habitaciones/matrimonial.png';
-import dobleImg from '../assets/habitaciones/doblecama.jpeg';
 import { cn } from '../lib/utils';
+import { formatCOP } from '../lib/format';
 import { AdminPasswordModal } from './AdminPasswordModal';
 import { ConfirmModal } from './ConfirmModal';
 import { RoomFormModal } from './RoomFormModal';
@@ -92,12 +90,6 @@ const accentTones = [
   'from-[#73472d] to-[#b8845d]'
 ];
 
-const typeImages: Record<string, string> = {
-  DOSCAMAS: dobleImg,
-  MATRIMONIAL: matrimonialImg,
-  SENCILLA: sencillaImg
-};
-
 // Convierte una habitación de la API (Habitacion) a la estructura local Room
 function mapApiRoom(apiRoom: Habitacion, index: number): Room {
   const typeLabel: Record<string, string> = {
@@ -105,7 +97,7 @@ function mapApiRoom(apiRoom: Habitacion, index: number): Room {
     MATRIMONIAL: 'Matrimonial',
     SENCILLA: 'Sencilla'
   };
-  const fmtPrice = (v: number | null) => v !== null ? `$${Math.round(v).toLocaleString('es-CO')}` : null;
+  const fmtPrice = (v: number | null) => v !== null ? formatCOP(v) : null;
   const priceFanDsp = fmtPrice(apiRoom.priceWithFan);
   const priceAirDsp = fmtPrice(apiRoom.priceWithAir);
   const priceFanNum = apiRoom.priceWithFan ?? 0;
@@ -156,7 +148,7 @@ function RoomDetailCard({
   const selectedPrice = room.selectedAc === 'Aire' && room.priceWithAir > 0 ? room.priceWithAir : room.priceWithFan > 0 ? room.priceWithFan : 0;
   const roomTotal = nights * selectedPrice;
   const grandTotal = roomTotal + room.storeDebt;
-  const fmt = (n: number) => `$${Math.round(n).toLocaleString('es-CO')}`;
+  const fmt = formatCOP;
 
   return (
     <section className="flex min-h-0 w-full flex-col rounded-[26px] border border-[#eadfd6] bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[420px]">

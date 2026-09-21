@@ -11,22 +11,13 @@ import {
 } from '../lib/api';
 import { AdminPasswordModal } from './AdminPasswordModal';
 import { Button } from './ui/button';
+import { formatDate, formatDateRange } from '../lib/format';
 
 type Props = { user: PublicUser };
 type FormState = Omit<CreateClienteInput, 'adminPassword'>;
 
 const emptyForm: FormState = { firstName: '', lastName: '', cc: '', phone: '', cityOrigin: '', cityDestination: '', profession: '', notes: '' };
 const inputClass = 'w-full rounded-lg border border-[#e0d4ca] bg-[#fcfaf8] px-3 py-2 text-xs outline-none focus:border-[#b08f7c] focus:bg-white';
-
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(value));
-}
-
-function formatDateRange(checkIn: string, checkOut?: string | null): string {
-  const entrada = formatDate(checkIn);
-  const salida = checkOut ? formatDate(checkOut) : 'En curso';
-  return `${entrada} → ${salida}`;
-}
 
 export function ClientesPage({ user }: Props): ReactElement {
   const [clients, setClients] = useState<Cliente[]>([]);

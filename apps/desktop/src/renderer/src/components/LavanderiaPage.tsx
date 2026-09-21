@@ -19,6 +19,7 @@ import {
     deleteLaundryRequest
 } from '../lib/api';
 import { cn } from '../lib/utils';
+import { formatCOP, formatDateShort } from '../lib/format';
 import { AdminPasswordModal } from './AdminPasswordModal';
 import { ConfirmModal } from './ConfirmModal';
 import { AccentButton } from './ui/accent-button';
@@ -60,13 +61,12 @@ const itemOptions: LaundryItemType[] = ['CAMISA', 'PANTALON', 'TOALLA', 'SABANA'
 const statusOptions: LaundryStatus[] = ['PENDIENTE', 'EN_PROCESO', 'LISTO', 'ENTREGADO'];
 
 function fmtMoney(n: number): string {
-    return `$${Math.round(n).toLocaleString('es-CO')}`;
+    return formatCOP(n);
 }
 
 function fmtDate(iso: string | null): string {
     if (!iso) return '---';
-    const d = new Date(iso);
-    return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatDateShort(iso);
 }
 
 // ---------- Modal de creación / edición de órdenes ----------

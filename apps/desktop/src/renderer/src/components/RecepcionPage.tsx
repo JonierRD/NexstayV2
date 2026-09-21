@@ -8,9 +8,7 @@ import { type ReactElement, useState, useEffect, useCallback } from 'react';
 import { type PublicUser, habitacionesRequest, clienteByCcRequest, clientesRequest, checkinRequest, type Habitacion, type Cliente } from '../lib/api';
 import { AdminPasswordModal } from './AdminPasswordModal';
 import { cn } from '../lib/utils';
-import sencillaImg from '../assets/habitaciones/sencilla.png';
-import matrimonialImg from '../assets/habitaciones/matrimonial.png';
-import dobleImg from '../assets/habitaciones/doblecama.jpeg';
+import { roomImage } from '../lib/room-images';
 
 // Paso actual del wizard de check-in
 type CheckinStep = 'CLIENT_DATA' | 'SELECT_ROOM' | 'CONFIRM' | 'SUCCESS';
@@ -283,13 +281,6 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
 
   // Solo las disponibles se muestran/exigen para ocupar
   const availableRooms = rooms.filter(r => r.status === 'DISPONIBLE');
-
-  // Imagen por tipo de habitación para el panel derecho
-  const typeImages: Record<string, string> = {
-    DOSCAMAS: dobleImg,
-    MATRIMONIAL: matrimonialImg,
-    SENCILLA: sencillaImg
-  };
 
   return (
     <div className="flex h-full flex-col p-4">
@@ -866,7 +857,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                   >
                     <div className="relative h-32 overflow-hidden">
                       <img 
-                        src={typeImages[room.type] || sencillaImg} 
+                        src={roomImage(room.type)} 
                         alt={room.type}
                         className="h-full w-full object-cover"
                       />
