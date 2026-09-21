@@ -5,14 +5,8 @@ import {
     Plus,
     Shirt
 } from 'lucide-react';
-import { type ReactElement, useCallback, useEffect, useState } from 'react';
-import {
-    type Laundry,
-    type PublicUser,
-    laundryRequest,
-    updateLaundryRequest,
-    deleteLaundryRequest
-} from '../lib/api';
+import { type ReactElement } from 'react';
+import { type PublicUser } from '../lib/api';
 import { AdminPasswordModal } from '../components/AdminPasswordModal';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { AccentButton } from '../components/ui/accent-button';
@@ -22,9 +16,8 @@ import { StatCard } from '../components/ui/stat-card';
 import { LaundryFormModal } from '../components/lavanderia/LaundryFormModal';
 import { LaundryDetailCard } from '../components/lavanderia/LaundryDetailCard';
 import { LaundryOrdersTable } from '../components/lavanderia/LaundryOrdersTable';
+import { useLavanderia } from '../components/lavanderia/useLavanderia';
 import {
-    type LaundryItemType,
-    type LaundryStatus,
     itemLabels,
     itemOptions,
     statusLabels,
@@ -34,121 +27,9 @@ import {
 // ---------- Componente principal ----------
 
 export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
-    // Estado de la página (listado, filtros, selección, modales)
-    const [orders, setOrders] = useState<Laundry[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState<LaundryStatus | 'TODOS'>('TODOS');
-    const [itemFilter, setItemFilter] = useState<LaundryItemType | 'TODOS'>('TODOS');
-    const [selectedId, setSelectedId] = useState<number | null>(null);
-    const [showForm, setShowForm] = useState(false);
-    const [editingOrder, setEditingOrder] = useState<Laundry | null>(null);
-    const [showAdminAuth, setShowAdminAuth] = useState(false);
-    const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
-    const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
-    const [confirmTitle, setConfirmTitle] = useState('');
-    const [confirmMessage, setConfirmMessage] = useState('');
+    const l = useLavanderia({ user });
 
-    const isAdmin = user.role === 'ADMIN';
-
-    // PROCESO: Cargar el listado de órdenes desde la API (GET /laundry)
-    const loadOrders = useCallback(() => {
-        setLoading(true);
-        laundryRequest()
-            .then((data) => {
-                setOrders(data);
-                if (data.length > 0 && !data.find((o) => o.id === selectedId)) {
-                    setSelectedId(data[0].id);
-                }
-            })
-            .catch((error) => console.error('Error loading laundry orders:', error))
-            .finally(() => setLoading(false));
-    }, [selectedId]);
-
-    useEffect(() => {
-        loadOrders();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // PROCESO: Búsqueda y filtros por estado y prenda
-    const filteredOrders = orders.filter((order) => {
-        const normalizedSearch = search.trim().toLowerCase();
-        const matchesSearch =
-            !normalizedSearch ||
-            order.clientName.toLowerCase().includes(normalizedSearch) ||
-            order.description.toLowerCase().includes(normalizedSearch) ||
-            (order.roomNumber ?? '').toLowerCase().includes(normalizedSearch);
-
-        const matchesStatus = statusFilter === 'TODOS' || order.status === statusFilter;
-        const matchesItem = itemFilter === 'TODOS' || order.item === itemFilter;
-
-        return matchesSearch && matchesStatus && matchesItem;
-    });
-
-    const selectedOrder = filteredOrders.find((o) => o.id === selectedId) ?? filteredOrders[0];
-
-    // PROCESO: Cálculo de estadísticas (totales por estado)
-    const stats = {
-        total: orders.length,
-        pendientes: orders.filter((o) => o.status === 'PENDIENTE').length,
-        enProceso: orders.filter((o) => o.status === 'EN_PROCESO').length,
-        listos: orders.filter((o) => o.status === 'LISTO').length
-    };
-
-    function showConfirm(title: string, message: string, onConfirm: () => void) {
-        setConfirmTitle(title);
-        setConfirmMessage(message);
-        setConfirmAction(() => onConfirm);
-    }
-
-    // PROCESO: Avanzar el estado de la orden (PENDIENTE → EN_PROCESO → LISTO → ENTREGADO)
-    function handleAdvanceStatus(order: Laundry) {
-        const next: Partial<Record<LaundryStatus, LaundryStatus>> = {
-            PENDIENTE: 'EN_PROCESO',
-            EN_PROCESO: 'LISTO',
-            LISTO: 'ENTREGADO'
-        };
-        const nextStatus = next[order.status as LaundryStatus];
-        if (!nextStatus) return;
-
-        updateLaundryRequest(order.id, { status: nextStatus })
-            .then(() => loadOrders())
-            .catch((error) => console.error('Error updating status:', error));
-    }
-
-    // PROCESO: Solicitar eliminación (admin → confirmación directa; otros → requiere contraseña admin)
-    function requestDelete(id: number) {
-        if (isAdmin) {
-            confirmDelete(id);
-        } else {
-            setPendingDeleteId(id);
-            setShowAdminAuth(true);
-        }
-    }
-
-    // PROCESO: Confirmar y eliminar la orden (DELETE /laundry/:id)
-    function confirmDelete(id: number) {
-        showConfirm(
-            '¿Eliminar esta orden de lavandería?',
-            'Esta acción no se puede deshacer.',
-            () => {
-                deleteLaundryRequest(id)
-                    .then(() => loadOrders())
-                    .catch((error) => console.error('Error deleting order:', error));
-            }
-        );
-    }
-
-    // PROCESO: Al autorizar la contraseña admin, procede con la eliminación pendiente
-    function onAdminAuthorized() {
-        setShowAdminAuth(false);
-        if (pendingDeleteId !== null) {
-            confirmDelete(pendingDeleteId);
-            setPendingDeleteId(null);
-        }
-    }
-
-    if (loading) {
+    if (l.loading) {
         return (
             <div className="flex min-h-0 flex-1 items-center justify-center bg-sapay-250">
                 <div className="text-[11px] text-sapay-750">Cargando lavandería...</div>
@@ -164,28 +45,28 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                     <StatCard
                         icon={Shirt}
                         title="Total Órdenes"
-                        value={String(stats.total)}
+                        value={String(l.stats.total)}
                         detail="Registradas en el sistema"
                         tone="from-[#f0dfc9] to-[#f7efe4]"
                     />
                     <StatCard
                         icon={Clock3}
                         title="Pendientes"
-                        value={String(stats.pendientes)}
+                        value={String(l.stats.pendientes)}
                         detail="Por iniciar"
                         tone="from-[#f3e2c8] to-[#fff5df]"
                     />
                     <StatCard
                         icon={PackageCheck}
                         title="En Proceso"
-                        value={String(stats.enProceso)}
+                        value={String(l.stats.enProceso)}
                         detail="Siendo lavadas"
                         tone="from-[#dbe8f5] to-[#eef5fc]"
                     />
                     <StatCard
                         icon={CheckCircle}
                         title="Listos"
-                        value={String(stats.listos)}
+                        value={String(l.stats.listos)}
                         detail="Para entregar"
                         tone="from-[#d9efdd] to-[#eefaf0]"
                     />
@@ -200,29 +81,26 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
 
                             <div className="flex items-center gap-1.5 flex-1 justify-end overflow-x-auto">
                                 {/* PROCESO: Buscador (cliente, habitación, descripción) */}
-                                <SearchInput value={search} onChange={setSearch} placeholder="Buscar cliente, habitación..." />
+                                <SearchInput value={l.search} onChange={l.setSearch} placeholder="Buscar cliente, habitación..." />
 
                                 <FilterSelect
                                     label="Estado"
-                                    value={statusFilter}
-                                    onChange={setStatusFilter}
+                                    value={l.statusFilter}
+                                    onChange={l.setStatusFilter}
                                     options={statusOptions}
                                     labels={statusLabels}
                                 />
                                 {/* PROCESO: Filtro por prenda */}
                                 <FilterSelect
                                     label="Prenda"
-                                    value={itemFilter}
-                                    onChange={setItemFilter}
+                                    value={l.itemFilter}
+                                    onChange={l.setItemFilter}
                                     options={itemOptions}
                                     labels={itemLabels}
                                 />
 
                                 <AccentButton
-                                    onClick={() => {
-                                        setEditingOrder(null);
-                                        setShowForm(true);
-                                    }}
+                                    onClick={l.openCreateForm}
                                     className="gap-1.5 bg-sapay-900 text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
                                 >
                                     {/* PROCESO: Botón para abrir el modal de creación de nueva orden */}
@@ -233,22 +111,19 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                         </div>
 
                         <LaundryOrdersTable
-                            orders={filteredOrders}
-                            selectedId={selectedOrder?.id ?? null}
-                            onSelect={setSelectedId}
-                            onDelete={requestDelete}
+                            orders={l.filteredOrders}
+                            selectedId={l.selectedOrder?.id ?? null}
+                            onSelect={l.setSelectedId}
+                            onDelete={l.requestDelete}
                         />
                     </section>
 
-                    {selectedOrder ? (
+                    {l.selectedOrder ? (
                         <LaundryDetailCard
-                            laundry={selectedOrder}
-                            onEdit={() => {
-                                setEditingOrder(selectedOrder);
-                                setShowForm(true);
-                            }}
-                            onAdvanceStatus={() => handleAdvanceStatus(selectedOrder)}
-                            onDelete={() => requestDelete(selectedOrder.id)}
+                            laundry={l.selectedOrder}
+                            onEdit={() => l.openEditForm(l.selectedOrder!)}
+                            onAdvanceStatus={() => l.handleAdvanceStatus(l.selectedOrder!)}
+                            onDelete={() => l.requestDelete(l.selectedOrder!.id)}
                         />
                     ) : (
                         <section className="flex min-h-0 w-full flex-col items-center justify-center rounded-[26px] border border-sapay-350 bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[380px]">
@@ -261,45 +136,32 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                 </div>
             </div>
 
-            {showForm && (
+            {l.showForm && (
                 // PROCESO: Modal de creación / edición (con 'editingOrder' presente → editar)
                 <LaundryFormModal
-                    laundry={editingOrder ?? undefined}
-                    onSave={() => {
-                        setShowForm(false);
-                        setEditingOrder(null);
-                        loadOrders();
-                    }}
-                    onClose={() => {
-                        setShowForm(false);
-                        setEditingOrder(null);
-                    }}
+                    laundry={l.editingOrder ?? undefined}
+                    onSave={l.onFormSaved}
+                    onClose={l.closeForm}
                 />
             )}
 
-            {showAdminAuth && (
+            {l.showAdminAuth && (
                 // PROCESO: Modal de autorización con contraseña de admin (para eliminar sin ser admin)
                 <AdminPasswordModal
-                    onSuccess={onAdminAuthorized}
-                    onClose={() => {
-                        setShowAdminAuth(false);
-                        setPendingDeleteId(null);
-                    }}
+                    onSuccess={l.onAdminAuthorized}
+                    onClose={l.closeAdminAuth}
                 />
             )}
 
-            {confirmAction && (
+            {l.confirmAction && (
                 // PROCESO: Modal de confirmación de eliminación
                 <ConfirmModal
-                    title={confirmTitle}
-                    message={confirmMessage}
+                    title={l.confirmTitle}
+                    message={l.confirmMessage}
                     confirmLabel="Sí, eliminar"
                     confirmDanger
-                    onConfirm={() => {
-                        confirmAction();
-                        setConfirmAction(null);
-                    }}
-                    onClose={() => setConfirmAction(null)}
+                    onConfirm={l.confirm}
+                    onClose={l.closeConfirm}
                 />
             )}
         </div>

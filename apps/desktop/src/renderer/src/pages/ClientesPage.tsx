@@ -1,90 +1,63 @@
-import { Pencil, Plus, Search, Trash2, X } from 'lucide-react';
-import { type FormEvent, type ReactElement, useEffect, useMemo, useState } from 'react';
-import {
-  clientesRequest,
-  createClienteRequest,
-  deleteClienteRequest,
-  updateClienteRequest,
-  type Cliente,
-  type CreateClienteInput,
-  type PublicUser
-} from '../lib/api';
+import { Plus } from 'lucide-react';
+import { type ReactElement } from 'react';
+import { type PublicUser } from '../lib/api';
 import { AdminPasswordModal } from '../components/AdminPasswordModal';
+import { ClientFormModal } from '../components/clientes/ClientFormModal';
+import { ClientHistoryModal } from '../components/clientes/ClientHistoryModal';
+import { ClientsTable } from '../components/clientes/ClientsTable';
+import { useClientes } from '../components/clientes/useClientes';
 import { Button } from '../components/ui/button';
-import { formatDate, formatDateRange } from '../lib/format';
+import { SearchInput } from '../components/ui/search-input';
 
 type Props = { user: PublicUser };
-type FormState = Omit<CreateClienteInput, 'adminPassword'>;
-
-const emptyForm: FormState = { firstName: '', lastName: '', cc: '', phone: '', cityOrigin: '', cityDestination: '', profession: '', notes: '' };
-const inputClass = 'w-full rounded-lg border border-sapay-400 bg-sapay-100 px-3 py-2 text-xs outline-none focus:border-sapay-600 focus:bg-white';
 
 export function ClientesPage({ user }: Props): ReactElement {
-  const [clients, setClients] = useState<Cliente[]>([]);
-  const [query, setQuery] = useState('');
-  const [form, setForm] = useState<FormState>(emptyForm);
-  const [editing, setEditing] = useState<Cliente | null>(null);
-  const [history, setHistory] = useState<Cliente | null>(null);
-  const [deleting, setDeleting] = useState<Cliente | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const c = useClientes(user);
 
-  //carga clientes dede la api
-  async function load(): Promise<void> {
-    setLoading(true);
-    try { setClients(await clientesRequest()); setError(''); }
-    catch { setError('No se pudo cargar el directorio de clientes.'); }
-    finally { setLoading(false); }
-  }
-  useEffect(() => { void load(); }, []);
-//filtro 
-  const filtered = useMemo(() => {
-    const value = query.trim().toLowerCase();
-    if (!value) return clients;
-    return clients.filter((client) => [client.cc, client.firstName, client.lastName, client.phone, client.cityOrigin, client.cityDestination].some((field) => field?.toLowerCase().includes(value)));
-  }, [clients, query]);
+  return (
+    <div className="flex h-full flex-col gap-3 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h1 className="text-sm font-semibold">Directorio de clientes</h1>
+          <p className="text-[10px] text-sapay-750">Consulta datos, historial y visitas anteriores.</p>
+        </div>
+        <Button onClick={c.openCreate} className="h-9 rounded-lg bg-sapay-900 px-3 text-xs text-white hover:bg-sapay-850">
+          <Plus size={14} /> Nuevo cliente
+        </Button>
+      </div>
 
-  function openCreate(): void { setEditing(null); setForm(emptyForm); setShowForm(true); }
-  function openEdit(client: Cliente): void {
-    setEditing(client);
-    setForm({ firstName: client.firstName, lastName: client.lastName, cc: client.cc, phone: client.phone ?? '', cityOrigin: client.cityOrigin ?? '', cityDestination: client.cityDestination ?? '', profession: client.profession ?? '', notes: client.notes ?? '' });
-    setShowForm(true);
-  }
-  async function submit(event: FormEvent): Promise<void> {
-    event.preventDefault();
-    if (!form.firstName.trim() || !form.lastName.trim() || !form.cc.trim()) { setError('Nombre, apellido y cédula son obligatorios.'); return; }
-    setSaving(true);
-    try {
-      if (editing) {
-        const { cc: _cc, ...update } = form;
-        await updateClienteRequest(editing.id, update);
-      }
-      else await createClienteRequest(form);
-      setShowForm(false); setEditing(null); setForm(emptyForm); await load();
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'No se pudo guardar el cliente.'); }
-    finally { setSaving(false); }
-  }
-  async function remove(password?: string, client = deleting): Promise<void> {
-    if (!client) return;
-    try { await deleteClienteRequest(client.id, password); setDeleting(null); await load(); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'No se pudo eliminar el cliente.'); }
-  }
+      {c.error && (
+        <div className="rounded-lg border border-danger-200 bg-danger-100 px-3 py-2 text-xs text-[#b33a3a]">
+          {c.error}
+        </div>
+      )}
 
-  function requestDelete(client: Cliente): void {
-    setError('');
-    setDeleting(client);
-    if (user.role === 'ADMIN') void remove(undefined, client);
-  }
+      <SearchInput value={c.query} onChange={c.setQuery} placeholder="Buscar por cédula, nombre, teléfono o ciudad" />
 
-  return <div className="flex h-full flex-col gap-3 p-4">
-    <div className="flex items-center justify-between gap-3"><div><h1 className="text-sm font-semibold">Directorio de clientes</h1><p className="text-[10px] text-sapay-750">Consulta datos, historial y visitas anteriores.</p></div><Button onClick={openCreate} className="h-9 rounded-lg bg-sapay-900 px-3 text-xs text-white hover:bg-sapay-850"><Plus size={14} /> Nuevo cliente</Button></div>
-    {error && <div className="rounded-lg border border-danger-200 bg-danger-100 px-3 py-2 text-xs text-[#b33a3a]">{error}</div>}
-    <div className="flex items-center gap-2 rounded-lg border border-sapay-350 bg-white px-3 py-2"><Search size={15} className="text-sapay-650" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por cédula, nombre, teléfono o ciudad" className="w-full bg-transparent text-xs outline-none" /></div>
-    <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-sapay-350 bg-white"><table className="w-full text-left text-xs"><thead className="sticky top-0 bg-[#fcf8f4] text-[10px] uppercase text-sapay-750"><tr><th className="px-3 py-2">Cliente</th><th className="px-3 py-2">Cédula</th><th className="px-3 py-2">Teléfono</th><th className="px-3 py-2">Ciudad</th><th className="px-3 py-2">Hospedajes</th><th className="px-3 py-2 text-right">Acciones</th></tr></thead><tbody>{loading ? <tr><td colSpan={6} className="p-8 text-center text-sapay-650">Cargando clientes...</td></tr> : filtered.map((client) => <tr key={client.id} className="border-t border-[#f0e7e0] hover:bg-[#fffaf6]"><td className="px-3 py-2 font-medium">{client.firstName} {client.lastName}</td><td className="px-3 py-2">{client.cc}</td><td className="px-3 py-2">{client.phone || 'Sin teléfono'}</td><td className="px-3 py-2">{client.cityOrigin || 'Sin ciudad'}</td><td className="px-3 py-2">{client.stays?.length ?? 0}</td><td className="px-3 py-2"><div className="flex justify-end gap-1"><button title="Ver historial" onClick={() => setHistory(client)} className="rounded p-1.5 text-[#7a4a34] hover:bg-[#f8eee7]">Historial</button><button title="Editar" onClick={() => openEdit(client)} className="rounded p-1.5 text-[#7a4a34] hover:bg-[#f8eee7]"><Pencil size={14} /></button><button title="Eliminar" onClick={() => requestDelete(client)} className="rounded p-1.5 text-red-500 hover:bg-red-50"><Trash2 size={14} /></button></div></td></tr>)}{!loading && filtered.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-sapay-650">No hay clientes que coincidan.</td></tr>}</tbody></table></div>
-    {showForm && <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40"><form onSubmit={submit} className="relative w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl"><button type="button" onClick={() => setShowForm(false)} className="absolute right-3 top-3 text-sapay-650"><X size={18} /></button><h2 className="text-base font-semibold">{editing ? 'Editar cliente' : 'Nuevo cliente'}</h2><div className="mt-4 grid grid-cols-2 gap-3">{([['firstName','Nombre *'],['lastName','Apellido *'],['cc','Cédula *'],['phone','Teléfono'],['cityOrigin','Ciudad de origen'],['cityDestination','Ciudad de destino'],['profession','Profesión']] as const).map(([key, label]) => <label key={key} className="text-[11px] text-sapay-750">{label}<input value={form[key] ?? ''} disabled={key === 'cc' && !!editing} onChange={(event) => setForm({ ...form, [key]: event.target.value })} className={`${inputClass} mt-1 disabled:opacity-60`} /></label>)}<label className="col-span-2 text-[11px] text-sapay-750">Notas<textarea value={form.notes ?? ''} onChange={(event) => setForm({ ...form, notes: event.target.value })} className={`${inputClass} mt-1`} rows={3} /></label></div><Button disabled={saving} className="mt-4 h-9 w-full rounded-lg bg-sapay-900 text-xs text-white">{saving ? 'Guardando...' : 'Guardar cliente'}</Button></form></div>}
-    {history && <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40"><div className="relative max-h-[80vh] w-full max-w-xl overflow-auto rounded-2xl bg-white p-5"><button onClick={() => setHistory(null)} className="absolute right-3 top-3"><X size={18} /></button><h2 className="text-base font-semibold">Historial de {history.firstName} {history.lastName}</h2><div className="mt-3 rounded-xl border border-sapay-350 bg-[#fcf8f4] p-4 text-xs"><div className="grid grid-cols-2 gap-x-4 gap-y-2"><p><span className="text-sapay-750">Nombre: </span><span className="font-medium">{history.firstName} {history.lastName}</span></p><p><span className="text-sapay-750">Cédula: </span><span className="font-medium">{history.cc}</span></p><p><span className="text-sapay-750">Teléfono: </span><span className="font-medium">{history.phone || 'Sin teléfono'}</span></p><p><span className="text-sapay-750">Profesión: </span><span className="font-medium">{history.profession || 'Sin profesión'}</span></p><p><span className="text-sapay-750">Ciudad de origen: </span><span className="font-medium">{history.cityOrigin || '-'}</span></p><p><span className="text-sapay-750">Ciudad de destino: </span><span className="font-medium">{history.cityDestination || '-'}</span></p>{history.notes ? <p className="col-span-2"><span className="text-sapay-750">Notas: </span><span className="font-medium">{history.notes}</span></p> : null}</div></div><div className="mt-4 space-y-2">{history.stays?.length ? history.stays.map((stay) => <div key={stay.id} className="rounded-lg border border-sapay-350 p-3 text-xs"><div className="flex justify-between font-medium"><span>Habitación {stay.roomNumber}</span><span className={stay.status === 'ACTIVA' ? 'text-success' : 'text-sapay-750'}>{stay.status === 'ACTIVA' ? 'ACTIVA' : stay.checkOut ? 'FINALIZADA' : stay.status}</span></div><p className="mt-1 font-medium text-sapay-950">{formatDateRange(stay.checkIn, stay.checkOut)}</p><p className="mt-1 text-sapay-750">{stay.nights} noche(s) · {stay.acTypeUsed === 'AIRE' ? 'Aire' : 'Ventilador'} · ${Number(stay.pricePerNight).toLocaleString('es-CO')}/noche</p><p className="text-sapay-750">Total: <span className="font-medium text-sapay-950">${Number(stay.total).toLocaleString('es-CO')}</span></p></div>) : <p className="text-xs text-sapay-650">Este cliente aún no tiene hospedajes.</p>}</div></div></div>}
-    {deleting && user.role !== 'ADMIN' && <AdminPasswordModal onClose={() => setDeleting(null)} onSuccess={remove} />}
-  </div>;
+      <ClientsTable
+        clients={c.filtered}
+        loading={c.loading}
+        onView={c.setHistory}
+        onEdit={c.openEdit}
+        onDelete={c.requestDelete}
+      />
+
+      {c.showForm && (
+        <ClientFormModal
+          editing={c.editing}
+          form={c.form}
+          setForm={c.setForm}
+          saving={c.saving}
+          onSubmit={c.submit}
+          onClose={c.closeForm}
+        />
+      )}
+
+      {c.history && <ClientHistoryModal client={c.history} onClose={() => c.setHistory(null)} />}
+
+      {c.deleting && user.role !== 'ADMIN' && (
+        <AdminPasswordModal onClose={() => c.setDeleting(null)} onSuccess={c.remove} />
+      )}
+    </div>
+  );
 }
