@@ -1,16 +1,16 @@
 import { BedDouble, CheckCircle, Clock3, Gavel, Plus } from 'lucide-react';
 import { type ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { type Habitacion, type PublicUser, habitacionesRequest, updateHabitacionRequest, staysByRoomRequest, checkoutRequest, staysActiveRequest } from '../lib/api';
-import { AdminPasswordModal } from './AdminPasswordModal';
-import { ConfirmModal } from './ConfirmModal';
-import { RoomFormModal } from './RoomFormModal';
-import { RoomDetailCard } from './habitaciones/RoomDetailCard';
-import { RoomsTable } from './habitaciones/RoomsTable';
-import { mapApiRoom, type Room, type RoomStatus } from './habitaciones/types';
-import { AccentButton } from './ui/accent-button';
-import { FilterSelect } from './ui/filter-select';
-import { SearchInput } from './ui/search-input';
-import { StatCard } from './ui/stat-card';
+import { AdminPasswordModal } from '../components/AdminPasswordModal';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { RoomFormModal } from '../components/RoomFormModal';
+import { RoomDetailCard } from '../components/habitaciones/RoomDetailCard';
+import { RoomsTable } from '../components/habitaciones/RoomsTable';
+import { mapApiRoom, type Room, type RoomStatus } from '../components/habitaciones/types';
+import { AccentButton } from '../components/ui/accent-button';
+import { FilterSelect } from '../components/ui/filter-select';
+import { SearchInput } from '../components/ui/search-input';
+import { StatCard } from '../components/ui/stat-card';
 
 export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
   const [rooms, setRooms] = useState<Room[]>([]);      // habitaciones ya mapeadas para UI

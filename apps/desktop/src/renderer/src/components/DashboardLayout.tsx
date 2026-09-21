@@ -1,14 +1,14 @@
 import { type ReactElement, useState } from 'react';
 import { Bell, CalendarDays, LogOut, PanelRightClose } from 'lucide-react';
 import type { PublicUser } from '../lib/api';
-import { HabitacionesPage } from './HabitacionesPage';
-import { AuditoriaPage } from './AuditoriaPage';
-import { RecepcionPage } from './RecepcionPage';
-import { LavanderiaPage } from './LavanderiaPage';
-import { ClientesPage } from './ClientesPage';
-import { HuespedesPage } from './HuespedesPage';
-import { InventarioPage } from './InventarioPage';
-import { VentasPage } from './VentasPage';
+import { HabitacionesPage } from '../pages/HabitacionesPage';
+import { AuditoriaPage } from '../pages/AuditoriaPage';
+import { RecepcionPage } from '../pages/RecepcionPage';
+import { LavanderiaPage } from '../pages/LavanderiaPage';
+import { ClientesPage } from '../pages/ClientesPage';
+import { HuespedesPage } from '../pages/HuespedesPage';
+import { InventarioPage } from '../pages/InventarioPage';
+import { VentasPage } from '../pages/VentasPage';
 import { type ModuleKey, Sidebar } from './Sidebar';
 import { AssistantChat } from './AssistantChat';
 

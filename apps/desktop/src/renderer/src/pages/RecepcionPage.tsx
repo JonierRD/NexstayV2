@@ -1,12 +1,12 @@
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { AdminPasswordModal } from './AdminPasswordModal';
-import { useReception } from './recepcion/useReception';
-import { ClientDataStep } from './recepcion/ClientDataStep';
-import { SelectRoomStep } from './recepcion/SelectRoomStep';
-import { ConfirmStep } from './recepcion/ConfirmStep';
-import { AvailableRoomsPanel } from './recepcion/AvailableRoomsPanel';
-import { SuccessScreen } from './recepcion/SuccessScreen';
+import { AdminPasswordModal } from '../components/AdminPasswordModal';
+import { useReception } from '../components/recepcion/useReception';
+import { ClientDataStep } from '../components/recepcion/ClientDataStep';
+import { SelectRoomStep } from '../components/recepcion/SelectRoomStep';
+import { ConfirmStep } from '../components/recepcion/ConfirmStep';
+import { AvailableRoomsPanel } from '../components/recepcion/AvailableRoomsPanel';
+import { SuccessScreen } from '../components/recepcion/SuccessScreen';
 
 export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   const {

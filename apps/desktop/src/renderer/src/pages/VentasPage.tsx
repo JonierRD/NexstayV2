@@ -1,11 +1,11 @@
 import { CalendarRange, Search, ShoppingCart, Sparkles } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { ProductCard } from './ventas/ProductCard';
-import { SaleModal } from './ventas/SaleModal';
-import { SummaryCard } from './ventas/SummaryCard';
-import { currencyFormatter, formatDate } from './ventas/types';
-import { useVentas } from './ventas/useVentas';
+import { ProductCard } from '../components/ventas/ProductCard';
+import { SaleModal } from '../components/ventas/SaleModal';
+import { SummaryCard } from '../components/ventas/SummaryCard';
+import { currencyFormatter, formatDate } from '../components/ventas/types';
+import { useVentas } from '../components/ventas/useVentas';
 
 export function VentasPage({ user }: { user: PublicUser }): ReactElement {
   const {

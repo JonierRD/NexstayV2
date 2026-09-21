@@ -13,15 +13,15 @@ import {
     updateLaundryRequest,
     deleteLaundryRequest
 } from '../lib/api';
-import { AdminPasswordModal } from './AdminPasswordModal';
-import { ConfirmModal } from './ConfirmModal';
-import { AccentButton } from './ui/accent-button';
-import { FilterSelect } from './ui/filter-select';
-import { SearchInput } from './ui/search-input';
-import { StatCard } from './ui/stat-card';
-import { LaundryFormModal } from './lavanderia/LaundryFormModal';
-import { LaundryDetailCard } from './lavanderia/LaundryDetailCard';
-import { LaundryOrdersTable } from './lavanderia/LaundryOrdersTable';
+import { AdminPasswordModal } from '../components/AdminPasswordModal';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { AccentButton } from '../components/ui/accent-button';
+import { FilterSelect } from '../components/ui/filter-select';
+import { SearchInput } from '../components/ui/search-input';
+import { StatCard } from '../components/ui/stat-card';
+import { LaundryFormModal } from '../components/lavanderia/LaundryFormModal';
+import { LaundryDetailCard } from '../components/lavanderia/LaundryDetailCard';
+import { LaundryOrdersTable } from '../components/lavanderia/LaundryOrdersTable';
 import {
     type LaundryItemType,
     type LaundryStatus,
@@ -29,7 +29,7 @@ import {
     itemOptions,
     statusLabels,
     statusOptions
-} from './lavanderia/types';
+} from '../components/lavanderia/types';
 
 // ---------- Componente principal ----------
 

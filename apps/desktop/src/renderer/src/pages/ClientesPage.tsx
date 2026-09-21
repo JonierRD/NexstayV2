@@ -9,8 +9,8 @@ import {
   type CreateClienteInput,
   type PublicUser
 } from '../lib/api';
-import { AdminPasswordModal } from './AdminPasswordModal';
-import { Button } from './ui/button';
+import { AdminPasswordModal } from '../components/AdminPasswordModal';
+import { Button } from '../components/ui/button';
 import { formatDate, formatDateRange } from '../lib/format';
 
 type Props = { user: PublicUser };

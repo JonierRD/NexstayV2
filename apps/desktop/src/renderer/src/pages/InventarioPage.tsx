@@ -9,15 +9,15 @@ import {
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { cn } from '../lib/utils';
-import { Button } from './ui/button';
-import { ConfirmModal } from './ConfirmModal';
-import { AdminPasswordModal } from './AdminPasswordModal';
-import { LoadingOverlay } from './LoadingOverlay';
-import { InventoryFilters } from './inventario/InventoryFilters';
-import { InventoryStats } from './inventario/InventoryStats';
-import { InventoryTable } from './inventario/InventoryTable';
-import { ProductModal } from './inventario/ProductModal';
-import { useInventario } from './inventario/useInventario';
+import { Button } from '../components/ui/button';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { AdminPasswordModal } from '../components/AdminPasswordModal';
+import { LoadingOverlay } from '../components/LoadingOverlay';
+import { InventoryFilters } from '../components/inventario/InventoryFilters';
+import { InventoryStats } from '../components/inventario/InventoryStats';
+import { InventoryTable } from '../components/inventario/InventoryTable';
+import { ProductModal } from '../components/inventario/ProductModal';
+import { useInventario } from '../components/inventario/useInventario';
 
 export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
   const inv = useInventario(user.role === 'ADMIN');

@@ -2,8 +2,8 @@ import { BedDouble, Clock3, LogOut, Package, RefreshCw, ShoppingBag, UserRound, 
 import { type FormEvent, type ReactElement, useEffect, useState } from 'react';
 import { checkoutRequest, createStaySaleRequest, staysActiveRequest, storeStockRequest, type PublicUser, type Stay, type StoreStock } from '../lib/api';
 import { formatDateTime } from '../lib/format';
-import { AdminPasswordModal } from './AdminPasswordModal';
-import { Button } from './ui/button';
+import { AdminPasswordModal } from '../components/AdminPasswordModal';
+import { Button } from '../components/ui/button';
 
 type Props = { user: PublicUser };
 
