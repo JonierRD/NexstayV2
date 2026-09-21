@@ -8,11 +8,6 @@ import {
   RefreshCw,
   Edit2,
   Trash2,
-  Layers,
-  ArrowUpRight,
-  ArrowDownRight,
-  Filter,
-  DollarSign,
   Boxes,
   MapPin,
   X

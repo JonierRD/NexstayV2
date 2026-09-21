@@ -2,10 +2,7 @@ import {
   Search,
   BedDouble,
   CheckCircle,
-  Loader2,
-  MapPin,
-  Briefcase,
-  Phone
+  Loader2
 } from 'lucide-react';
 import { type ReactElement, useState, useEffect, useCallback } from 'react';
 import { type PublicUser, habitacionesRequest, clienteByCcRequest, clientesRequest, checkinRequest, type Habitacion, type Cliente } from '../lib/api';

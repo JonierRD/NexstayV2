@@ -18,7 +18,7 @@ import { ClientesModule } from './clientes/clientes.module';
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,
-      limit: 10,
+      limit: 100,
     }]),
     AuthModule,
     HabitacionesModule,

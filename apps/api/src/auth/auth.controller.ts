@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { AuthService } from './auth.service';
+import { AuthService, type AuthResult } from './auth.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -12,12 +12,6 @@ import type { AuthenticatedUser, JwtPayload } from './auth.types';
 import type { SeededAdmin } from './seed.service';
 import { SeedService } from './seed.service';
 
-type AuthResultDto = {
-  token: string;
-  expiresIn: number;
-  user: unknown;
-};
-
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -26,13 +20,13 @@ export class AuthController {
   ) {}
 
   @Post('login')
-  login(@Body() loginDto: LoginDto): Promise<AuthResultDto> {
-    return this.authService.login(loginDto) as unknown as Promise<AuthResultDto>;
+  login(@Body() loginDto: LoginDto): Promise<AuthResult> {
+    return this.authService.login(loginDto);
   }
 
   @Post('register')
-  register(@Body() registerDto: RegisterDto): Promise<AuthResultDto> {
-    return this.authService.register(registerDto) as unknown as Promise<AuthResultDto>;
+  register(@Body() registerDto: RegisterDto): Promise<AuthResult> {
+    return this.authService.register(registerDto);
   }
 
   @Post('forgot-password')

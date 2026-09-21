@@ -4,8 +4,7 @@ const TOKEN_STORAGE_KEY = 'sapay-token';
 declare global {
   interface Window {
     sapay?: {
-      appName: string;
-      getConfig: () => Promise<{ apiUrl: string; appName: string }>;
+      getConfig: () => Promise<{ apiUrl: string }>;
     };
   }
 }
@@ -386,14 +385,8 @@ export type StockItem = {
   product: Product;
 };
 
-export type Inventory = StockItem;
-
 export async function inventoryRequest(): Promise<StockItem[]> {
   return apiRequest<StockItem[]>('/inventory', { method: 'GET' });
-}
-
-export async function inventoryByCategoryRequest(category: string): Promise<StockItem[]> {
-  return apiRequest<StockItem[]>(`/inventory/category/${encodeURIComponent(category)}`, { method: 'GET' });
 }
 
 export type StoreStock = {
@@ -407,18 +400,6 @@ export async function storeStockRequest(): Promise<StoreStock[]> {
 }
 
 export async function createProductRequest(data: {
-  name: string;
-  price: number;
-  category?: string;
-  description?: string;
-}): Promise<Product> {
-  return apiRequest<Product>('/inventory/product', {
-    method: 'POST',
-    body: data
-  });
-}
-
-export async function createInventoryRequest(data: {
   name: string;
   price: number;
   category?: string;
@@ -566,10 +547,6 @@ export async function clienteByCcRequest(cc: string): Promise<Cliente> {
   return apiRequest<Cliente>(`/clientes/cc/${encodeURIComponent(cc)}`, { method: 'GET' });
 }
 
-export async function clienteRequest(id: number): Promise<Cliente> {
-  return apiRequest<Cliente>(`/clientes/${id}`, { method: 'GET' });
-}
-
 export async function createClienteRequest(input: CreateClienteInput): Promise<Cliente> {
   return apiRequest<Cliente>('/clientes', { method: 'POST', body: input });
 }
@@ -622,33 +599,14 @@ export type CheckinInput = {
 
 export type CheckoutInput = {
   adminPassword?: string;
-  notes?: string;
 };
-
-export type UpdateStayInput = {
-  nights?: number;
-  acTypeUsed?: 'AIRE' | 'VENTILADOR';
-  adminPassword?: string;
-};
-
-export async function staysRequest(): Promise<Stay[]> {
-  return apiRequest<Stay[]>('/stays', { method: 'GET' });
-}
 
 export async function staysActiveRequest(): Promise<Stay[]> {
   return apiRequest<Stay[]>('/stays/active', { method: 'GET' });
 }
 
-export async function stayRequest(id: number): Promise<Stay> {
-  return apiRequest<Stay>(`/stays/${id}`, { method: 'GET' });
-}
-
 export async function staysByRoomRequest(roomNumber: string): Promise<Stay[]> {
   return apiRequest<Stay[]>(`/stays/room/${encodeURIComponent(roomNumber)}`, { method: 'GET' });
-}
-
-export async function staysByClientRequest(cc: string): Promise<Cliente> {
-  return apiRequest<Cliente>(`/stays/client/${encodeURIComponent(cc)}`, { method: 'GET' });
 }
 
 export async function checkinRequest(input: CheckinInput): Promise<Stay> {
@@ -657,15 +615,4 @@ export async function checkinRequest(input: CheckinInput): Promise<Stay> {
 
 export async function checkoutRequest(id: number, input: CheckoutInput): Promise<Stay> {
   return apiRequest<Stay>(`/stays/${id}/checkout`, { method: 'POST', body: input });
-}
-
-export async function updateStayRequest(id: number, input: UpdateStayInput): Promise<Stay> {
-  return apiRequest<Stay>(`/stays/${id}`, { method: 'PATCH', body: input });
-}
-
-export async function cancelStayRequest(id: number, adminPassword?: string): Promise<Stay> {
-  return apiRequest<Stay>(`/stays/${id}/cancel`, {
-    method: 'POST',
-    body: { ...(adminPassword ? { adminPassword } : {}) }
-  });
 }

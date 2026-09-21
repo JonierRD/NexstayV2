@@ -21,7 +21,7 @@ import { hashPassword, verifyPassword } from './password';
 import type { AuthenticatedUser, JwtPayload, PublicUser } from './auth.types';
 import jwtConfig from './jwt.config';
 
-type AuthResult = { token: string; expiresIn: number; user: PublicUser };
+export type AuthResult = { token: string; expiresIn: number; user: PublicUser };
 
 @Injectable()
 export class AuthService {

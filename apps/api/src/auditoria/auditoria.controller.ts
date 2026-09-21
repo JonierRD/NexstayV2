@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, ForbiddenException, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
@@ -40,13 +40,13 @@ export class AuditoriaController {
 
   @Get('entity/:entity/:entityId')
   async findByEntity(
-    @Query('entity') entity: string,
-    @Query('entityId') entityId: string,
+    @Param('entity') entity: string,
+    @Param('entityId') entityId: string,
     @CurrentUser() user?: JwtPayload
   ) {
     // Solo administradores pueden ver logs de cualquier entidad
     if (user?.role !== 'ADMIN') {
-      throw new Error('No tienes permisos para ver estos logs');
+      throw new ForbiddenException('No tienes permisos para ver estos logs');
     }
 
     return this.service.findByEntity(entity, entityId);

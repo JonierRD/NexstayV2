@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Role, RoomType, RoomStatus } from '@prisma/client';
+import { Role, RoomType } from '@prisma/client';
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -61,7 +61,7 @@ export class SeedService implements OnModuleInit {
     }
   }
 
-  hasPendingFirstRun(): boolean {
+  private hasPendingFirstRun(): boolean {
     return this.seededCredentials !== null && fs.existsSync(this.firstRunMarkerPath);
   }
 
@@ -78,13 +78,6 @@ export class SeedService implements OnModuleInit {
     } catch {
       return null;
     }
-  }
-
-  clearSeededCredentials(): void {
-    if (this.firstRunMarkerPath && fs.existsSync(this.firstRunMarkerPath)) {
-      fs.unlinkSync(this.firstRunMarkerPath);
-    }
-    this.seededCredentials = null;
   }
 
   private async seedInitialAdmin(): Promise<SeededAdmin> {
@@ -142,11 +135,9 @@ export class SeedService implements OnModuleInit {
   private async seedRooms(): Promise<void> {
     const roomCount = await this.prisma.room.count();
     if (roomCount > 0) {
-      await this.prisma.room.updateMany({
-        where: {},
-        data: { status: RoomStatus.DISPONIBLE }
-      });
-      this.logger.log('Todas las habitaciones están disponibles.');
+      // No tocar las habitaciones existentes: resetear estados aquí
+      // corrompería hospedajes activos tras un reinicio.
+      this.logger.log(`Ya existen ${roomCount} habitaciones. Se omiten el seed.`);
       return;
     }
 

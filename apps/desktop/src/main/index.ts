@@ -56,8 +56,7 @@ function createWindow(): void {
 }
 
 ipcMain.handle('sapay:config', () => ({
-  apiUrl: `http://127.0.0.1:${APP_CONFIG.apiPort}`,
-  appName: 'SAPAY Hotel'
+  apiUrl: `http://127.0.0.1:${APP_CONFIG.apiPort}`
 }));
 
 app.whenReady().then(() => {

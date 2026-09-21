@@ -51,11 +51,6 @@ type LoginStatus = {
   message: string;
 };
 
-type StoredSession = {
-  user: PublicUser;
-  tokenExpiresAt: number;
-};
-
 export function App(): ReactElement {
   const [mode, setMode] = useState<AuthMode>('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -105,7 +100,6 @@ export function App(): ReactElement {
       setResetNewPassword('');
       setResetConfirmPassword('');
       setStoredToken(null);
-      window.localStorage.removeItem('sapay-session');
       setIsLoggingOut(false);
       setStatus(
         message
@@ -155,7 +149,6 @@ export function App(): ReactElement {
           return;
         }
         setStoredToken(null);
-        window.localStorage.removeItem('sapay-session');
         const message =
           error instanceof ApiError
             ? 'Tu sesión anterior expiró. Inicia sesión nuevamente.'
@@ -174,12 +167,6 @@ export function App(): ReactElement {
       cancelled = true;
     };
   }, []);
-
-  function persistSession(user: PublicUser, expiresInSeconds: number): void {
-    const tokenExpiresAt = Date.now() + expiresInSeconds * 1000;
-    const session: StoredSession = { user, tokenExpiresAt };
-    window.localStorage.setItem('sapay-session', JSON.stringify(session));
-  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -251,7 +238,6 @@ export function App(): ReactElement {
           role: loginRole as 'ADMIN' | 'RECEPTION'
         });
         setStoredToken(result.token);
-        persistSession(result.user, result.expiresIn);
         setLoggedUser(result.user);
         setStatus({ kind: 'success', message: `Bienvenido, ${result.user.fullName}.` });
         return;
@@ -269,7 +255,6 @@ export function App(): ReactElement {
           adminPassword: registerAdminPassword
         });
         setStoredToken(result.token);
-        persistSession(result.user, result.expiresIn);
         setLoggedUser(result.user);
         setStatus({
           kind: 'success',
