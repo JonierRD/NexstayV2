@@ -110,6 +110,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
         onLogout={onLogout}
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
+        user={user}
       />
       <div className="flex flex-1 flex-col min-w-0">
         <header className="flex h-11 items-center gap-3 border-b border-sapay-350 bg-[#fbf8f4] px-5">
