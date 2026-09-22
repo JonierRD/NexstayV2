@@ -1,0 +1,1 @@
+// [Capa 4] Pipeline interceptor: inyecta Bearer token y maneja 401/403 en respuestas

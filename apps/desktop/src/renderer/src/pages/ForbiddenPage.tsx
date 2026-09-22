@@ -1,0 +1,1 @@
+// [Capa 2] Acceso Denegado (403): vista amigable con botón para volver al inicio

@@ -1,0 +1,1 @@
+// [Capa 2] Módulo no encontrado (404): vista amigable para rutas inexistentes

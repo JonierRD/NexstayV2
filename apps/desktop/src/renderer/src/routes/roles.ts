@@ -1,0 +1,1 @@
+// [Capa 1] Enum de roles y jerarquías de acceso (ADMIN, RECEPTION)

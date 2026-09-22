@@ -1,0 +1,1 @@
+// [Capa 4] Bus de eventos desacoplado para auth: 401 unauthorized / 403 forbidden

@@ -1,0 +1,1 @@
+// [Capa 2] Guard de navegación: bloquea módulos sin permiso y muestra 403/404

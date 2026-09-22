@@ -1,0 +1,1 @@
+// [Capa 1] Catálogo centralizado de módulos con sus roles permitidos

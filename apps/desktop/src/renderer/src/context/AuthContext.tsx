@@ -1,0 +1,1 @@
+// [Capa 3] Estado global de sesión: AuthProvider y hook useAuthSession (hasRole, hasAnyRole)

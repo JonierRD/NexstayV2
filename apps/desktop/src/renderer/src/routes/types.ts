@@ -1,0 +1,1 @@
+// [Capa 1] Contratos del sistema de rutas: AppRoute, RouteMeta, ModuleKey

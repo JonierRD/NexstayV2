@@ -1,0 +1,1 @@
+// [Capa 3] Servicio de cuenta: validación de token, carga de perfil y roles
