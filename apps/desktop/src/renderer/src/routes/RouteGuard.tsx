@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 import type { PublicUser } from '../lib/api';
+import { useAuthSession } from '../context/AuthContext';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { moduleRoutes } from './moduleRoutes';
@@ -8,7 +9,7 @@ import type { ModuleKey } from './types';
 
 type RouteGuardProps = {
 	activeModule: ModuleKey | string;
-	user: PublicUser;
+	user?: PublicUser | null;
 	children: ReactNode;
 	onNavigateHome: () => void;
 };
@@ -19,6 +20,8 @@ export function RouteGuard({
 	children,
 	onNavigateHome
 }: RouteGuardProps): ReactElement {
+	const { user: sessionUser } = useAuthSession();
+	const effectiveUser = user ?? sessionUser;
 	const route = moduleRoutes.find((candidate) => candidate.key === activeModule);
 
 	if (!route) {
@@ -29,7 +32,11 @@ export function RouteGuard({
 		return <>{children}</>;
 	}
 
-	const userRole = user.role as Role;
+	if (!effectiveUser) {
+		return <ForbiddenPage moduleTitle={route.meta.title} onNavigateHome={onNavigateHome} />;
+	}
+
+	const userRole = effectiveUser.role as Role;
 	const hasPermission = route.meta.roles?.some((requiredRole) => hasRole(userRole, requiredRole)) ?? true;
 
 	if (!hasPermission) {
