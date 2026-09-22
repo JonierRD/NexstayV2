@@ -3,3 +3,4 @@
 export * from './roles';
 export * from './types';
 export { moduleRoutes } from './moduleRoutes';
+export { RouteGuard } from './RouteGuard';

@@ -11,6 +11,7 @@ import { InventarioPage } from '../pages/InventarioPage';
 import { VentasPage } from '../pages/VentasPage';
 import { type ModuleKey, Sidebar } from './Sidebar';
 import { AssistantChat } from './AssistantChat';
+import { RouteGuard } from '../routes/RouteGuard';
 
 type PageComponent = (props: { user: PublicUser }) => ReactElement;
 
@@ -159,7 +160,13 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
           </button>
         </header>
         <div className="flex min-h-0 flex-1 flex-col bg-[hsl(var(--background))]">
-          <Page user={user} />
+          <RouteGuard
+            activeModule={active}
+            user={user}
+            onNavigateHome={() => setActive('recepcion')}
+          >
+            <Page user={user} />
+          </RouteGuard>
           <AssistantChat user={user} pageKey={active} pageTitle={pageTitles[active]} />
         </div>
       </div>
