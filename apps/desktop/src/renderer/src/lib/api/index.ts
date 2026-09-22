@@ -1,5 +1,7 @@
 export * from './client';
 export * from './auth';
+export * from './authEvents';
+export * from './interceptors';
 export * from './habitaciones';
 export * from './auditoria';
 export * from './laundry';

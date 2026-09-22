@@ -29,15 +29,20 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export interface AuthProviderProps {
   children: ReactNode;
+  initialUser?: PublicUser | null;
 }
 
 /**
  * Proveedor de contexto de autenticación y autorización.
  * Centraliza la restauración de sesión al arrancar la app, y expone helpers de roles.
  */
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<PublicUser | null>(null);
+export function AuthProvider({ children, initialUser = null }: AuthProviderProps) {
+  const [user, setUser] = useState<PublicUser | null>(initialUser);
   const [isRestoringSession, setIsRestoringSession] = useState<boolean>(true);
+
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
 
   const isAuthenticated = Boolean(user);
 

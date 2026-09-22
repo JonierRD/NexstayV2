@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import {
   ApiError,
+  authEvents,
   firstRunRequest,
   forgotPasswordRequest,
   getStoredToken,
@@ -81,6 +82,21 @@ export function useAuth() {
       );
     }, 600);
   }, []);
+
+  useEffect(() => {
+    const unsubscribeUnauthorized = authEvents.on('unauthorized', ({ reason }) => {
+      handleLogout(reason);
+    });
+
+    const unsubscribeForbidden = authEvents.on('forbidden', ({ reason }) => {
+      setStatus({ kind: 'error', message: reason });
+    });
+
+    return () => {
+      unsubscribeUnauthorized();
+      unsubscribeForbidden();
+    };
+  }, [handleLogout]);
 
   // 1) Al arrancar: si hay token guardado, validarlo contra la API.
   //    Además consulta si es el primer arranque (credenciales semilla).
