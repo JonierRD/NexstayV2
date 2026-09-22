@@ -1,6 +1,7 @@
 import { type ReactElement, useState } from 'react';
 import { Bell, CalendarDays, LogOut, PanelRightClose } from 'lucide-react';
 import type { PublicUser } from '../lib/api';
+import { useAuthSession } from '../context/AuthContext';
 import { HabitacionesPage } from '../pages/HabitacionesPage';
 import { AuditoriaPage } from '../pages/AuditoriaPage';
 import { RecepcionPage } from '../pages/RecepcionPage';
@@ -87,6 +88,8 @@ const pageTitles: Record<ModuleKey, string> = {
 };
 
 export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): ReactElement {
+  const { user: sessionUser } = useAuthSession();
+  const resolvedUser = user ?? sessionUser ?? null;
   const [active, setActive] = useState<ModuleKey>('recepcion');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const Page = pages[active];
@@ -110,7 +113,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
         onLogout={onLogout}
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
-        user={user}
+        user={resolvedUser}
       />
       <div className="flex flex-1 flex-col min-w-0">
         <header className="flex h-11 items-center gap-3 border-b border-sapay-350 bg-[#fbf8f4] px-5">
@@ -145,11 +148,11 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
           <span className="h-4 w-px bg-[hsl(var(--border))]" />
           <div className="flex items-center gap-2">
             <div className="text-right">
-              <p className="text-[11px] font-medium leading-tight">{user.fullName}</p>
-              <p className="text-[9px] text-[hsl(var(--muted-foreground))]">{user.role === 'ADMIN' ? 'Administrador' : 'Recepcionista'}</p>
+              <p className="text-[11px] font-medium leading-tight">{resolvedUser?.fullName ?? 'Usuario'}</p>
+              <p className="text-[9px] text-[hsl(var(--muted-foreground))]">{resolvedUser?.role === 'ADMIN' ? 'Administrador' : 'Recepcionista'}</p>
             </div>
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-semibold text-white">
-              {user.fullName.charAt(0)}
+              {(resolvedUser?.fullName ?? 'U').charAt(0)}
             </div>
           </div>
           <button
@@ -163,12 +166,12 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
         <div className="flex min-h-0 flex-1 flex-col bg-[hsl(var(--background))]">
           <RouteGuard
             activeModule={active}
-            user={user}
+            user={resolvedUser ?? undefined}
             onNavigateHome={() => setActive('recepcion')}
           >
-            <Page user={user} />
+            <Page user={resolvedUser ?? user} />
           </RouteGuard>
-          <AssistantChat user={user} pageKey={active} pageTitle={pageTitles[active]} />
+          <AssistantChat user={resolvedUser ?? user} pageKey={active} pageTitle={pageTitles[active]} />
         </div>
       </div>
     </div>
