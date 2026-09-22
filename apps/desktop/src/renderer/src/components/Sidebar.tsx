@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import Logo from '../assets/login/Logo.png';
 import { cn } from '../lib/utils';
+import type { PublicUser } from '../lib/api';
+import { usePermissions } from '../security';
 
 export type ModuleKey =
   | 'dashboard'
@@ -86,10 +88,18 @@ type SidebarProps = {
   onLogout: () => void;
   open: boolean;
   onToggle: () => void;
+  user?: PublicUser | null;
 };
 
-export function Sidebar({ active, onNavigate, onLogout, open, onToggle }: SidebarProps) {
+export function Sidebar({ active, onNavigate, onLogout, open, onToggle, user }: SidebarProps) {
+  const { canAccess } = usePermissions({ user });
+
   if (!open) return null;
+
+  // Filtrado de módulos según permisos del rol activo (Capa 5: v-can / defensa en profundidad)
+  const visibleMainModules = mainModules.filter((item) => canAccess(item.key));
+  const visibleFutureModules = futureModules.filter((item) => canAccess(item.key));
+  const visibleBottomItems = bottomItems.filter((item) => canAccess(item.key));
 
   return (
     <aside className="flex h-full w-52 flex-col bg-gradient-to-b from-[#30221a] to-[#190b00] text-[#f7efe8] shadow-[4px_0_20px_rgba(0,0,0,0.3)]">
@@ -110,7 +120,7 @@ export function Sidebar({ active, onNavigate, onLogout, open, onToggle }: Sideba
         <p className="px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-white/60">
           Principal
         </p>
-        {mainModules.map((item) => (
+        {visibleMainModules.map((item) => (
           <button
             key={item.key}
             onClick={() => onNavigate(item.key)}
@@ -126,28 +136,32 @@ export function Sidebar({ active, onNavigate, onLogout, open, onToggle }: Sideba
           </button>
         ))}
 
-        <p className="mt-2 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-white/60">
-          Más módulos
-        </p>
-        {futureModules.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => onNavigate(item.key)}
-            className={cn(
-              'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-semibold transition-colors',
-              active === item.key
-                ? 'bg-[#f3c34a]/20 text-[#f3c34a]'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
-            )}
-          >
-            <item.icon size={14} />
-            <span>{item.label}</span>
-          </button>
-        ))}
+        {visibleFutureModules.length > 0 && (
+          <>
+            <p className="mt-2 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-white/60">
+              Más módulos
+            </p>
+            {visibleFutureModules.map((item) => (
+              <button
+                key={item.key}
+                onClick={() => onNavigate(item.key)}
+                className={cn(
+                  'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-semibold transition-colors',
+                  active === item.key
+                    ? 'bg-[#f3c34a]/20 text-[#f3c34a]'
+                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                )}
+              >
+                <item.icon size={14} />
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="border-t border-white/10 px-2 py-1.5 space-y-0.5">
-        {bottomItems.map((item) => (
+        {visibleBottomItems.map((item) => (
           <button
             key={item.key}
             onClick={() => onNavigate(item.key)}
