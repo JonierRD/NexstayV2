@@ -25,8 +25,7 @@ import {
 import Logo from '../assets/login/Logo.png';
 import { cn } from '../lib/utils';
 import type { PublicUser } from '../lib/api';
-import { findRoute, isRouteAllowed } from '../routes/routeAccess';
-import { type Role } from '../routes/roles';
+import { usePermissions } from '../security';
 import type { ModuleKey } from '../routes/types';
 
 type NavItem = {
@@ -73,19 +72,14 @@ type SidebarProps = {
 };
 
 export function Sidebar({ active, onNavigate, onLogout, open, onToggle, user }: SidebarProps) {
+  const { canAccess } = usePermissions({ user });
+
   if (!open) return null;
 
-  // Solo se listan los módulos del catálogo (Capa 1) que el rol activo puede abrir.
-  // Sin usuario en sesión no se muestra ningún módulo.
-  const role = (user?.role ?? null) as Role | null;
-  const isAllowed = (key: ModuleKey): boolean => {
-    const route = findRoute(key);
-    return role !== null && route !== undefined && isRouteAllowed(role, route);
-  };
-
-  const visibleMainModules = mainModules.filter((item) => isAllowed(item.key));
-  const visibleFutureModules = futureModules.filter((item) => isAllowed(item.key));
-  const visibleBottomItems = bottomItems.filter((item) => isAllowed(item.key));
+  // Filtrado de módulos según permisos del rol activo (Capa 5: v-can / defensa en profundidad)
+  const visibleMainModules = mainModules.filter((item) => canAccess(item.key));
+  const visibleFutureModules = futureModules.filter((item) => canAccess(item.key));
+  const visibleBottomItems = bottomItems.filter((item) => canAccess(item.key));
 
   return (
     <aside className="flex h-full w-52 flex-col bg-gradient-to-b from-[#30221a] to-[#190b00] text-[#f7efe8] shadow-[4px_0_20px_rgba(0,0,0,0.3)]">
