@@ -1,90 +1,16 @@
-import { type ReactElement, useState } from 'react';
+import { createElement, type ReactElement, useState } from 'react';
 import { Bell, CalendarDays, LogOut, PanelRightClose } from 'lucide-react';
 import type { PublicUser } from '../lib/api';
 import { useAuthSession } from '../context/AuthContext';
-import { HabitacionesPage } from '../pages/HabitacionesPage';
-import { AuditoriaPage } from '../pages/AuditoriaPage';
-import { RecepcionPage } from '../pages/RecepcionPage';
-import { LavanderiaPage } from '../pages/LavanderiaPage';
-import { ClientesPage } from '../pages/ClientesPage';
-import { HuespedesPage } from '../pages/HuespedesPage';
-import { InventarioPage } from '../pages/InventarioPage';
-import { VentasPage } from '../pages/VentasPage';
-import { type ModuleKey, Sidebar } from './Sidebar';
+import { Sidebar } from './Sidebar';
 import { AssistantChat } from './AssistantChat';
 import { RouteGuard } from '../routes/RouteGuard';
-
-type PageComponent = (props: { user: PublicUser }) => ReactElement;
-
-const pages: Record<ModuleKey, PageComponent> = {
-  dashboard: () => <PageShell title="Dashboard" subtitle="Resumen del hotel" />,
-  recepcion: ({ user }) => <RecepcionPage user={user} />,
-  reservas: () => <PageShell title="Reservas" subtitle="Gestión de reservas" />,
-  huespedes: ({ user }) => <HuespedesPage user={user} />,
-  habitaciones: ({ user }) => <HabitacionesPage user={user} />,
-  clientes: ({ user }) => <ClientesPage user={user} />,
-  ventas: ({ user }) => <VentasPage user={user} />,
-  parqueadero: () => <PageShell title="Parqueadero" subtitle="Parqueadero mensual" />,
-  auditoria: ({ user }) => <AuditoriaPage user={user} />,
-  lavanderia: ({ user }) => <LavanderiaPage user={user} />,
-  inventario: ({ user }) => <InventarioPage user={user} />,
-  lavado: () => <PageShell title="Lavado tanque" subtitle="Próximamente" future />,
-  'ingresos-gastos': () => <PageShell title="Ingresos y Gastos" subtitle="Próximamente" future />,
-  semanario: () => <PageShell title="Semanario" subtitle="Próximamente" future />,
-  aires: () => <PageShell title="Aires" subtitle="Próximamente" future />,
-  mecato: () => <PageShell title="Mecato" subtitle="Próximamente" future />,
-  facturas: () => <PageShell title="Facturas" subtitle="Próximamente" future />,
-  perfil: () => <PageShell title="Perfil" subtitle="Datos del usuario" />,
-  config: () => <PageShell title="Configuración" subtitle="Ajustes del sistema" />
-};
-
-function PageShell({ title, subtitle, future, children }: {
-  title: string;
-  subtitle: string;
-  future?: boolean;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="flex h-full flex-col p-4">
-      <div className="mb-3">
-        <h1 className="text-sm font-semibold">{title}</h1>
-        <p className="text-[10px] text-[hsl(var(--muted-foreground))]">{subtitle}</p>
-      </div>
-      {future && (
-        <div className="rounded-lg border border-dashed border-[hsl(var(--border))] bg-white p-6 text-center text-xs text-[hsl(var(--muted-foreground))]">
-          Módulo en desarrollo
-        </div>
-      )}
-      {children}
-    </div>
-  );
-}
+import { findRoute } from '../routes/routeAccess';
+import type { ModuleKey } from '../routes/types';
 
 type DashboardLayoutProps = {
   user: PublicUser;
   onLogout: () => void;
-};
-
-const pageTitles: Record<ModuleKey, string> = {
-  dashboard: 'Dashboard',
-  recepcion: 'Recepción',
-  reservas: 'Reservas',
-  huespedes: 'Huéspedes',
-  habitaciones: 'Habitaciones',
-  clientes: 'Clientes',
-  ventas: 'Ventas',
-  parqueadero: 'Parqueadero',
-  auditoria: 'Auditoría',
-  lavanderia: 'Lavandería',
-  inventario: 'Inventario',
-  lavado: 'Lavado tanque',
-  'ingresos-gastos': 'Ingresos y Gastos',
-  semanario: 'Semanario',
-  aires: 'Aires',
-  mecato: 'Mecato',
-  facturas: 'Facturas',
-  perfil: 'Perfil',
-  config: 'Configuración'
 };
 
 export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): ReactElement {
@@ -92,7 +18,8 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
   const resolvedUser = user ?? sessionUser ?? null;
   const [active, setActive] = useState<ModuleKey>('recepcion');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const Page = pages[active];
+  const route = findRoute(active);
+  const pageTitle = route?.meta.title ?? 'SAPAY';
   const now = new Date();
   const formattedDate = new Intl.DateTimeFormat('es-CO', {
     day: 'numeric',
@@ -125,7 +52,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
               <PanelRightClose size={16} />
             </button>
           )}
-          <span className="text-[13px] font-semibold tracking-tight text-sapay-950">{pageTitles[active]}</span>
+          <span className="text-[13px] font-semibold tracking-tight text-sapay-950">{pageTitle}</span>
           <div className="flex-1" />
 
           <div className="flex items-center gap-2 rounded-[16px] border border-sapay-350 bg-[#fbf8f4] px-3 py-1.5 text-sapay-900 shadow-[0_10px_24px_rgba(67,42,27,0.06)]">
@@ -169,9 +96,9 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
             user={resolvedUser ?? undefined}
             onNavigateHome={() => setActive('recepcion')}
           >
-            <Page user={resolvedUser ?? user} />
+            {route ? createElement(route.component, { user: resolvedUser ?? user }) : null}
           </RouteGuard>
-          <AssistantChat user={resolvedUser ?? user} pageKey={active} pageTitle={pageTitles[active]} />
+          <AssistantChat user={resolvedUser ?? user} pageKey={active} pageTitle={pageTitle} />
         </div>
       </div>
     </div>

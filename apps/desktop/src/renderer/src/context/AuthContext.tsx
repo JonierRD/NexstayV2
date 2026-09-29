@@ -163,3 +163,12 @@ export function useAuthSession(): AuthContextType {
   }
   return context;
 }
+
+/**
+ * Variante de useAuthSession para componentes que pueden renderizarse
+ * fuera del AuthProvider (por ejemplo durante la pantalla de login).
+ * Retorna null en vez de lanzar error.
+ */
+export function useOptionalAuthSession(): AuthContextType | null {
+  return useContext(AuthContext) ?? null;
+}

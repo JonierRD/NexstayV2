@@ -3,7 +3,7 @@ import { Role } from '../routes/roles';
 import type { ModuleKey } from '../routes/types';
 import type { PublicUser } from '../lib/api';
 import { can as canCheck, canAccessModule, type Action, type Subject } from './permissions';
-import { useAuthSession } from '../context/AuthContext';
+import { useOptionalAuthSession } from '../context/AuthContext';
 
 export interface UsePermissionsOptions {
   user?: PublicUser | null;
@@ -15,14 +15,8 @@ export interface UsePermissionsOptions {
  * Si no se provee un usuario o rol en las opciones, intenta obtenerlo de useAuthSession().
  */
 export function usePermissions(options?: UsePermissionsOptions) {
-  let sessionUser: PublicUser | null = null;
-
-  try {
-    const session = useAuthSession();
-    sessionUser = session.user;
-  } catch {
-    // Si se utiliza fuera de AuthProvider, continúa con options?.user o options?.role
-  }
+  const session = useOptionalAuthSession();
+  const sessionUser: PublicUser | null = session?.user ?? null;
 
   const activeUser = options?.user ?? sessionUser;
   const activeRole = options?.role ?? (activeUser?.role as Role | undefined) ?? null;

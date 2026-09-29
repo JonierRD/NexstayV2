@@ -1,5 +1,5 @@
-import { Role, hasRole } from '../routes/roles';
-import { moduleRoutes } from '../routes/moduleRoutes';
+import { Role } from '../routes/roles';
+import { findRoute, isRouteAllowed } from '../routes/routeAccess';
 import type { ModuleKey } from '../routes/types';
 
 export type Action = 'view' | 'create' | 'edit' | 'delete' | 'export' | 'manage' | string;
@@ -7,13 +7,13 @@ export type Subject = string;
 
 export interface RolePermissions {
   all?: boolean;
-  modules?: ModuleKey[];
   actions?: Record<Subject, Action[] | boolean>;
 }
 
 /**
  * [Capa 5] Matriz de permisos declarativa por rol.
- * Adaptación de la matriz use-permissions.ts (JHipster) a NexstayV2.
+ * La lista de módulos accesibles NO se declara aquí: se resuelve contra el catálogo
+ * centralizado de moduleRoutes (Capa 1) mediante isRouteAllowed.
  * - ADMIN cuenta con bypass total (all: true).
  * - RECEPTION tiene granularidad sobre módulos operativos y restricciones de borrado/auditoría/configuración.
  */
@@ -22,25 +22,6 @@ export const PERMISSIONS: Record<Role, RolePermissions> = {
     all: true
   },
   [Role.RECEPTION]: {
-    modules: [
-      'dashboard',
-      'recepcion',
-      'reservas',
-      'huespedes',
-      'habitaciones',
-      'clientes',
-      'ventas',
-      'parqueadero',
-      'lavanderia',
-      'inventario',
-      'perfil',
-      'lavado',
-      'ingresos-gastos',
-      'semanario',
-      'aires',
-      'mecato',
-      'facturas'
-    ],
     actions: {
       recepcion: ['view', 'create', 'edit'],
       clientes: ['view', 'create', 'edit'],
@@ -57,7 +38,7 @@ export const PERMISSIONS: Record<Role, RolePermissions> = {
 
 /**
  * Comprueba si un rol tiene permiso para acceder a un módulo de la aplicación.
- * Evalúa tanto la matriz de permisos como el catálogo de rutas de Capa 1.
+ * Delega la decisión de acceso al catálogo de rutas de Capa 1.
  */
 export function canAccessModule(role: Role | null | undefined, moduleKey: ModuleKey | string): boolean {
   if (!role) {
@@ -70,23 +51,12 @@ export function canAccessModule(role: Role | null | undefined, moduleKey: Module
   }
 
   // 2. Verificar contra el catálogo centralizado de moduleRoutes (Capa 1)
-  const route = moduleRoutes.find((r) => r.key === moduleKey);
-  if (route) {
-    if (route.meta.isPublic) {
-      return true;
-    }
-    if (route.meta.roles && route.meta.roles.length > 0) {
-      return route.meta.roles.some((requiredRole) => hasRole(role, requiredRole));
-    }
+  const route = findRoute(moduleKey);
+  if (!route) {
+    return false;
   }
 
-  // 3. Verificar contra la lista declarada en la matriz
-  const roleModules = PERMISSIONS[role]?.modules;
-  if (roleModules && roleModules.includes(moduleKey as ModuleKey)) {
-    return true;
-  }
-
-  return false;
+  return isRouteAllowed(role, route);
 }
 
 /**

@@ -3,12 +3,11 @@ import type { PublicUser } from '../lib/api';
 import { useAuthSession } from '../context/AuthContext';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { moduleRoutes } from './moduleRoutes';
-import { hasRole, type Role } from './roles';
-import type { ModuleKey } from './types';
+import { findRoute, isRouteAllowed } from './routeAccess';
+import { type Role } from './roles';
 
 type RouteGuardProps = {
-	activeModule: ModuleKey | string;
+	activeModule: string;
 	user?: PublicUser | null;
 	children: ReactNode;
 	onNavigateHome: () => void;
@@ -22,7 +21,7 @@ export function RouteGuard({
 }: RouteGuardProps): ReactElement {
 	const { user: sessionUser } = useAuthSession();
 	const effectiveUser = user ?? sessionUser;
-	const route = moduleRoutes.find((candidate) => candidate.key === activeModule);
+	const route = findRoute(activeModule);
 
 	if (!route) {
 		return <NotFoundPage onNavigateHome={onNavigateHome} />;
@@ -36,10 +35,7 @@ export function RouteGuard({
 		return <ForbiddenPage moduleTitle={route.meta.title} onNavigateHome={onNavigateHome} />;
 	}
 
-	const userRole = effectiveUser.role as Role;
-	const hasPermission = route.meta.roles?.some((requiredRole) => hasRole(userRole, requiredRole)) ?? true;
-
-	if (!hasPermission) {
+	if (!isRouteAllowed(effectiveUser.role as Role, route)) {
 		return <ForbiddenPage moduleTitle={route.meta.title} onNavigateHome={onNavigateHome} />;
 	}
 

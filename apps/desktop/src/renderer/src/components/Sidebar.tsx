@@ -26,27 +26,7 @@ import Logo from '../assets/login/Logo.png';
 import { cn } from '../lib/utils';
 import type { PublicUser } from '../lib/api';
 import { usePermissions } from '../security';
-
-export type ModuleKey =
-  | 'dashboard'
-  | 'recepcion'
-  | 'reservas'
-  | 'huespedes'
-  | 'habitaciones'
-  | 'clientes'
-  | 'ventas'
-  | 'parqueadero'
-  | 'auditoria'
-  | 'lavanderia'
-  | 'inventario'
-  | 'lavado'
-  | 'ingresos-gastos'
-  | 'semanario'
-  | 'aires'
-  | 'mecato'
-  | 'facturas'
-  | 'perfil'
-  | 'config';
+import type { ModuleKey } from '../routes/types';
 
 type NavItem = {
   key: ModuleKey;

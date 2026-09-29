@@ -106,5 +106,3 @@ export const saveToken = (token: string): void => accountService.saveToken(token
 export const clearToken = (): void => accountService.clearToken();
 export const hasToken = (): boolean => accountService.hasToken();
 export const retrieveAccount = (): Promise<PublicUser | null> => accountService.retrieveAccount();
-export const hasRole = (user: PublicUser | null, role: Role | string): boolean => accountService.hasRole(user, role);
-export const hasAnyRole = (user: PublicUser | null, roles?: (Role | string)[]): boolean => accountService.hasAnyRole(user, roles);
