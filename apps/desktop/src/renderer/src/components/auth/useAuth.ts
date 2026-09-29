@@ -23,6 +23,25 @@ export type LoginStatus = {
 
 export type LoginRole = 'ADMIN' | 'RECEPTION' | '';
 
+// Arranque en desarrollo: NestJS tarda en compilar, así que la API puede
+// no responder todavía. Se reintenta con pausas en lugar de fallar de una.
+const RESTORE_MAX_ATTEMPTS = 5;
+const RESTORE_RETRY_DELAY_MS = 2000;
+
+function isUnauthorized(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 401;
+}
+
+// fetch lanza TypeError cuando no hay servidor escuchando; los errores con
+// status son respuestas reales del backend y no se deben reintentar.
+function isRetryable(error: unknown): boolean {
+  return !(error instanceof ApiError);
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function useAuth() {
   const [mode, setMode] = useState<AuthMode>('login');
   const [showPassword, setShowPassword] = useState(false);
@@ -100,49 +119,74 @@ export function useAuth() {
 
   // 1) Al arrancar: si hay token guardado, validarlo contra la API.
   //    Además consulta si es el primer arranque (credenciales semilla).
+  //    En desarrollo NestJS tarda en compilar, así que un fallo de conexión
+  //    no invalida el token: se reintenta hasta RESTORE_MAX_ATTEMPTS veces.
   useEffect(() => {
     let cancelled = false;
 
     async function restoreSession(): Promise<void> {
-      const [token, firstRunInfo] = await Promise.all([
-        Promise.resolve(getStoredToken()),
-        firstRunRequest().catch(() => ({ pending: false } as FirstRunInfo))
-      ]);
-
-      if (cancelled) {
-        return;
-      }
-
-      if (firstRunInfo.pending) {
-        setFirstRun(firstRunInfo);
-        setIsRestoringSession(false);
-        return;
-      }
-
-      if (!token) {
-        setIsRestoringSession(false);
-        return;
-      }
-
-      try {
-        const user = await meRequest();
+      for (let attempt = 1; attempt <= RESTORE_MAX_ATTEMPTS; attempt += 1) {
         if (cancelled) {
           return;
         }
-        setLoggedUser(user);
-      } catch (error) {
-        if (cancelled) {
-          return;
-        }
-        setStoredToken(null);
-        const message =
-          error instanceof ApiError
-            ? 'Tu sesión anterior expiró. Inicia sesión nuevamente.'
-            : 'No se pudo verificar la sesión anterior.';
-        setStatus({ kind: 'error', message });
-      } finally {
-        if (!cancelled) {
+
+        try {
+          const [token, firstRunInfo] = await Promise.all([
+            Promise.resolve(getStoredToken()),
+            firstRunRequest()
+          ]);
+
+          if (cancelled) {
+            return;
+          }
+
+          if (firstRunInfo.pending) {
+            setFirstRun(firstRunInfo);
+            setIsRestoringSession(false);
+            return;
+          }
+
+          if (!token) {
+            setIsRestoringSession(false);
+            return;
+          }
+
+          const user = await meRequest();
+          if (cancelled) {
+            return;
+          }
+          setLoggedUser(user);
           setIsRestoringSession(false);
+          return;
+        } catch (error) {
+          if (cancelled) {
+            return;
+          }
+
+          // El servidor respondió y el token no sirve: se cierra la sesión.
+          if (isUnauthorized(error)) {
+            setStoredToken(null);
+            setStatus({
+              kind: 'error',
+              message: 'Tu sesión anterior expiró. Inicia sesión nuevamente.'
+            });
+            setIsRestoringSession(false);
+            return;
+          }
+
+          // La API todavía no está escuchando: reintentar sin tocar el token.
+          if (isRetryable(error) && attempt < RESTORE_MAX_ATTEMPTS) {
+            await wait(RESTORE_RETRY_DELAY_MS);
+            continue;
+          }
+
+          setStatus({
+            kind: 'error',
+            message:
+              'No se pudo conectar con la API. Verifica que el backend esté ejecutándose.'
+          });
+          setIsRestoringSession(false);
+          return;
         }
       }
     }

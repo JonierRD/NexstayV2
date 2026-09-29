@@ -4,18 +4,18 @@ import { cn } from '../../lib/utils';
 import { formatCOP } from '../../lib/format';
 import { AccentButton } from '../ui/accent-button';
 import { DetailLine } from '../ui/detail-line';
+import { Can } from '../../security';
+import { Role } from '../../routes/roles';
 import { type Room } from './types';
 
 // Panel derecho: detalle de la habitación seleccionada + botón "Liberar"
 export function RoomDetailCard({
   room,
-  canManageImage,
   onLiberar,
   onAddImage,
   onRemoveImage
 }: {
   room: Room;
-  canManageImage: boolean; // solo admin puede cambiar/eliminar imagen
   onLiberar: () => void;
   onAddImage: () => void;
   onRemoveImage: () => void;
@@ -48,7 +48,7 @@ export function RoomDetailCard({
             </div>
           )}
 
-          {canManageImage && (
+          <Can role={Role.ADMIN}>
             <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
               <button
                 type="button"
@@ -67,7 +67,7 @@ export function RoomDetailCard({
                 Eliminar imagen
               </button>
             </div>
-          )}
+          </Can>
 
           <div className={cn('absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-lg', room.accentTone)}>
             {room.status}

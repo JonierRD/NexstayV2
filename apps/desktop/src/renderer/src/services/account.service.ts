@@ -1,4 +1,5 @@
 import {
+  ApiError,
   getStoredToken,
   meRequest,
   setStoredToken,
@@ -53,8 +54,11 @@ export class AccountService {
       const user = await meRequest();
       return user;
     } catch (error) {
-      // Si el token es inválido o expiró, se limpia el almacenamiento local
-      this.clearToken();
+      // Solo se descarta el token si el servidor lo rechazó (401). Un fallo de
+      // red o un 5xx no invalidan la credencial: se conserva para reintentar.
+      if (error instanceof ApiError && error.status === 401) {
+        this.clearToken();
+      }
       return null;
     }
   }

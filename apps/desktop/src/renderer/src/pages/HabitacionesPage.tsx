@@ -91,7 +91,6 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
           {h.selectedRoom && (
             <RoomDetailCard
               room={h.selectedRoom}
-              canManageImage={h.isAdmin}
               onLiberar={() => h.requireAuth('liberar', h.selectedRoom!.number)}
               onAddImage={() => h.handleAddImage(h.selectedRoom!.number)}
               onRemoveImage={() => h.handleRemoveImage(h.selectedRoom!.number)}
