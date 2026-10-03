@@ -53,6 +53,17 @@ export async function ensureDatabaseSchema(paths: AppPaths): Promise<void> {
     );
   }
 
+  // Si la carpeta de migraciones viaja junto al schema (dev y preview), se usan
+  // migraciones: quedan registradas y `migrate deploy` nunca borra columnas ni
+  // tablas por su cuenta. `db push` es solo el respaldo para empaquetados que no
+  // incluyan las migraciones, y va SIN --accept-data-loss para que ante un schema
+  // incompatible falle en vez de eliminar datos silenciosamente.
+  const migrationsDir = path.join(path.dirname(schema), 'migrations');
+  const hasMigrations = fs.existsSync(migrationsDir);
+  const args = hasMigrations
+    ? [prismaCli, 'migrate', 'deploy', '--schema', schema]
+    : [prismaCli, 'db', 'push', '--schema', schema, '--skip-generate'];
+
   return new Promise<void>((resolve, reject) => {
     // Establecer DATABASE_URL en el entorno del proceso actual para que el
     // hijo lo herede. No pasamos `env` a spawn() porque en Windows construir
@@ -63,13 +74,9 @@ export async function ensureDatabaseSchema(paths: AppPaths): Promise<void> {
     // Spawn node directamente contra el entry point JS de Prisma, sin pasar
     // por prisma.cmd. En Windows, spawn de archivos .cmd puede fallar con
     // EINVAL debido al wrapper interno cmd.exe /c.
-    const child = spawn(
-      nodeBin,
-      [prismaCli, 'db', 'push', '--schema', schema, '--skip-generate', '--accept-data-loss'],
-      {
-        stdio: 'ignore'
-      }
-    );
+    const child = spawn(nodeBin, args, {
+      stdio: 'ignore'
+    });
 
     if (prevDbUrl === undefined) {
       delete process.env.DATABASE_URL;
@@ -81,7 +88,13 @@ export async function ensureDatabaseSchema(paths: AppPaths): Promise<void> {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`prisma db push falló con código ${code}`));
+        const cmd = hasMigrations ? 'migrate deploy' : 'db push';
+        reject(
+          new Error(
+            `prisma ${cmd} falló con código ${code}. ` +
+              'Revisa las migraciones pendientes con `npx prisma migrate status`.'
+          )
+        );
       }
     });
     child.on('error', (err) => {
