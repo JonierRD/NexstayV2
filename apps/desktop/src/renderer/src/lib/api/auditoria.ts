@@ -33,6 +33,7 @@ export async function auditoriaRequest(filters?: {
   entityId?: string;
   startDate?: string;
   endDate?: string;
+  search?: string;
   limit?: number;
   offset?: number;
 }): Promise<AuditLogsResponse> {
@@ -43,6 +44,7 @@ export async function auditoriaRequest(filters?: {
   if (filters?.entityId) params.append('entityId', filters.entityId);
   if (filters?.startDate) params.append('startDate', filters.startDate);
   if (filters?.endDate) params.append('endDate', filters.endDate);
+  if (filters?.search) params.append('search', filters.search);
   if (filters?.limit) params.append('limit', filters.limit.toString());
   if (filters?.offset) params.append('offset', filters.offset.toString());
 

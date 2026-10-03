@@ -1,7 +1,8 @@
 import { Calendar, User } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type AuditLog } from '../../lib/api';
-import { actionColors, actionLabels, formatAuditDate } from './constants';
+import { formatDateTimeNumeric } from '../../lib/format';
+import { actionColors, actionLabels } from './constants';
 
 export function AuditLogCard({ log }: { log: AuditLog }): ReactElement {
   return (
@@ -26,7 +27,7 @@ export function AuditLogCard({ log }: { log: AuditLog }): ReactElement {
           </span>
           <div className="flex items-center gap-1 text-[10px] text-sapay-750">
             <Calendar size={12} />
-            {formatAuditDate(log.createdAt)}
+            {formatDateTimeNumeric(log.createdAt)}
           </div>
         </div>
       </div>

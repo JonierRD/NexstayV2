@@ -1,9 +1,9 @@
 import { BedDouble, CheckCircle, Clock3, Gavel, Plus } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { AdminPasswordModal } from '../components/AdminPasswordModal';
-import { ConfirmModal } from '../components/ConfirmModal';
-import { RoomFormModal } from '../components/RoomFormModal';
+import { AdminPasswordModal } from '../components/ui/AdminPasswordModal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { RoomFormModal } from '../components/habitaciones/RoomFormModal';
 import { RoomDetailCard } from '../components/habitaciones/RoomDetailCard';
 import { RoomsTable } from '../components/habitaciones/RoomsTable';
 import { useHabitaciones } from '../components/habitaciones/useHabitaciones';
@@ -119,9 +119,8 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
         <RoomFormModal
           room={h.editingRoom ?? undefined}
           onSave={h.onSaveRoom}
-          onDelete={h.onDeleteRoom}
+          onRequestDelete={h.requestDeleteRoom}
           onClose={h.closeRoomForm}
-          adminPassword={h.adminAuthPassword ?? undefined}
         />
       )}
 

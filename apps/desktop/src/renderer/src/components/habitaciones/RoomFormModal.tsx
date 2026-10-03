@@ -1,15 +1,13 @@
 import { Trash2, X } from 'lucide-react';
 import { useRef, useState, useEffect, type FormEvent, type ReactElement } from 'react';
-import { type CreateHabitacionInput, type Habitacion, type UpdateHabitacionInput, createHabitacionRequest, deleteHabitacionRequest, updateHabitacionRequest, habitacionesRequest } from '../lib/api';
-import { Button } from './ui/button';
-import { ConfirmModal } from './ConfirmModal';
+import { type CreateHabitacionInput, type Habitacion, type UpdateHabitacionInput, createHabitacionRequest, updateHabitacionRequest, habitacionesRequest } from '../../lib/api';
+import { Button } from '../ui/button';
 
 type RoomFormModalProps = {
   room?: Habitacion;
   onSave: (room: Habitacion) => void;
-  onDelete?: (number: string) => void;
+  onRequestDelete?: (number: string) => void;
   onClose: () => void;
-  adminPassword?: string;
 };
 
 type RoomStatus = 'DISPONIBLE' | 'OCUPADA' | 'RESERVADA' | 'MANTENIMIENTO';
@@ -26,9 +24,9 @@ type FormData = {
   notes: string;
 };
 
-export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }: RoomFormModalProps): ReactElement {
+export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFormModalProps): ReactElement {
   const isEdit = !!room;
-  const canDelete = isEdit && !!onDelete;
+  const canDelete = isEdit && !!onRequestDelete;
   const [existingRooms, setExistingRooms] = useState<Habitacion[]>([]);
 
   const [form, setForm] = useState<FormData>({
@@ -44,8 +42,6 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
   });
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState(room?.image ? 'Imagen cargada' : '');
   const [originalImage, setOriginalImage] = useState(room?.image ?? null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -176,8 +172,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
           priceWithAir: form.priceWithAir ? Number(form.priceWithAir) : undefined,
           priceWithFan: form.priceWithFan ? Number(form.priceWithFan) : undefined,
           image: form.image,
-          notes: form.notes || undefined,
-          ...(adminPassword ? { adminPassword } : {})
+          notes: form.notes || undefined
         };
         const updated = await updateHabitacionRequest(room.number, payload);
         onSave(updated);
@@ -190,8 +185,7 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
           priceWithAir: form.priceWithAir ? Number(form.priceWithAir) : undefined,
           priceWithFan: form.priceWithFan ? Number(form.priceWithFan) : undefined,
           image: form.image ?? undefined,
-          notes: form.notes || undefined,
-          ...(adminPassword ? { adminPassword } : {})
+          notes: form.notes || undefined
         };
         const created = await createHabitacionRequest(payload);
         onSave(created);
@@ -200,21 +194,6 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
       setError(err instanceof Error ? err.message : 'Error al guardar la habitación.');
     } finally {
       setSubmitting(false);
-    }
-  }
-
-  async function handleDelete() {
-    if (!room || !onDelete) return;
-    setShowDeleteConfirm(false);
-    setError('');
-    setDeleting(true);
-    try {
-      await deleteHabitacionRequest(room.number, adminPassword);
-      onDelete(room.number);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar la habitación.');
-    } finally {
-      setDeleting(false);
     }
   }
 
@@ -377,12 +356,11 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
             {canDelete && (
               <Button
                 type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={deleting}
+                onClick={() => room && onRequestDelete?.(room.number)}
                 className="h-9 rounded-xl border border-[#efb7b7] bg-white px-2 text-[11px] font-medium text-[#d13d3d] hover:bg-[#fff5f5] disabled:opacity-70"
               >
                 <Trash2 size={14} className="mr-1" />
-                {deleting ? 'Eliminando...' : 'Eliminar'}
+                Eliminar
               </Button>
             )}
             <Button
@@ -401,17 +379,6 @@ export function RoomFormModal({ room, onSave, onDelete, onClose, adminPassword }
             </Button>
           </div>
         </form>
-
-        {showDeleteConfirm && room && (
-          <ConfirmModal
-            title={`¿Eliminar habitación ${room.number}?`}
-            message="Esta acción no se puede deshacer. La habitación se eliminará permanentemente del sistema."
-            confirmLabel="Sí, eliminar"
-            confirmDanger
-            onConfirm={handleDelete}
-            onClose={() => setShowDeleteConfirm(false)}
-          />
-        )}
       </div>
     </div>
   );

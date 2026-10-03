@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type AuditAction, type AuditLog, auditoriaRequest } from '../../lib/api';
+
+const PAGE_SIZE = 50;
 
 export function useAuditoria() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -8,13 +10,20 @@ export function useAuditoria() {
   const [actionFilter, setActionFilter] = useState<AuditAction | 'TODOS'>('TODOS');
   const [entityFilter, setEntityFilter] = useState('TODOS');
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [entities, setEntities] = useState<string[]>([]);
 
-  // PROCESO: Cargar el historial de auditoría desde la API (GET /auditoria)
-  const loadLogs = async () => {
+  // Los filtros se aplican en el servidor: filtrar solo la pagina cargada
+  // escondia los registros mas viejos y hacia creer que no existian.
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
       const response = await auditoriaRequest({
-        limit: 100
+        action: actionFilter === 'TODOS' ? undefined : actionFilter,
+        entity: entityFilter === 'TODOS' ? undefined : entityFilter,
+        search: search.trim() || undefined,
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE
       });
       setLogs(response.logs);
       setTotal(response.total);
@@ -23,39 +32,75 @@ export function useAuditoria() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [actionFilter, entityFilter, search, page]);
 
   useEffect(() => {
     loadLogs();
+  }, [loadLogs]);
+
+  // Cualquier cambio de filtro vuelve a la primera pagina.
+  const applySearch = useCallback((value: string) => {
+    setPage(0);
+    setSearch(value);
   }, []);
 
-  // PROCESO: Búsqueda y filtros por acción y entidad
-  const filteredLogs = logs.filter((log) => {
-    const matchesSearch =
-      !search ||
-      log.description.toLowerCase().includes(search.toLowerCase()) ||
-      log.user.fullName.toLowerCase().includes(search.toLowerCase()) ||
-      log.entity.toLowerCase().includes(search.toLowerCase());
+  const applyAction = useCallback((value: AuditAction | 'TODOS') => {
+    setPage(0);
+    setActionFilter(value);
+  }, []);
 
-    const matchesAction = actionFilter === 'TODOS' || log.action === actionFilter;
-    const matchesEntity = entityFilter === 'TODOS' || log.entity === entityFilter;
+  const applyEntity = useCallback((value: string) => {
+    setPage(0);
+    setEntityFilter(value);
+  }, []);
 
-    return matchesSearch && matchesAction && matchesEntity;
-  });
+  // Las entidades disponibles se consultan aparte, sin filtro de entidad, para
+  // que el desplegable no se vacie al filtrar.
+  useEffect(() => {
+    let cancelled = false;
 
-  const uniqueEntities = Array.from(new Set(logs.map((log) => log.entity)));
+    auditoriaRequest({ limit: 500 })
+      .then((response) => {
+        if (cancelled) return;
+        setEntities(Array.from(new Set(response.logs.map((log) => log.entity))).sort());
+      })
+      .catch(() => {
+        if (!cancelled) setEntities([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const canPrev = page > 0;
+  const canNext = page + 1 < totalPages;
+
+  const rangeLabel = useMemo(() => {
+    if (total === 0) return '0 de 0';
+    const from = page * PAGE_SIZE + 1;
+    const to = Math.min((page + 1) * PAGE_SIZE, total);
+    return `${from}-${to} de ${total}`;
+  }, [page, total]);
 
   return {
     logs,
     loading,
     total,
     search,
-    setSearch,
+    setSearch: applySearch,
     actionFilter,
-    setActionFilter,
+    setActionFilter: applyAction,
     entityFilter,
-    setEntityFilter,
-    filteredLogs,
-    uniqueEntities
+    setEntityFilter: applyEntity,
+    uniqueEntities: entities,
+    page,
+    totalPages,
+    rangeLabel,
+    canPrev,
+    canNext,
+    nextPage: () => setPage((p) => Math.min(p + 1, totalPages - 1)),
+    prevPage: () => setPage((p) => Math.max(p - 1, 0))
   };
 }

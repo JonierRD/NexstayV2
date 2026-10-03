@@ -114,6 +114,7 @@ export type StaySale = {
   unitPrice: number;
   saleType?: string;
   date: string;
+  customerName?: string | null;
   product?: { name: string; price: number };
   stay?: {
     id: number;

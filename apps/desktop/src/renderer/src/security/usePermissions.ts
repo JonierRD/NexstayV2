@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Role } from '../routes/roles';
 import type { ModuleKey } from '../routes/types';
 import type { PublicUser } from '../lib/api';
-import { can as canCheck, canAccessModule, type Action, type Subject } from './permissions';
+import { canAccessModule } from './permissions';
 import { useOptionalAuthSession } from '../context/AuthContext';
 
 export interface UsePermissionsOptions {
@@ -27,9 +27,6 @@ export function usePermissions(options?: UsePermissionsOptions) {
       user: activeUser,
       isAdmin: activeRole === Role.ADMIN,
       isReception: activeRole === Role.RECEPTION,
-      can: (action: Action, subject: Subject): boolean => {
-        return canCheck(activeRole, action, subject);
-      },
       canAccess: (moduleKey: ModuleKey | string): boolean => {
         return canAccessModule(activeRole, moduleKey);
       }

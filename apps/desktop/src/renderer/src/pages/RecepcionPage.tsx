@@ -1,6 +1,5 @@
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { AdminPasswordModal } from '../components/AdminPasswordModal';
 import { useReception } from '../components/recepcion/useReception';
 import { ClientDataStep } from '../components/recepcion/ClientDataStep';
 import { SelectRoomStep } from '../components/recepcion/SelectRoomStep';
@@ -24,8 +23,6 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     setNights,
     checkInDate,
     setCheckInDate,
-    showAdminAuth,
-    setShowAdminAuth,
     error,
     success,
     clientData,
@@ -38,7 +35,6 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     handleSelectRoom,
     calculateEstimatedTotal,
     handleConfirmCheckin,
-    onAdminAuthorized,
     resetForm,
     clearClientData
   } = useReception(user);
@@ -131,13 +127,6 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
             handleSelectRoom={handleSelectRoom}
           />
         </div>
-      )}
-
-      {showAdminAuth && (
-        <AdminPasswordModal
-          onClose={() => setShowAdminAuth(false)}
-          onSuccess={onAdminAuthorized}
-        />
       )}
     </div>
   );

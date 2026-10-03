@@ -3,6 +3,16 @@ import { type Cliente } from './clientes';
 import { type Habitacion } from './habitaciones';
 
 // Stays (Hospedajes)
+export type StaySaleLine = {
+  id: number;
+  productId: number;
+  quantity: number;
+  unitPrice: number;
+  saleType?: string;
+  date: string;
+  product?: { id: number; name: string; price: number } | null;
+};
+
 export type Stay = {
   id: number;
   clientId: number;
@@ -18,7 +28,7 @@ export type Stay = {
   updatedAt: string;
   client?: Cliente;
   room?: Habitacion;
-  sales?: any[];
+  sales?: StaySaleLine[];
 };
 
 export type CheckinInput = {
@@ -34,11 +44,6 @@ export type CheckinInput = {
   acType: 'AIRE' | 'VENTILADOR';
   nights?: number;
   checkIn?: string;
-  adminPassword?: string;
-};
-
-export type CheckoutInput = {
-  adminPassword?: string;
 };
 
 export async function staysActiveRequest(): Promise<Stay[]> {
@@ -53,6 +58,6 @@ export async function checkinRequest(input: CheckinInput): Promise<Stay> {
   return apiRequest<Stay>('/stays/checkin', { method: 'POST', body: input });
 }
 
-export async function checkoutRequest(id: number, input: CheckoutInput): Promise<Stay> {
-  return apiRequest<Stay>(`/stays/${id}/checkout`, { method: 'POST', body: input });
+export async function checkoutRequest(id: number): Promise<Stay> {
+  return apiRequest<Stay>(`/stays/${id}/checkout`, { method: 'POST' });
 }

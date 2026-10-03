@@ -10,9 +10,8 @@ import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { cn } from '../lib/utils';
 import { Button } from '../components/ui/button';
-import { ConfirmModal } from '../components/ConfirmModal';
-import { AdminPasswordModal } from '../components/AdminPasswordModal';
-import { LoadingOverlay } from '../components/LoadingOverlay';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { InventoryFilters } from '../components/inventario/InventoryFilters';
 import { InventoryStats } from '../components/inventario/InventoryStats';
 import { InventoryTable } from '../components/inventario/InventoryTable';
@@ -20,7 +19,7 @@ import { ProductModal } from '../components/inventario/ProductModal';
 import { useInventario } from '../components/inventario/useInventario';
 
 export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
-  const inv = useInventario(user.role === 'ADMIN');
+  const inv = useInventario();
 
   const filterActive =
     inv.search !== '' || inv.selectedCategory !== 'TODAS' || inv.stockFilter !== 'ALL';
@@ -159,7 +158,7 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
       )}
 
       {/* Modal de Confirmación de Eliminación */}
-      {inv.itemToDelete && !inv.showAdminAuthModal && (
+      {inv.itemToDelete && (
         <ConfirmModal
           title="¿Eliminar producto de inventario?"
           message={`¿Estás seguro de que deseas eliminar permanentemente "${inv.itemToDelete.product.name}"? Esta acción borrará el registro de stock y del catálogo.`}
@@ -167,20 +166,6 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
           confirmDanger
           onConfirm={inv.confirmDelete}
           onClose={() => inv.setItemToDelete(null)}
-        />
-      )}
-
-      {/* Modal de Autorización de Administrador si no es Admin */}
-      {inv.showAdminAuthModal && (
-        <AdminPasswordModal
-          onSuccess={() => {
-            inv.setShowAdminAuthModal(false);
-            inv.confirmDelete();
-          }}
-          onClose={() => {
-            inv.setShowAdminAuthModal(false);
-            inv.setItemToDelete(null);
-          }}
         />
       )}
     </div>

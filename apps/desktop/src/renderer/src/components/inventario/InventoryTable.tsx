@@ -1,5 +1,6 @@
 import { Edit2, MapPin, Trash2 } from 'lucide-react';
 import { type StockItem } from '../../lib/api';
+import { formatCOP } from '../../lib/format';
 import { cn } from '../../lib/utils';
 
 function getStockStatusBadge(quantity: number, minStock: number) {
@@ -103,7 +104,7 @@ export function InventoryTable({
 
                   {/* Precio Venta */}
                   <td className="py-3 px-3 align-middle text-right font-extrabold text-sapay-900">
-                    ${price.toLocaleString('es-CO')}
+                    {formatCOP(price)}
                   </td>
 
                   {/* Existencias / Mínimo */}
@@ -181,7 +182,7 @@ export function InventoryTable({
           Mostrando <strong className="text-sapay-950">{items.length}</strong> de <strong className="text-sapay-950">{totalItems}</strong> productos
         </span>
         <span>
-          Valor en stock filtrado: <strong className="text-sapay-900">${items.reduce((acc, it) => acc + it.quantity * Number(it.product.price || 0), 0).toLocaleString('es-CO')}</strong>
+          Valor en stock filtrado: <strong className="text-sapay-900">{formatCOP(items.reduce((acc, it) => acc + it.quantity * Number(it.product.price || 0), 0))}</strong>
         </span>
       </div>
     </div>

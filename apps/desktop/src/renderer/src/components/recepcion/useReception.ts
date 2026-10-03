@@ -57,10 +57,7 @@ export function useReception(user: PublicUser) {
   // Fecha de ingreso (por defecto hoy, editable)
   const [checkInDate, setCheckInDate] = useState<string>(todayInputValue);
   // Contraseña del admin (se pide si el usuario es RECEPTION)
-  const [adminPassword, setAdminPassword] = useState<string | null>(null);
-  const [showAdminAuth, setShowAdminAuth] = useState(false);
   // Acción pendiente mientras se valida la contraseña del admin
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
@@ -73,7 +70,6 @@ export function useReception(user: PublicUser) {
   // Historial de cédulas (para el datalist del input)
   const [ccHistory, setCcHistory] = useState<string[]>([]);
 
-  const isAdmin = user.role === 'ADMIN';
 
   // Trae todas las habitaciones de la API (GET /habitaciones)
   const loadRooms = useCallback(() => {
@@ -217,19 +213,14 @@ export function useReception(user: PublicUser) {
     return (price || 0) * nights;
   };
 
-  // Si no es admin, pide contraseña de admin antes de confirmar
+  // El check-in es una operacion normal de recepcion: no pide contrasena de admin.
   const handleConfirmCheckin = () => {
     if (!selectedRoom) {
       setError('Selecciona una habitación');
       return;
     }
 
-    if (!isAdmin) {
-      setPendingAction(() => executeCheckin);
-      setShowAdminAuth(true);
-    } else {
-      executeCheckin();
-    }
+    executeCheckin();
   };
 
   // Construye el payload y hace POST /stays/checkin
@@ -254,8 +245,7 @@ export function useReception(user: PublicUser) {
       roomNumber: selectedRoom.number,
       acType,
       nights: nights || undefined,
-      checkIn: checkInDate ? new Date(checkInDate + 'T12:00:00').toISOString() : undefined,
-      adminPassword: adminPassword || undefined
+      checkIn: checkInDate ? new Date(checkInDate + 'T12:00:00').toISOString() : undefined
     };
 
     checkinRequest(checkinData)
@@ -268,16 +258,6 @@ export function useReception(user: PublicUser) {
         setError(err.message || 'Error al realizar check-in');
       })
       .finally(() => setLoading(false));
-  };
-
-  // Guarda la contraseña de admin y ejecuta la acción que estaba pendiente
-  const onAdminAuthorized = (password: string) => {
-    setAdminPassword(password);
-    setShowAdminAuth(false);
-    if (pendingAction) {
-      pendingAction();
-      setPendingAction(null);
-    }
   };
 
   // Reinicia el formulario después de un check-in exitoso
@@ -293,7 +273,6 @@ export function useReception(user: PublicUser) {
     setHasSearched(false);
     setError('');
     setSuccess(false);
-    setAdminPassword(null);
   };
 
   // Solo las disponibles se muestran/exigen para ocupar
@@ -314,8 +293,6 @@ export function useReception(user: PublicUser) {
     setNights,
     checkInDate,
     setCheckInDate,
-    showAdminAuth,
-    setShowAdminAuth,
     error,
     success,
     clientData,
@@ -330,7 +307,6 @@ export function useReception(user: PublicUser) {
     handleSelectRoom,
     calculateEstimatedTotal,
     handleConfirmCheckin,
-    onAdminAuthorized,
     resetForm
   };
 }

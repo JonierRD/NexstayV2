@@ -10,7 +10,7 @@ import {
 } from '../../lib/api';
 import { INITIAL_FORM, type ProductFormData, type StockFilter } from './types';
 
-export function useInventario(isAdmin: boolean) {
+export function useInventario() {
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -29,7 +29,6 @@ export function useInventario(isAdmin: boolean) {
 
   // Eliminación
   const [itemToDelete, setItemToDelete] = useState<StockItem | null>(null);
-  const [showAdminAuthModal, setShowAdminAuthModal] = useState(false);
 
   // Cargar inventario
   const fetchInventory = useCallback(async () => {
@@ -244,12 +243,9 @@ export function useInventario(isAdmin: boolean) {
     }
   }
 
-  // Inicio de eliminación
+  // Inicio de eliminación. El backend de inventario no exige contraseña de admin.
   function handleDeleteClick(item: StockItem) {
     setItemToDelete(item);
-    if (!isAdmin) {
-      setShowAdminAuthModal(true);
-    }
   }
 
   // Ejecución de eliminación tras confirmación
@@ -291,8 +287,6 @@ export function useInventario(isAdmin: boolean) {
     setFormData,
     itemToDelete,
     setItemToDelete,
-    showAdminAuthModal,
-    setShowAdminAuthModal,
     openCreateModal: handleOpenCreateModal,
     openEditModal: handleOpenEditModal,
     closeModal,

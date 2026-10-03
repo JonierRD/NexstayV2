@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type Cliente } from '../../lib/api';
-import { formatDateRange } from '../../lib/format';
+import { formatCOP, formatDateRange } from '../../lib/format';
 
 export function ClientHistoryModal({ client, onClose }: { client: Cliente; onClose: () => void }): ReactElement {
   return (
@@ -60,10 +60,10 @@ export function ClientHistoryModal({ client, onClose }: { client: Cliente; onClo
                 <p className="mt-1 font-medium text-sapay-950">{formatDateRange(stay.checkIn, stay.checkOut)}</p>
                 <p className="mt-1 text-sapay-750">
                   {stay.nights} noche(s) · {stay.acTypeUsed === 'AIRE' ? 'Aire' : 'Ventilador'} · $
-                  {Number(stay.pricePerNight).toLocaleString('es-CO')}/noche
+                  {formatCOP(Number(stay.pricePerNight))}/noche
                 </p>
                 <p className="text-sapay-750">
-                  Total: <span className="font-medium text-sapay-950">${Number(stay.total).toLocaleString('es-CO')}</span>
+                  Total: <span className="font-medium text-sapay-950">{formatCOP(Number(stay.total))}</span>
                 </p>
               </div>
             ))

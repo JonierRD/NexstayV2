@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   type Laundry,
-  type PublicUser,
   deleteLaundryRequest,
   laundryRequest,
   updateLaundryRequest
 } from '../../lib/api';
 import { type LaundryItemType, type LaundryStatus } from './types';
 
-export function useLavanderia({ user }: { user: PublicUser }) {
+export function useLavanderia() {
   // Estado de la página (listado, filtros, selección, modales)
   const [orders, setOrders] = useState<Laundry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,13 +17,9 @@ export function useLavanderia({ user }: { user: PublicUser }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Laundry | null>(null);
-  const [showAdminAuth, setShowAdminAuth] = useState(false);
-  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [confirmTitle, setConfirmTitle] = useState('');
   const [confirmMessage, setConfirmMessage] = useState('');
-
-  const isAdmin = user.role === 'ADMIN';
 
   // PROCESO: Cargar el listado de órdenes desde la API (GET /laundry)
   const loadOrders = useCallback(() => {
@@ -91,14 +86,9 @@ export function useLavanderia({ user }: { user: PublicUser }) {
       .catch((error) => console.error('Error updating status:', error));
   }
 
-  // PROCESO: Solicitar eliminación (admin → confirmación directa; otros → requiere contraseña admin)
+  // PROCESO: Solicitar eliminacion. El backend de lavanderia no exige contrasena de admin.
   function requestDelete(id: number) {
-    if (isAdmin) {
-      confirmDelete(id);
-    } else {
-      setPendingDeleteId(id);
-      setShowAdminAuth(true);
-    }
+    confirmDelete(id);
   }
 
   // PROCESO: Confirmar y eliminar la orden (DELETE /laundry/:id)
@@ -112,20 +102,6 @@ export function useLavanderia({ user }: { user: PublicUser }) {
           .catch((error) => console.error('Error deleting order:', error));
       }
     );
-  }
-
-  // PROCESO: Al autorizar la contraseña admin, procede con la eliminación pendiente
-  function onAdminAuthorized() {
-    setShowAdminAuth(false);
-    if (pendingDeleteId !== null) {
-      confirmDelete(pendingDeleteId);
-      setPendingDeleteId(null);
-    }
-  }
-
-  function closeAdminAuth() {
-    setShowAdminAuth(false);
-    setPendingDeleteId(null);
   }
 
   function openCreateForm() {
@@ -175,9 +151,6 @@ export function useLavanderia({ user }: { user: PublicUser }) {
     openEditForm,
     onFormSaved,
     closeForm,
-    showAdminAuth,
-    onAdminAuthorized,
-    closeAdminAuth,
     requestDelete,
     handleAdvanceStatus,
     confirmAction,

@@ -1,5 +1,6 @@
 import { Loader2, CheckCircle } from 'lucide-react';
 import { type Habitacion } from '../../lib/api';
+import { formatCOP } from '../../lib/format';
 import { cn } from '../../lib/utils';
 import { roomImage } from '../../lib/room-images';
 
@@ -70,7 +71,7 @@ export function AvailableRoomsPanel({
                     {room.hasAir && 'Aire'} {room.hasAir && room.hasFan && '/'} {room.hasFan && 'Ventilador'}
                   </span>
                   <span className="font-medium text-sapay-950">
-                    ${Math.round((room.priceWithAir || room.priceWithFan || 0)).toLocaleString('es-CO')}
+                    {formatCOP(room.priceWithAir || room.priceWithFan || 0)}
                   </span>
                 </div>
               </div>

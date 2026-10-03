@@ -17,7 +17,7 @@ export type Laundry = {
 };
 
 export async function laundryRequest(): Promise<Laundry[]> {
-  return apiRequest<Laundry[]>('/laundry');
+  return apiRequest<Laundry[]>('/laundry', { method: 'GET' });
 }
 
 export async function createLaundryRequest(data: {

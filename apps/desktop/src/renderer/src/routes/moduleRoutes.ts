@@ -1,11 +1,8 @@
 // [Capa 1] Catálogo centralizado de módulos con sus roles permitidos
 //
-// Matriz de permisos NexstayV2:
-//   - ADMIN solamente:            auditoria, config, usuarios, reportes-avanzados
-//   - ADMIN + RECEPTION:          recepcion, habitaciones, huespedes, reservas,
-//                                 clientes, ventas, lavanderia, parqueadero,
-//                                 perfil, dashboard (+ inventario y módulos futuros)
-//   - Públicas (isPublic: true):  login, register, forgot-password, reset-password
+// Fuente de verdad del acceso por módulo: `roles` vacío o ausente significa
+// "cualquier usuario autenticado". Las vistas con `isPublic: true` son las únicas
+// accesibles sin sesión. Sidebar, RouteGuard y security/permissions.ts leen de aquí.
 
 import { createElement, type ReactElement } from 'react';
 import { AuthScreen } from '../components/auth/AuthScreen';

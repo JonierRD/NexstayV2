@@ -4,6 +4,7 @@ import { resolvePaths, APP_CONFIG } from './config';
 import { startEmbeddedPostgres } from './database';
 import { startApi } from './api';
 import { ensureDatabaseSchema } from './prisma-migrate';
+import { registerAssistantIpc } from './assistant';
 
 const paths = resolvePaths();
 let mainWindow: BrowserWindow | null = null;
@@ -40,7 +41,8 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      sandbox: true
     }
   });
 
@@ -58,6 +60,8 @@ function createWindow(): void {
 ipcMain.handle('sapay:config', () => ({
   apiUrl: `http://127.0.0.1:${APP_CONFIG.apiPort}`
 }));
+
+registerAssistantIpc();
 
 app.whenReady().then(() => {
   bootstrap().catch((error: unknown) => {

@@ -7,8 +7,7 @@ import {
 } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { AdminPasswordModal } from '../components/AdminPasswordModal';
-import { ConfirmModal } from '../components/ConfirmModal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AccentButton } from '../components/ui/accent-button';
 import { FilterSelect } from '../components/ui/filter-select';
 import { SearchInput } from '../components/ui/search-input';
@@ -27,7 +26,7 @@ import {
 // ---------- Componente principal ----------
 
 export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
-    const l = useLavanderia({ user });
+    const l = useLavanderia();
 
     if (l.loading) {
         return (
@@ -142,14 +141,6 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                     laundry={l.editingOrder ?? undefined}
                     onSave={l.onFormSaved}
                     onClose={l.closeForm}
-                />
-            )}
-
-            {l.showAdminAuth && (
-                // PROCESO: Modal de autorización con contraseña de admin (para eliminar sin ser admin)
-                <AdminPasswordModal
-                    onSuccess={l.onAdminAuthorized}
-                    onClose={l.closeAdminAuth}
                 />
             )}
 

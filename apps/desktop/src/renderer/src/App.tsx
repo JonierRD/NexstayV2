@@ -3,7 +3,7 @@ import { AuthScreen } from './components/auth/AuthScreen';
 import { FirstRunScreen } from './components/auth/FirstRunScreen';
 import { useAuth } from './components/auth/useAuth';
 import { DashboardLayout } from './components/DashboardLayout';
-import { LoadingOverlay } from './components/LoadingOverlay';
+import { LoadingOverlay } from './components/ui/LoadingOverlay';
 import { applyAuthInterceptors } from './lib/api';
 import { AuthProvider } from './context/AuthContext';
 
@@ -39,5 +39,12 @@ export function App(): ReactElement {
     return <AuthScreen auth={auth} />;
   })();
 
-  return <AuthProvider initialUser={auth.loggedUser ?? null}>{content}</AuthProvider>;
+  return (
+        <AuthProvider
+            initialUser={auth.loggedUser ?? null}
+            isRestoringSession={auth.isRestoringSession}
+        >
+            {content}
+        </AuthProvider>
+    );
 }

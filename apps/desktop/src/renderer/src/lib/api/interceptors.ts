@@ -1,6 +1,31 @@
 import { authEvents, type AuthEventDetail } from './authEvents';
 import { getStoredToken, setStoredToken } from './client';
 
+// Rutas cuyo 401 significa "credenciales inválidas", no "sesión expirada".
+// Un login fallido no debe cerrar la sesión del usuario.
+const PUBLIC_AUTH_PATHS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/first-run'
+];
+
+function isPublicAuthPath(path: string): boolean {
+  return PUBLIC_AUTH_PATHS.some((publicPath) => path.startsWith(publicPath));
+}
+
+// `input` puede ser una ruta relativa o una URL absoluta ("http://127.0.0.1:3333/auth/login").
+// Se reduce al pathname para que la comparación con la allowlist sea fiable.
+function toPathname(input: RequestInfo | URL): string {
+  const raw = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  try {
+    return new URL(raw).pathname;
+  } catch {
+    return raw.split('?')[0];
+  }
+}
+
 function dispatchAuthEvent(event: 'unauthorized' | 'forbidden', detail: AuthEventDetail): void {
   authEvents.emit(event, detail);
 
@@ -38,16 +63,11 @@ export function applyAuthInterceptors(): void {
       request.headers.set('Authorization', `Bearer ${token}`);
     }
 
-    const path =
-      typeof input === 'string'
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : input.url;
+    const path = toPathname(input);
 
     const response = await originalFetch(request);
 
-    if (response.status === 401) {
+    if (response.status === 401 && !isPublicAuthPath(path)) {
       setStoredToken(null);
       dispatchAuthEvent('unauthorized', {
         reason: 'Tu sesión expiró. Inicia sesión nuevamente.',

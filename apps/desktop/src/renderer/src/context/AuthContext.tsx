@@ -30,15 +30,23 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export interface AuthProviderProps {
   children: ReactNode;
   initialUser?: PublicUser | null;
+  isRestoringSession?: boolean;
 }
 
 /**
  * Proveedor de contexto de autenticación y autorización.
- * Centraliza la restauración de sesión al arrancar la app, y expone helpers de roles.
+ *
+ * La restauración de sesión la hace `useAuth` en App.tsx y llega por props: este
+ * provider NO vuelve a pedir /auth/me, para no duplicar la llamada ni tener dos
+ * fuentes de verdad del mismo usuario. Solo refleja el estado del padre y expone
+ * los helpers de rol y las acciones de sesión.
  */
-export function AuthProvider({ children, initialUser = null }: AuthProviderProps) {
+export function AuthProvider({
+  children,
+  initialUser = null,
+  isRestoringSession = true
+}: AuthProviderProps) {
   const [user, setUser] = useState<PublicUser | null>(initialUser);
-  const [isRestoringSession, setIsRestoringSession] = useState<boolean>(true);
 
   useEffect(() => {
     setUser(initialUser);
@@ -91,35 +99,7 @@ export function AuthProvider({ children, initialUser = null }: AuthProviderProps
     [user]
   );
 
-  // 1) Restauración de sesión en el montaje inicial (auto-recuperación al iniciar Electron)
-  useEffect(() => {
-    let isMounted = true;
-
-    async function restoreSession(): Promise<void> {
-      try {
-        const restoredUser = await accountService.retrieveAccount();
-        if (isMounted) {
-          setUser(restoredUser);
-        }
-      } catch {
-        if (isMounted) {
-          setUser(null);
-        }
-      } finally {
-        if (isMounted) {
-          setIsRestoringSession(false);
-        }
-      }
-    }
-
-    void restoreSession();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // 2) Escucha desacoplada para eventos de Capa 4 (401 Unauthorized / auto-logout)
+  // 1) Escucha desacoplada para eventos de Capa 4 (401 Unauthorized / auto-logout)
   useEffect(() => {
     const handleUnauthorizedEvent = (event: Event) => {
       const customEvent = event as CustomEvent<{ reason?: string }>;

@@ -10,28 +10,12 @@ export type PageContext = {
   pageSummary: string;
 };
 
-function getOpenRouterSettings() {
-  const rawApiKey = import.meta.env.VITE_OPENROUTER_API_KEY as string | undefined;
-  const apiKey = rawApiKey?.trim() ?? '';
-
-  const rawModel = import.meta.env.VITE_OPENROUTER_MODEL as string | undefined;
-  const model = (rawModel?.trim() ?? '').trim() || 'openai/gpt-4o-mini';
-
-  const enabled = apiKey.length > 0;
-
-  return {
-    apiKey,
-    model,
-    enabled
-  };
-}
-
-function getMissingKeyErrorMessage() {
-  return [
-    'No está configurada la variable VITE_OPENROUTER_API_KEY.',
-    'Revisa que el archivo .env en la raíz del proyecto contenga una clave válida de OpenRouter.',
-    'Si la acabas de guardar, reinicia la app para recargar el entorno.'
-  ].join(' ');
+function getAssistantBridge(): NonNullable<Window['sapay']>['askAssistant'] {
+  const askAssistant = window.sapay?.askAssistant;
+  if (!askAssistant) {
+    throw new Error('El asistente no está disponible en esta versión de la aplicación.');
+  }
+  return askAssistant;
 }
 
 const pageContextCatalog: Record<string, string> = {
@@ -69,71 +53,6 @@ export async function askOpenRouter(
   pendingMessages: ChatMessage[],
   pageContext: PageContext
 ): Promise<string> {
-  const { apiKey, model, enabled } = getOpenRouterSettings();
-
-  if (!enabled || !apiKey) {
-    throw new Error(getMissingKeyErrorMessage());
-  }
-
-  const requestMessages = [
-    {
-      role: 'system',
-      content: `Eres un asistente interno de soporte para la aplicación SAPAY Hotel.
-Responde solo sobre el uso de esta aplicación y de sus módulos, no sobre temas generales ajenos al software.
-Nunca des pasos fuera de la app ni inventes funciones que no existen.
-Si el usuario pregunta algo que no está claramente relacionado con esta aplicación, responde que solo puedes ayudar con la operación de SAPAY Hotel.
-Usa el contexto del módulo activo y la información del usuario para responder de forma útil y precisa.
-Contexto actual:
-- Nombre de la app: ${pageContext.appName}
-- Módulo activo: ${pageContext.pageName}
-- Rol del usuario: ${pageContext.userRole}
-- Descripción del módulo: ${pageContext.pageSummary}
-- Restricción: no puedes responder sobre temas ajenos a SAPAY Hotel ni dar información personal o de terceros.
-- Si falta información, pide solo los datos necesarios dentro de la app.`
-    },
-    ...pendingMessages.map((message) => ({
-      role: message.role,
-      content: message.content
-    }))
-  ];
-
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-      'HTTP-Referer': 'http://localhost',
-      'X-Title': 'SAPAY Hotel'
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.3,
-      messages: requestMessages
-    })
-  });
-
-  if (!response.ok) {
-    let details = 'No fue posible contactar al asistente.';
-
-    try {
-      const parsed = (await response.json()) as { error?: { message?: string } };
-      details = parsed.error?.message ?? details;
-    } catch {
-      details = await response.text();
-    }
-
-    throw new Error(details || 'Error técnico del asistente.');
-  }
-
-  const payload = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
-
-  const answer = payload.choices?.[0]?.message?.content?.trim();
-
-  if (!answer) {
-    throw new Error('La respuesta del asistente vino vacía.');
-  }
-
-  return answer;
+  const askAssistant = getAssistantBridge();
+  return askAssistant({ messages: pendingMessages, pageContext });
 }

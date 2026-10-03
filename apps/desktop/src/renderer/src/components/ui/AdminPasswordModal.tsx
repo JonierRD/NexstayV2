@@ -1,7 +1,7 @@
 import { LockKeyhole, ShieldAlert, X } from 'lucide-react';
 import { useState, type FormEvent, type ReactElement } from 'react';
-import { verifyAdminPasswordRequest } from '../lib/api';
-import { Button } from './ui/button';
+import { verifyAdminPasswordRequest } from '../../lib/api';
+import { Button } from './button';
 
 type AdminPasswordModalProps = {
   onSuccess: (password: string) => void;

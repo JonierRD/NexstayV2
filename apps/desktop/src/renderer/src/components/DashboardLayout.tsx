@@ -1,6 +1,7 @@
-import { createElement, type ReactElement, useState } from 'react';
+import { createElement, type ReactElement, useEffect, useState } from 'react';
 import { Bell, CalendarDays, LogOut, PanelRightClose } from 'lucide-react';
 import type { PublicUser } from '../lib/api';
+import { formatClock, formatHeaderDate } from '../lib/format';
 import { useAuthSession } from '../context/AuthContext';
 import { Sidebar } from './Sidebar';
 import { AssistantChat } from './AssistantChat';
@@ -20,17 +21,30 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const route = findRoute(active);
   const pageTitle = route?.meta.title ?? 'SAPAY';
-  const now = new Date();
-  const formattedDate = new Intl.DateTimeFormat('es-CO', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(now);
-  const formattedTime = new Intl.DateTimeFormat('es-CO', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  }).format(now);
+
+  // El reloj debe avanzar solo; calcularlo en el render lo dejaba congelado
+  // hasta que ocurriera otro re-render sin relacion.
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    let timeoutId = 0;
+
+    // Ajusta al minuto en curso para que los minutos no cambien a destiempo.
+    const scheduleTick = () => {
+      const msUntilNextMinute = 60000 - (Date.now() % 60000);
+      timeoutId = window.setTimeout(() => {
+        setNow(new Date());
+        scheduleTick();
+      }, msUntilNextMinute);
+    };
+
+    scheduleTick();
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  const formattedDate = formatHeaderDate(now);
+  const formattedTime = formatClock(now);
 
   return (
     <div className="flex h-screen overflow-hidden">

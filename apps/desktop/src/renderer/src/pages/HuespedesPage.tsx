@@ -1,7 +1,6 @@
 import { RefreshCw } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { AdminPasswordModal } from '../components/AdminPasswordModal';
 import { ConsumptionModal } from '../components/huespedes/ConsumptionModal';
 import { GuestCard } from '../components/huespedes/GuestCard';
 import { useHuespedes } from '../components/huespedes/useHuespedes';
@@ -10,7 +9,7 @@ import { Button } from '../components/ui/button';
 type Props = { user: PublicUser };
 
 export function HuespedesPage({ user }: Props): ReactElement {
-  const g = useHuespedes(user);
+  const g = useHuespedes();
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-auto p-4">
@@ -66,10 +65,6 @@ export function HuespedesPage({ user }: Props): ReactElement {
           onSubmit={g.saveConsumption}
           onClose={() => g.setConsumptionStay(null)}
         />
-      )}
-
-      {g.checkoutStay && (
-        <AdminPasswordModal onClose={() => g.setCheckoutStay(null)} onSuccess={g.checkout} />
       )}
     </div>
   );

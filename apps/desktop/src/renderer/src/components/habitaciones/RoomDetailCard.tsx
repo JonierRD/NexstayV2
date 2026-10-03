@@ -4,9 +4,8 @@ import { cn } from '../../lib/utils';
 import { formatCOP } from '../../lib/format';
 import { AccentButton } from '../ui/accent-button';
 import { DetailLine } from '../ui/detail-line';
-import { Can } from '../../security';
-import { Role } from '../../routes/roles';
-import { type Room } from './types';
+import { usePermissions } from '../../security';
+import { AC_LABEL, type Room } from './types';
 
 // Panel derecho: detalle de la habitación seleccionada + botón "Liberar"
 export function RoomDetailCard({
@@ -20,9 +19,11 @@ export function RoomDetailCard({
   onAddImage: () => void;
   onRemoveImage: () => void;
 }): ReactElement {
+  const { isAdmin } = usePermissions();
+
   // Cálculo del total a cobrar según el A/C que seleccionó el huésped
   const nights = room.nights ?? 1;
-  const selectedPrice = room.selectedAc === 'Aire' && room.priceWithAir > 0 ? room.priceWithAir : room.priceWithFan > 0 ? room.priceWithFan : 0;
+  const selectedPrice = room.selectedAc === 'AIRE' && room.priceWithAir > 0 ? room.priceWithAir : room.priceWithFan > 0 ? room.priceWithFan : 0;
   const roomTotal = nights * selectedPrice;
   const grandTotal = roomTotal + room.storeDebt;
   const fmt = formatCOP;
@@ -48,7 +49,7 @@ export function RoomDetailCard({
             </div>
           )}
 
-          <Can role={Role.ADMIN}>
+          {isAdmin && (
             <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
               <button
                 type="button"
@@ -67,7 +68,7 @@ export function RoomDetailCard({
                 Eliminar imagen
               </button>
             </div>
-          </Can>
+          )}
 
           <div className={cn('absolute right-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white shadow-lg', room.accentTone)}>
             {room.status}
@@ -104,7 +105,7 @@ export function RoomDetailCard({
             <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
               <DetailLine label="Nombre" value={room.guest ?? 'Sin huésped'} />
               <DetailLine label="Noches" value={room.nights?.toString() ?? '1'} />
-              <DetailLine label="Seleccionó" value={room.selectedAc ?? '---'} />
+              <DetailLine label="Seleccionó" value={room.selectedAc ? AC_LABEL[room.selectedAc] : '---'} />
             </div>
           </div>
 

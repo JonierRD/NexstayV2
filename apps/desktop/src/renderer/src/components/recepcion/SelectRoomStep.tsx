@@ -1,6 +1,7 @@
 import { BedDouble } from 'lucide-react';
 import { type Dispatch, type SetStateAction } from 'react';
 import { type Habitacion } from '../../lib/api';
+import { formatCOP } from '../../lib/format';
 import { cn } from '../../lib/utils';
 import { type CheckinStep } from './useReception';
 
@@ -75,7 +76,7 @@ export function SelectRoomStep({
                 <div className="rounded-lg border border-sapay-450 bg-white p-3">
                   <p className="text-xs text-sapay-700 mb-1">Precio Aire</p>
                   <p className="text-lg font-bold text-sapay-950">
-                    ${Math.round(selectedRoom.priceWithAir || 0).toLocaleString('es-CO')}
+                    {formatCOP(selectedRoom.priceWithAir || 0)}
                   </p>
                 </div>
               )}
@@ -83,7 +84,7 @@ export function SelectRoomStep({
                 <div className="rounded-lg border border-sapay-450 bg-white p-3">
                   <p className="text-xs text-sapay-700 mb-1">Precio Ventilador</p>
                   <p className="text-lg font-bold text-sapay-950">
-                    ${Math.round(selectedRoom.priceWithFan || 0).toLocaleString('es-CO')}
+                    {formatCOP(selectedRoom.priceWithFan || 0)}
                   </p>
                 </div>
               )}

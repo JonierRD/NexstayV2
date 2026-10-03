@@ -1,7 +1,7 @@
 import { Shield, UsersRound } from 'lucide-react';
 import FondoLogin from '../../assets/login/FondoLogin.png';
 import Logo from '../../assets/login/Logo.png';
-import { LoadingOverlay } from '../LoadingOverlay';
+import { LoadingOverlay } from '../ui/LoadingOverlay';
 import { ForgotFields } from './ForgotFields';
 import { LoginFields } from './LoginFields';
 import { RegisterFields } from './RegisterFields';

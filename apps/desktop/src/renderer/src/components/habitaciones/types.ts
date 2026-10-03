@@ -4,6 +4,15 @@ import { formatCOP } from '../../lib/format';
 export type RoomStatus = 'DISPONIBLE' | 'OCUPADA' | 'RESERVADA' | 'MANTENIMIENTO';
 export type RoomType = 'DOSCAMAS' | 'MATRIMONIAL' | 'SENCILLA';
 
+// Coincide con el enum AcType de Prisma. Se usa el valor del enum en toda la app
+// y la etiqueta legible ("Aire"/"Ventilador") solo al pintar.
+export type AcType = 'AIRE' | 'VENTILADOR';
+
+export const AC_LABEL: Record<AcType, string> = {
+  AIRE: 'Aire',
+  VENTILADOR: 'Ventilador'
+};
+
 // Estructura de habitación para la UI (mezcla datos de Room API + Stay activo)
 export type Room = {
   number: string;
@@ -14,9 +23,9 @@ export type Room = {
   image: string | null;
   guest?: string;       // huésped actual (del stay activo)
   checkIn?: string;
-  checkOut?: string;
+  checkOut?: string | null;
   nights?: number;
-  selectedAc?: string;
+  selectedAc?: AcType | null;
   priceDisplay: string;
   priceWithAir: number;
   priceWithFan: number;
@@ -95,7 +104,7 @@ export function mapApiRoom(apiRoom: Habitacion, index: number): Room {
     image: apiRoom.image,
     acType: acLabel,
     description: `Habitación ${typeLabel[apiRoom.type]}`,
-    selectedAc: apiRoom.hasAir ? 'Aire' : apiRoom.hasFan ? 'Ventilador' : '---',
+    selectedAc: apiRoom.hasAir ? 'AIRE' : apiRoom.hasFan ? 'VENTILADOR' : null,
     priceDisplay: priceAirDsp && priceFanDsp ? `${priceAirDsp} / ${priceFanDsp}` : (priceAirDsp || priceFanDsp || '---'),
     priceWithAir: priceAirNum,
     priceWithFan: priceFanNum,

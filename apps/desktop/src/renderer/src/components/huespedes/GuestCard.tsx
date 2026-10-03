@@ -1,7 +1,7 @@
 import { BedDouble, Clock3, LogOut, Package, ShoppingBag, UserRound } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type Stay } from '../../lib/api';
-import { formatDateTime } from '../../lib/format';
+import { formatCOP, formatDateTime } from '../../lib/format';
 import { Button } from '../ui/button';
 import { elapsed } from './types';
 
@@ -14,6 +14,7 @@ type Props = {
 export function GuestCard({ stay, onConsumption, onCheckout }: Props): ReactElement {
   const guest = stay.client ? `${stay.client.firstName} ${stay.client.lastName}` : 'Huésped sin nombre';
   const sales = stay.sales ?? [];
+  const salesTotal = sales.reduce((sum, sale) => sum + Number(sale.unitPrice) * sale.quantity, 0);
 
   return (
     <article className="rounded-xl border border-sapay-350 bg-white p-4 shadow-[0_8px_20px_rgba(67,42,27,0.05)]">
@@ -55,6 +56,9 @@ export function GuestCard({ stay, onConsumption, onCheckout }: Props): ReactElem
             Consumos
           </p>
           <strong>{sales.length ? `${sales.length} producto(s)` : 'Sin consumos'}</strong>
+          {salesTotal > 0 && (
+            <span className="ml-1 font-normal text-sapay-650">({formatCOP(salesTotal)})</span>
+          )}
         </div>
       </div>
 

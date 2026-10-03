@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { type FormEvent, type ReactElement } from 'react';
 import { type Stay, type StoreStock } from '../../lib/api';
+import { formatCOP } from '../../lib/format';
 import { Button } from '../ui/button';
 
 type Props = {
@@ -46,7 +47,7 @@ export function ConsumptionModal({
               .filter((item) => item.quantity > 0)
               .map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.product.name} · ${Number(item.product.price).toLocaleString('es-CO')} · Stock {item.quantity}
+                  {item.product.name} · {formatCOP(Number(item.product.price))} · Stock {item.quantity}
                 </option>
               ))}
           </select>

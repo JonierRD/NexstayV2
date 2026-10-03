@@ -1,14 +1,6 @@
 const FALLBACK_API_URL = 'http://localhost:3333';
 const TOKEN_STORAGE_KEY = 'sapay-token';
 
-declare global {
-  interface Window {
-    sapay?: {
-      getConfig: () => Promise<{ apiUrl: string }>;
-    };
-  }
-}
-
 let cachedApiUrl: string | null = null;
 
 export async function resolveApiBaseUrl(): Promise<string> {
@@ -71,7 +63,7 @@ export async function apiRequest<T>(
   path: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { method = 'POST', body, auth = true, signal } = options;
+  const { method = 'GET', body, auth = true, signal } = options;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'

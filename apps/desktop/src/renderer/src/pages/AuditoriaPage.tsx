@@ -34,15 +34,36 @@ export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
           entities={a.uniqueEntities}
         />
 
-        <div className="mb-2 rounded-xl border border-sapay-350 bg-white px-4 py-2">
+        <div className="mb-2 flex items-center justify-between rounded-xl border border-sapay-350 bg-white px-4 py-2">
           <p className="text-[10px] text-sapay-750">
-            Mostrando {a.filteredLogs.length} de {a.total} registros
+            Mostrando {a.rangeLabel} registros
           </p>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={a.prevPage}
+              disabled={!a.canPrev || a.loading}
+              className="rounded-lg border border-sapay-350 bg-white px-2 py-1 text-[10px] font-medium text-sapay-900 disabled:opacity-40"
+            >
+              Anterior
+            </button>
+            <span className="px-1 text-[10px] text-sapay-750">
+              Pag. {a.page + 1} de {a.totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={a.nextPage}
+              disabled={!a.canNext || a.loading}
+              className="rounded-lg border border-sapay-350 bg-white px-2 py-1 text-[10px] font-medium text-sapay-900 disabled:opacity-40"
+            >
+              Siguiente
+            </button>
+          </div>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
           <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-[20px] border border-sapay-350 bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)]">
-            {a.filteredLogs.length === 0 ? (
+            {a.logs.length === 0 ? (
               <div className="flex h-full items-center justify-center text-center">
                 <div>
                   <Filter className="mx-auto mb-2 text-sapay-650" size={24} />
@@ -50,7 +71,7 @@ export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
                 </div>
               </div>
             ) : (
-              a.filteredLogs.map((log) => <AuditLogCard key={log.id} log={log} />)
+              a.logs.map((log) => <AuditLogCard key={log.id} log={log} />)
             )}
           </div>
         </div>

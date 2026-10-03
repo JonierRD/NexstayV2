@@ -2,7 +2,9 @@ import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'reac
 import {
   type Habitacion,
   type PublicUser,
+  type Stay,
   checkoutRequest,
+  deleteHabitacionRequest,
   habitacionesRequest,
   staysActiveRequest,
   staysByRoomRequest,
@@ -10,7 +12,7 @@ import {
 } from '../../lib/api';
 import { mapApiRoom, type Room, type RoomStatus } from './types';
 
-export type PendingRoomAction = 'create' | 'edit' | 'liberar' | 'image';
+export type PendingRoomAction = 'create' | 'edit' | 'liberar';
 
 const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB límite de imagen
 
@@ -29,11 +31,10 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
   // Modal de crear/editar habitación
   const [editingRoom, setEditingRoom] = useState<Habitacion | null>(null);
   const [showRoomForm, setShowRoomForm] = useState(false);
-  // Autorización de admin para acciones sensibles
+  // Autorizacion de admin: unicamente eliminar una habitacion lo exige.
   const [showAdminAuth, setShowAdminAuth] = useState(false);
-  const [pendingAction, setPendingAction] = useState<PendingRoomAction | null>(null);
+  const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
   const [pendingRoomNumber, setPendingRoomNumber] = useState<string | null>(null);
-  const [adminAuthPassword, setAdminAuthPassword] = useState<string | null>(null);
   // Subida de imagen
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageError, setImageError] = useState('');
@@ -58,7 +59,7 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
         setApiRooms(roomsData);
 
         // Mapa para cruzar cada habitación con su stay activo
-        const staysByRoom = new Map();
+        const staysByRoom = new Map<string, Stay>();
         staysData.forEach(stay => {
           staysByRoom.set(stay.roomNumber, stay);
         });
@@ -74,6 +75,11 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
             room.checkOut = activeStay.checkOut;
             room.selectedAc = activeStay.acTypeUsed;
             room.stayId = activeStay.id;
+            // Deuda de tienda: consumos registrados a nombre de este hospedaje.
+            room.storeDebt = (activeStay.sales ?? []).reduce(
+              (sum, sale) => sum + Number(sale.unitPrice) * sale.quantity,
+              0
+            );
           }
 
           return room;
@@ -144,16 +150,31 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
 
   const pct = (n: number) => stats.total > 0 ? `${((n / stats.total) * 100).toFixed(1)}% del total` : '0% del total';
 
-  // Si es admin ejecuta directo, si no pide contraseña de admin primero
+  // Crear, editar y liberar son operaciones normales: no piden contrasena de admin.
+  // Solo eliminar una habitacion exige la contrasena de un administrador.
   function requireAuth(action: PendingRoomAction, roomNumber?: string) {
-    if (isAdmin) {
-      executeAction(action, roomNumber);
-    } else {
-      setAdminAuthPassword(null);
-      setPendingAction(action);
-      setPendingRoomNumber(roomNumber ?? null);
-      setShowAdminAuth(true);
-    }
+    executeAction(action, roomNumber);
+  }
+
+  // Pide confirmacion y, si quien borra no es ADMIN, la contrasena de un administrador.
+  function requestDeleteRoom(roomNumber: string) {
+    setShowRoomForm(false);
+    setEditingRoom(null);
+    setRoomToDelete(roomNumber);
+
+    showConfirm(
+      `¿Eliminar la habitación ${roomNumber}?`,
+      'Esta acción no se puede deshacer y requiere la contraseña de un administrador.',
+      'Sí, eliminar',
+      true,
+      () => {
+        if (isAdmin) {
+          void performDelete(roomNumber, undefined);
+        } else {
+          setShowAdminAuth(true);
+        }
+      }
+    );
   }
 
   // Solo admin: abre el diálogo para elegir imagen (pusa 2MB)
@@ -210,43 +231,40 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
   }
 
   function onAdminAuthorized(password: string) {
-    setAdminAuthPassword(password);
     setShowAdminAuth(false);
-    if (pendingAction) {
-      executeAction(pendingAction, pendingRoomNumber ?? undefined);
-      setPendingAction(null);
-      if (pendingAction !== 'image') {
-        setPendingRoomNumber(null);
-      }
+    if (roomToDelete) {
+      void performDelete(roomToDelete, password);
     }
   }
 
   function closeAdminAuth() {
     setShowAdminAuth(false);
-    setPendingAction(null);
-    setPendingRoomNumber(null);
-    setAdminAuthPassword(null);
+    setRoomToDelete(null);
     setImageError('');
+  }
+
+  async function performDelete(roomNumber: string, adminPassword?: string) {
+    try {
+      await deleteHabitacionRequest(roomNumber, adminPassword);
+      setShowRoomForm(false);
+      setEditingRoom(null);
+      loadRooms();
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Error al eliminar la habitación.');
+    } finally {
+      setRoomToDelete(null);
+    }
   }
 
   function onSaveRoom() {
     setShowRoomForm(false);
     setEditingRoom(null);
-    setAdminAuthPassword(null);
-    loadRooms();
-  }
-
-  function onDeleteRoom(_number: string) {
-    setShowRoomForm(false);
-    setEditingRoom(null);
-    setAdminAuthPassword(null);
     loadRooms();
   }
 
   function closeRoomForm() {
     setShowRoomForm(false);
     setEditingRoom(null);
-    setAdminAuthPassword(null);
   }
 
   // GET /stays/room/:number → si hay stay activo hace checkout, si no solo cambia estado
@@ -258,14 +276,11 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
 
       if (activeStay) {
         // Si hay stay activo, hacer checkout completo
-        await checkoutRequest(activeStay.id, {
-          adminPassword: adminAuthPassword || undefined
-        });
+        await checkoutRequest(activeStay.id);
       } else {
         // Si no hay stay activo, solo cambiar estado (caso borde)
         await updateHabitacionRequest(number, {
-          status: 'DISPONIBLE',
-          ...(adminAuthPassword ? { adminPassword: adminAuthPassword } : {})
+          status: 'DISPONIBLE'
         });
       }
 
@@ -310,10 +325,8 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
         reader.readAsDataURL(file);
       });
       await updateHabitacionRequest(pendingRoomNumber, {
-        image: base64,
-        ...(adminAuthPassword ? { adminPassword: adminAuthPassword } : {})
+        image: base64
       });
-      setAdminAuthPassword(null);
       setPendingRoomNumber(null);
       loadRooms();
     } catch (err) {
@@ -354,9 +367,8 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
     closeAdminAuth,
     showRoomForm,
     editingRoom,
-    adminAuthPassword,
+    requestDeleteRoom,
     onSaveRoom,
-    onDeleteRoom,
     closeRoomForm,
     imageFileRef,
     handleImagePick,

@@ -1,6 +1,7 @@
 import { Loader2 } from 'lucide-react';
 import { type Dispatch, type SetStateAction } from 'react';
 import { type Habitacion } from '../../lib/api';
+import { formatCOP } from '../../lib/format';
 import { cn } from '../../lib/utils';
 import { type CheckinStep, type ClientFormData } from './useReception';
 
@@ -146,15 +147,15 @@ export function ConfirmStep({
             <div className="flex justify-between items-center py-2 border-b border-sapay-450">
               <span className="text-sapay-700">Precio/noche:</span>
               <span className="font-medium text-sapay-950">
-                ${Math.round(
+                {formatCOP(
                   (acType === 'AIRE' ? selectedRoom?.priceWithAir : selectedRoom?.priceWithFan) || 0
-                ).toLocaleString('es-CO')}
+                )}
               </span>
             </div>
             <div className="mt-4 flex justify-between items-center py-3 bg-white rounded-lg px-4">
               <span className="font-bold text-sapay-900">Total Estimado:</span>
               <span className="text-xl font-bold text-sapay-950">
-                ${Math.round(calculateEstimatedTotal()).toLocaleString('es-CO')}
+                {formatCOP(calculateEstimatedTotal())}
               </span>
             </div>
           </div>

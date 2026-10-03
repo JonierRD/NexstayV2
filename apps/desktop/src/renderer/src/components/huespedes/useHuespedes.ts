@@ -1,6 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import {
-  type PublicUser,
   type Stay,
   type StoreStock,
   checkoutRequest,
@@ -9,18 +8,15 @@ import {
   storeStockRequest
 } from '../../lib/api';
 
-export function useHuespedes(user: PublicUser) {
+export function useHuespedes() {
   const [stays, setStays] = useState<Stay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [checkoutStay, setCheckoutStay] = useState<Stay | null>(null);
   const [consumptionStay, setConsumptionStay] = useState<Stay | null>(null);
   const [storeItems, setStoreItems] = useState<StoreStock[]>([]);
   const [selectedStock, setSelectedStock] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [savingSale, setSavingSale] = useState(false);
-
-  const isAdmin = user.role === 'ADMIN';
 
   // PROCESO: Cargar huéspedes activos desde la API (GET /stays/active)
   async function load(): Promise<void> {
@@ -48,22 +44,19 @@ export function useHuespedes(user: PublicUser) {
   }, [consumptionStay]);
 
   // PROCESO: Realizar check-out (POST /stays/:id/checkout)
-  async function checkout(password?: string, selectedStay = checkoutStay): Promise<void> {
+  // Liberar la habitacion es operacion normal de recepcion: no pide contrasena.
+  async function checkout(selectedStay: Stay): Promise<void> {
     if (!selectedStay) return;
     try {
-      await checkoutRequest(selectedStay.id, password ? { adminPassword: password } : {});
-      setCheckoutStay(null);
+      await checkoutRequest(selectedStay.id);
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'No se pudo realizar el check-out.');
-      setCheckoutStay(null);
     }
   }
 
-  // Si es admin ejecuta el check-out directo, si no pide contraseña de admin
   function handleCheckout(stay: Stay): void {
-    if (isAdmin) void checkout(undefined, stay);
-    else setCheckoutStay(stay);
+    void checkout(stay);
   }
 
   // PROCESO: Registrar consumo a la habitación (POST /inventory/sales/stays)
@@ -90,8 +83,6 @@ export function useHuespedes(user: PublicUser) {
     stays,
     loading,
     error,
-    checkoutStay,
-    setCheckoutStay,
     consumptionStay,
     setConsumptionStay,
     storeItems,

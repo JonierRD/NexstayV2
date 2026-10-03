@@ -49,7 +49,7 @@ function mapSales(salesData: StaySale[]): SaleRecord[] {
     tipoVenta: sale.stayId ? 'Huésped' : 'Externa',
     habitacion: sale.stay?.roomNumber,
     huesped: sale.stay?.client ? `${sale.stay.client.firstName} ${sale.stay.client.lastName}` : undefined,
-    clienteExterno: sale.stayId ? undefined : 'Cliente externo'
+    clienteExterno: sale.stayId ? undefined : sale.customerName ?? 'Cliente externo'
   }));
 }
 
