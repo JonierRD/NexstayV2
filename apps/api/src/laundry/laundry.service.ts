@@ -3,33 +3,21 @@ import { $Enums } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 import { AuditoriaService } from '../auditoria/auditoria.service';
+import { CreateLaundryDto } from './dto/create-laundry.dto';
+import { UpdateLaundryDto } from './dto/update-laundry.dto';
 
 export type LaundryItem = $Enums.LaundryItem;
 export type LaundryStatus = $Enums.LaundryStatus;
 
-export interface CreateLaundryInput {
-  item: LaundryItem;
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
+// El DTO expone deliveryDate como string ISO (IsDateString); Prisma exige Date.
+function toPrismaData<T extends { deliveryDate?: string }>(dto: T): Omit<T, 'deliveryDate'> & {
   deliveryDate?: Date;
-  clientName: string;
-  roomNumber?: string;
-  notes?: string;
-}
-
-export interface UpdateLaundryInput {
-  item?: LaundryItem;
-  description?: string;
-  quantity?: number;
-  unitPrice?: number;
-  totalPrice?: number;
-  status?: LaundryStatus;
-  deliveryDate?: Date;
-  clientName?: string;
-  roomNumber?: string;
-  notes?: string;
+} {
+  const { deliveryDate, ...rest } = dto;
+  return {
+    ...rest,
+    ...(deliveryDate ? { deliveryDate: new Date(deliveryDate) } : {})
+  };
 }
 
 @Injectable()
@@ -53,9 +41,9 @@ export class LaundryService {
     return laundry;
   }
 
-  async create(data: CreateLaundryInput, user: JwtPayload) {
+  async create(data: CreateLaundryDto, user: JwtPayload) {
     const laundry = await this.prisma.laundry.create({
-      data
+      data: toPrismaData(data)
     });
 
     // Registrar en auditoría
@@ -70,12 +58,12 @@ export class LaundryService {
     return laundry;
   }
 
-  async update(id: number, data: UpdateLaundryInput, user: JwtPayload) {
+  async update(id: number, data: UpdateLaundryDto, user: JwtPayload) {
     const existing = await this.findOne(id);
 
     const laundry = await this.prisma.laundry.update({
       where: { id },
-      data
+      data: toPrismaData(data)
     });
 
     // Registrar en auditoría

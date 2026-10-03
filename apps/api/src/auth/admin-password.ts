@@ -1,4 +1,4 @@
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { verifyPassword } from './password';
@@ -15,7 +15,7 @@ export async function assertAdminPassword(
   messages?: AdminPasswordMessages
 ): Promise<void> {
   if (!password?.trim()) {
-    throw new UnauthorizedException(
+    throw new BadRequestException(
       messages?.missing ??
         'Se requiere la contraseña de un administrador activo para esta acción.'
     );
@@ -33,7 +33,7 @@ export async function assertAdminPassword(
 
   const isValid = await verifyPassword(password, adminUser.passwordHash);
   if (!isValid) {
-    throw new UnauthorizedException(
+    throw new ForbiddenException(
       messages?.invalid ?? 'La contraseña del administrador no es correcta.'
     );
   }

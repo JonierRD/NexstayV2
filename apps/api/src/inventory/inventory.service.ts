@@ -1,40 +1,12 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 import { AuditoriaService } from '../auditoria/auditoria.service';
-
-export interface CreateProductInput {
-  name: string;
-  price: number;
-  category?: string;
-  description?: string;
-}
-
-export interface UpdateProductInput {
-  name?: string;
-  price?: number;
-  category?: string;
-  description?: string;
-}
-
-export interface UpdateStockInput {
-  quantity?: number;
-  minStock?: number;
-  location?: string;
-  status?: string;
-}
-
-export interface SaleInput {
-  stockId: number;
-  stayId: number;
-  quantity: number;
-}
-
-export interface SalesBatchInput {
-  items: Array<{ stockId: number; quantity: number }>;
-  stayId?: number | null;
-  customerName?: string | null;
-}
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateStockDto } from './dto/update-stock.dto';
+import { CreateSaleDto } from './dto/create-sale.dto';
+import { CreateSalesBatchDto } from './dto/create-sales-batch.dto';
 
 @Injectable()
 export class InventoryService {
@@ -77,7 +49,7 @@ export class InventoryService {
     return stock;
   }
 
-  async createProduct(data: CreateProductInput, user: JwtPayload) {
+  async createProduct(data: CreateProductDto, user: JwtPayload) {
     const product = await this.prisma.product.create({
       data: {
         name: data.name,
@@ -124,14 +96,14 @@ export class InventoryService {
     });
   }
 
-  async createSale(data: SaleInput, user: JwtPayload) {
+  async createSale(data: CreateSaleDto, user: JwtPayload) {
     return this.createSalesBatch({
       items: [{ stockId: data.stockId, quantity: data.quantity }],
       stayId: data.stayId
     }, user);
   }
 
-  async createSalesBatch(data: SalesBatchInput, user: JwtPayload) {
+  async createSalesBatch(data: CreateSalesBatchDto, user: JwtPayload) {
     if (!Array.isArray(data.items) || data.items.length === 0) {
       throw new BadRequestException('Debe indicar al menos un producto para la venta');
     }
@@ -151,6 +123,11 @@ export class InventoryService {
     }
 
     const stayId = data.stayId !== undefined && data.stayId !== null ? Number(data.stayId) : null;
+    // El nombre del cliente solo aplica a ventas externas (sin hospedaje).
+    const customerName =
+      stayId === null && typeof data.customerName === 'string' && data.customerName.trim()
+        ? data.customerName.trim()
+        : null;
 
     if (stayId) {
       const stay = await this.prisma.stay.findUnique({
@@ -191,7 +168,8 @@ export class InventoryService {
             date: new Date(),
             quantity: item.quantity,
             unitPrice: stock.product.price,
-            saleType: stayId ? 'FIADO' : 'CONTADO'
+            saleType: stayId ? 'FIADO' : 'CONTADO',
+            customerName
           },
           include: {
             product: true,
@@ -216,15 +194,15 @@ export class InventoryService {
       entity: 'VENTA',
       entityId: firstSale?.id?.toString() ?? 'batch',
       description: stayId
-        ? `Registró venta a huésped ${stayId} con ${createdSales.length} producto(s)`
-        : `Registró venta externa con ${createdSales.length} producto(s)`,
+        ? `Registro venta a huesped ${stayId} con ${createdSales.length} producto(s)`
+        : `Registro venta externa${customerName ? ` a ${customerName}` : ''} con ${createdSales.length} producto(s)`,
       newValue: JSON.stringify(createdSales)
     });
 
     return createdSales;
   }
 
-  async updateProduct(id: number, data: UpdateProductInput, user: JwtPayload) {
+  async updateProduct(id: number, data: UpdateProductDto, user: JwtPayload) {
     const existing = await this.prisma.product.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('Producto no encontrado');
@@ -251,7 +229,7 @@ export class InventoryService {
     return product;
   }
 
-  async updateStock(id: number, data: UpdateStockInput, user: JwtPayload) {
+  async updateStock(id: number, data: UpdateStockDto, user: JwtPayload) {
     const existing = await this.findOne(id);
 
     const stock = await this.prisma.stock.update({
@@ -275,11 +253,28 @@ export class InventoryService {
   async remove(id: number, user: JwtPayload) {
     const stock = await this.findOne(id);
 
-    // Eliminar primero el stock
-    await this.prisma.stock.delete({ where: { id } });
+    // Un producto con ventas registradas no se puede borrar: la FK Sale.productId
+    // lo impide. Se avisa antes de intentar, para no dejar stock a medias.
+    const salesCount = await this.prisma.sale.count({
+      where: { productId: stock.productId }
+    });
 
-    // Luego eliminar el producto
-    await this.prisma.product.delete({ where: { id: stock.productId } });
+    if (salesCount > 0) {
+      throw new ConflictException(
+        `No se puede eliminar "${stock.product.name}" porque tiene ${salesCount} venta(s) registrada(s).`
+      );
+    }
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.stock.delete({ where: { id } });
+        await tx.product.delete({ where: { id: stock.productId } });
+      });
+    } catch {
+      throw new ConflictException(
+        'No se pudo eliminar el producto porque tiene registros relacionados.'
+      );
+    }
 
     // Registrar en auditoría
     await this.auditoria.log(user, {
@@ -301,7 +296,7 @@ export class InventoryService {
       : existing.quantity - quantity;
 
     if (newQuantity < 0) {
-      throw new Error('La cantidad no puede ser negativa');
+      throw new BadRequestException('La cantidad no puede ser negativa');
     }
 
     const stock = await this.prisma.stock.update({

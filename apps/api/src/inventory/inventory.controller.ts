@@ -3,7 +3,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
 import { InventoryService } from './inventory.service';
-import type { CreateProductInput, UpdateProductInput, UpdateStockInput, SaleInput, SalesBatchInput } from './inventory.service';
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { UpdateStockDto } from './dto/update-stock.dto';
+import { CreateSaleDto } from './dto/create-sale.dto';
+import { CreateSalesBatchDto } from './dto/create-sales-batch.dto';
+import { AdjustStockDto } from './dto/adjust-stock.dto';
 
 @Controller('inventory')
 @UseGuards(JwtAuthGuard)
@@ -31,37 +36,37 @@ export class InventoryController {
   }
 
   @Post('product')
-  async createProduct(@Body() data: CreateProductInput, @CurrentUser() user: JwtPayload) {
+  async createProduct(@Body() data: CreateProductDto, @CurrentUser() user: JwtPayload) {
     return this.service.createProduct(data, user);
   }
 
   @Post('sale')
-  async createSale(@Body() data: SaleInput, @CurrentUser() user: JwtPayload) {
+  async createSale(@Body() data: CreateSaleDto, @CurrentUser() user: JwtPayload) {
     return this.service.createSale(data, user);
   }
 
   @Post('sales')
   async createSalesBatch(
-    @Body() data: SalesBatchInput,
+    @Body() data: CreateSalesBatchDto,
     @CurrentUser() user: JwtPayload
   ) {
     return this.service.createSalesBatch(data, user);
   }
 
   @Put('product/:id')
-  async updateProduct(@Param('id') id: string, @Body() data: UpdateProductInput, @CurrentUser() user: JwtPayload) {
+  async updateProduct(@Param('id') id: string, @Body() data: UpdateProductDto, @CurrentUser() user: JwtPayload) {
     return this.service.updateProduct(parseInt(id), data, user);
   }
 
   @Put('stock/:id')
-  async updateStock(@Param('id') id: string, @Body() data: UpdateStockInput, @CurrentUser() user: JwtPayload) {
+  async updateStock(@Param('id') id: string, @Body() data: UpdateStockDto, @CurrentUser() user: JwtPayload) {
     return this.service.updateStock(parseInt(id), data, user);
   }
 
   @Post('stock/:id/adjust')
   async adjustQuantity(
     @Param('id') id: string,
-    @Body() body: { quantity: number; operation: 'ADD' | 'SUBTRACT' },
+    @Body() body: AdjustStockDto,
     @CurrentUser() user: JwtPayload
   ) {
     return this.service.adjustQuantity(parseInt(id), body.quantity, body.operation, user);

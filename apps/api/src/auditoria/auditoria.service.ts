@@ -39,11 +39,12 @@ export class AuditoriaService {
     action?: AuditAction;
     entity?: string;
     entityId?: string;
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-    offset?: number;
-  }) {
+startDate?: Date;
+     endDate?: Date;
+     search?: string;
+     limit?: number;
+     offset?: number;
+   }) {
     const where: any = {};
 
     if (filters?.userId) {
@@ -70,6 +71,16 @@ export class AuditoriaService {
       if (filters.endDate) {
         where.createdAt.lte = filters.endDate;
       }
+    }
+
+    // Busqueda por texto sobre la descripcion, el usuario o la entidad, para que
+    // el filtro alcance todo el historial y no solo la pagina cargada.
+    if (filters?.search) {
+      where.OR = [
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { entity: { contains: filters.search, mode: 'insensitive' } },
+        { user: { fullName: { contains: filters.search, mode: 'insensitive' } } }
+      ];
     }
 
     const [logs, total] = await Promise.all([

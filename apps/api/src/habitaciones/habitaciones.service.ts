@@ -25,10 +25,6 @@ export class HabitacionesService {
   }
 
   async create(dto: CreateHabitacionDto, user: JwtPayload) {
-    if (user.role !== Role.ADMIN) {
-      await this.requireAdminPassword(dto.adminPassword);
-    }
-
     const existing = await this.prisma.room.findUnique({ where: { number: dto.number } });
     if (existing) {
       throw new ConflictException(`La habitación ${dto.number} ya existe.`);
@@ -61,10 +57,6 @@ export class HabitacionesService {
   }
 
   async update(number: string, dto: UpdateHabitacionDto, user: JwtPayload) {
-    if (user.role !== Role.ADMIN) {
-      await this.requireAdminPassword(dto.adminPassword);
-    }
-
     const room = await this.prisma.room.findUnique({ where: { number } });
     if (!room) {
       throw new NotFoundException(`La habitación ${number} no existe.`);
@@ -140,7 +132,22 @@ export class HabitacionesService {
       );
     }
 
-    await this.prisma.room.delete({ where: { number } });
+    // Tampoco si tiene historial: la FK Stay.roomNumber lo impide y sin este
+    // chequeo el borrado fallaria con un 500 de clave foranea.
+    const staysCount = await this.prisma.stay.count({ where: { roomNumber: number } });
+    if (staysCount > 0) {
+      throw new ConflictException(
+        `No se puede eliminar la habitación ${number} porque tiene ${staysCount} hospedaje(s) en su historial.`
+      );
+    }
+
+    try {
+      await this.prisma.room.delete({ where: { number } });
+    } catch {
+      throw new ConflictException(
+        'No se pudo eliminar la habitación porque tiene registros relacionados.'
+      );
+    }
 
     // Registrar en auditoría
     await this.auditoria.log(user, {

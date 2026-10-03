@@ -1,14 +1,13 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException
 } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { assertAdminPassword } from '../auth/admin-password';
 import type { JwtPayload } from '../auth/auth.types';
 import type { CheckinDto } from './dto/checkin.dto';
-import type { CheckoutDto } from './dto/checkout.dto';
 import type { UpdateStayDto } from './dto/update-stay.dto';
 import { AuditoriaService, AuditAction } from '../auditoria/auditoria.service';
 
@@ -35,7 +34,9 @@ export class StaysService {
       where: { status: 'ACTIVA' },
       include: {
         client: true,
-        room: true
+        room: true,
+        // Sin esto el huesped aparece siempre sin consumos.
+        sales: { include: { product: true }, orderBy: { date: 'asc' } }
       },
       orderBy: { checkIn: 'desc' }
     });
@@ -67,7 +68,9 @@ export class StaysService {
       where: { roomNumber },
       include: {
         client: true,
-        room: true
+        room: true,
+        // Necesario para calcular la deuda de tienda de la habitacion.
+        sales: { include: { product: true }, orderBy: { date: 'asc' } }
       },
       orderBy: { checkIn: 'desc' }
     });
@@ -94,38 +97,112 @@ export class StaysService {
   }
 
   async checkin(dto: CheckinDto, user: JwtPayload) {
-    // 1. Validar contraseña admin si no es ADMIN
-    if (user.role !== Role.ADMIN) {
-      await this.requireAdminPassword(dto.adminPassword);
-    }
+    const nights = dto.nights || 1;
 
-    // 2. Buscar cliente por cédula
-    let client = await this.prisma.client.findUnique({
-      where: { cc: dto.cc }
-    });
+    // Todo el registro del hospedaje ocurre en una única transacción para que dos
+    // check-ins simultaneos sobre la misma habitacion no puedan aceptarse ambos.
+    const { stay, client, clientCreated } = await this.prisma.$transaction(
+      async (tx) => {
+        // 1. Buscar cliente por cédula
+        let client = await tx.client.findUnique({
+          where: { cc: dto.cc }
+        });
+        const clientCreated = !client;
 
-    // 3. Si no existe, crearlo
-    if (!client) {
-      if (!dto.firstName || !dto.lastName) {
-        throw new BadRequestException(
-          'Para un nuevo cliente se requiere nombre y apellido'
-        );
-      }
+        // 2. Si no existe, crearlo
+        if (!client) {
+          if (!dto.firstName || !dto.lastName) {
+            throw new BadRequestException(
+              'Para un nuevo cliente se requiere nombre y apellido'
+            );
+          }
 
-      client = await this.prisma.client.create({
-        data: {
-          cc: dto.cc,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          phone: dto.phone,
-          cityOrigin: dto.cityOrigin,
-          cityDestination: dto.cityDestination,
-          profession: dto.profession,
-          notes: dto.notes
+          client = await tx.client.create({
+            data: {
+              cc: dto.cc,
+              firstName: dto.firstName,
+              lastName: dto.lastName,
+              phone: dto.phone,
+              cityOrigin: dto.cityOrigin,
+              cityDestination: dto.cityDestination,
+              profession: dto.profession,
+              notes: dto.notes
+            }
+          });
         }
-      });
 
-      // Auditoría de creación de cliente
+        // 3. Validar habitación
+        const room = await tx.room.findUnique({
+          where: { number: dto.roomNumber }
+        });
+
+        if (!room) {
+          throw new NotFoundException(`La habitación ${dto.roomNumber} no existe`);
+        }
+
+        if (room.status !== 'DISPONIBLE') {
+          throw new BadRequestException(
+            `La habitación ${dto.roomNumber} no está disponible. Estado actual: ${room.status}`
+          );
+        }
+
+        // 4. Validar A/C
+        if (dto.acType === 'AIRE' && !room.hasAir) {
+          throw new BadRequestException('La habitación no tiene aire acondicionado');
+        }
+        if (dto.acType === 'VENTILADOR' && !room.hasFan) {
+          throw new BadRequestException('La habitación no tiene ventilador');
+        }
+
+        // 5. Calcular precio según A/C
+        const pricePerNight =
+          dto.acType === 'AIRE' ? room.priceWithAir : room.priceWithFan;
+
+        if (!pricePerNight || Number(pricePerNight) <= 0) {
+          throw new BadRequestException(
+            `No hay precio configurado para ${dto.acType} en esta habitación`
+          );
+        }
+
+        const total = Number(pricePerNight) * nights;
+
+        // 6. Reclamar la habitación con compare-and-set: el filtro status
+        // DISPONIBLE hace que solo una de las transacciones concurrentes gane.
+        const claimed = await tx.room.updateMany({
+          where: { number: dto.roomNumber, status: 'DISPONIBLE' },
+          data: { status: 'OCUPADA' }
+        });
+
+        if (claimed.count === 0) {
+          throw new ConflictException(
+            `La habitación ${dto.roomNumber} fue ocupada por otra operación. Intenta de nuevo.`
+          );
+        }
+
+        // 7. Crear Stay
+        const stay = await tx.stay.create({
+          data: {
+            clientId: client.id,
+            roomNumber: dto.roomNumber,
+            checkIn: dto.checkIn ? new Date(dto.checkIn) : new Date(),
+            nights,
+            pricePerNight,
+            total,
+            acTypeUsed: dto.acType,
+            status: 'ACTIVA'
+          },
+          include: {
+            client: true,
+            room: true
+          }
+        });
+
+        return { stay, client, clientCreated };
+      }
+    );
+
+    // 8. Auditorías fuera de la transacción para no abortar el check-in por un log.
+    if (clientCreated) {
       await this.auditoria.log(user, {
         action: 'CREATE',
         entity: 'CLIENTE',
@@ -135,67 +212,6 @@ export class StaysService {
       });
     }
 
-    // 4. Validar habitación
-    const room = await this.prisma.room.findUnique({
-      where: { number: dto.roomNumber }
-    });
-
-    if (!room) {
-      throw new NotFoundException(`La habitación ${dto.roomNumber} no existe`);
-    }
-
-    if (room.status !== 'DISPONIBLE') {
-      throw new BadRequestException(
-        `La habitación ${dto.roomNumber} no está disponible. Estado actual: ${room.status}`
-      );
-    }
-
-    // 5. Validar A/C
-    if (dto.acType === 'AIRE' && !room.hasAir) {
-      throw new BadRequestException('La habitación no tiene aire acondicionado');
-    }
-    if (dto.acType === 'VENTILADOR' && !room.hasFan) {
-      throw new BadRequestException('La habitación no tiene ventilador');
-    }
-
-    // 6. Calcular precio según A/C
-    const pricePerNight = dto.acType === 'AIRE' ? room.priceWithAir : room.priceWithFan;
-    
-    if (!pricePerNight || Number(pricePerNight) <= 0) {
-      throw new BadRequestException(
-        `No hay precio configurado para ${dto.acType} en esta habitación`
-      );
-    }
-
-    // 7. Calcular total (noches estimadas o 1 por defecto)
-    const nights = dto.nights || 1;
-    const total = Number(pricePerNight) * nights;
-
-    // 8. Crear Stay
-    const stay = await this.prisma.stay.create({
-      data: {
-        clientId: client.id,
-        roomNumber: dto.roomNumber,
-        checkIn: dto.checkIn ? new Date(dto.checkIn) : new Date(),
-        nights,
-        pricePerNight,
-        total,
-        acTypeUsed: dto.acType,
-        status: 'ACTIVA'
-      },
-      include: {
-        client: true,
-        room: true
-      }
-    });
-
-    // 9. Actualizar habitación a OCUPADA
-    await this.prisma.room.update({
-      where: { number: dto.roomNumber },
-      data: { status: 'OCUPADA' }
-    });
-
-    // 10. Auditoría del check-in
     await this.auditoria.log(user, {
       action: 'CHECK_IN',
       entity: 'STAY',
@@ -207,13 +223,8 @@ export class StaysService {
     return stay;
   }
 
-  async checkout(id: number, dto: CheckoutDto, user: JwtPayload) {
-    // 1. Validar contraseña admin si no es ADMIN
-    if (user.role !== Role.ADMIN) {
-      await this.requireAdminPassword(dto.adminPassword);
-    }
-
-    // 2. Buscar el stay
+  async checkout(id: number, user: JwtPayload) {
+    // 1. Buscar el stay
     const stay = await this.prisma.stay.findUnique({
       where: { id },
       include: {
@@ -288,12 +299,7 @@ export class StaysService {
   }
 
   async update(id: number, dto: UpdateStayDto, user: JwtPayload) {
-    // 1. Validar contraseña admin si no es ADMIN
-    if (user.role !== Role.ADMIN) {
-      await this.requireAdminPassword(dto.adminPassword);
-    }
-
-    // 2. Buscar el stay
+    // 1. Buscar el stay
     const stay = await this.prisma.stay.findUnique({
       where: { id },
       include: {
@@ -378,13 +384,8 @@ export class StaysService {
     return updatedStay;
   }
 
-  async cancel(id: number, adminPassword: string, user: JwtPayload) {
-    // 1. Validar contraseña admin si no es ADMIN
-    if (user.role !== Role.ADMIN) {
-      await this.requireAdminPassword(adminPassword);
-    }
-
-    // 2. Buscar el stay
+  async cancel(id: number, user: JwtPayload) {
+    // 1. Buscar el stay
     const stay = await this.prisma.stay.findUnique({
       where: { id },
       include: {
@@ -430,9 +431,5 @@ export class StaysService {
     });
 
     return updatedStay;
-  }
-
-  private async requireAdminPassword(password?: string): Promise<void> {
-    return assertAdminPassword(this.prisma, password);
   }
 }

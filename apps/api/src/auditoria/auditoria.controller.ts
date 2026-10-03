@@ -17,6 +17,7 @@ export class AuditoriaController {
     @Query('entityId') entityId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('search') search?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @CurrentUser() user?: JwtPayload
@@ -33,6 +34,7 @@ export class AuditoriaController {
       entityId,
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
+      search: search?.trim() || undefined,
       limit: limit ? parseInt(limit) : undefined,
       offset: offset ? parseInt(offset) : undefined
     });

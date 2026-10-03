@@ -4,7 +4,6 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
 import { StaysService } from './stays.service';
 import { CheckinDto } from './dto/checkin.dto';
-import { CheckoutDto } from './dto/checkout.dto';
 import { UpdateStayDto } from './dto/update-stay.dto';
 
 @Controller('stays')
@@ -43,12 +42,8 @@ export class StaysController {
   }
 
   @Post(':id/checkout')
-  async checkout(
-    @Param('id') id: string,
-    @Body() dto: CheckoutDto,
-    @CurrentUser() user: JwtPayload
-  ) {
-    return this.service.checkout(Number(id), dto, user);
+  async checkout(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.checkout(Number(id), user);
   }
 
   @Patch(':id')
@@ -61,11 +56,7 @@ export class StaysController {
   }
 
   @Post(':id/cancel')
-  async cancel(
-    @Param('id') id: string,
-    @Body('adminPassword') adminPassword: string,
-    @CurrentUser() user: JwtPayload
-  ) {
-    return this.service.cancel(Number(id), adminPassword, user);
+  async cancel(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.cancel(Number(id), user);
   }
 }
