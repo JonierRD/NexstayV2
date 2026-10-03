@@ -75,7 +75,7 @@ export class InventoryService {
       entity: 'INVENTARIO',
       entityId: product.id.toString(),
       description: `Creó producto: ${data.name} (${data.category || 'TIENDA'})`,
-      newValue: JSON.stringify(product)
+      newValue: product
     });
 
     return product;
@@ -196,7 +196,7 @@ export class InventoryService {
       description: stayId
         ? `Registro venta a huesped ${stayId} con ${createdSales.length} producto(s)`
         : `Registro venta externa${customerName ? ` a ${customerName}` : ''} con ${createdSales.length} producto(s)`,
-      newValue: JSON.stringify(createdSales)
+      newValue: createdSales
     });
 
     return createdSales;
@@ -222,8 +222,8 @@ export class InventoryService {
       entity: 'INVENTARIO',
       entityId: id.toString(),
       description: `Actualizó producto ID ${id}`,
-      oldValue: JSON.stringify(existing),
-      newValue: JSON.stringify(product)
+      oldValue: existing,
+      newValue: product
     });
 
     return product;
@@ -243,8 +243,8 @@ export class InventoryService {
       entity: 'INVENTARIO',
       entityId: id.toString(),
       description: `Actualizó stock del producto ID ${id}`,
-      oldValue: JSON.stringify(existing),
-      newValue: JSON.stringify(stock)
+      oldValue: existing,
+      newValue: stock
     });
 
     return stock;
@@ -282,7 +282,7 @@ export class InventoryService {
       entity: 'INVENTARIO',
       entityId: id.toString(),
       description: `Eliminó producto ${stock.product.name}`,
-      oldValue: JSON.stringify(stock)
+      oldValue: stock
     });
 
     return { message: 'Producto eliminado' };
@@ -310,8 +310,8 @@ export class InventoryService {
       entity: 'INVENTARIO',
       entityId: id.toString(),
       description: `${operation === 'ADD' ? 'Agregó' : 'Restó'} ${quantity} unidades a ${existing.product.name}`,
-      oldValue: JSON.stringify({ quantity: existing.quantity }),
-      newValue: JSON.stringify({ quantity: newQuantity })
+      oldValue: { quantity: existing.quantity },
+      newValue: { quantity: newQuantity }
     });
 
     return stock;

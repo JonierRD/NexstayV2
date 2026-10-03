@@ -5,12 +5,24 @@ import type { JwtPayload } from '../auth/auth.types';
 
 export type AuditAction = $Enums.AuditAction;
 
+/**
+ * Los valores se reciben como objetos y se serializan aqui, para que ningun
+ * call site tenga que acordarse de JSON.stringify: era la forma facil de dejar
+ * un log de auditoria sin datos.
+ */
+function serialize(value: unknown): string | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  return JSON.stringify(value) ?? null;
+}
+
 export interface AuditLogOptions {
   action: AuditAction;
   entity: string;
   entityId?: string;
-  oldValue?: string;
-  newValue?: string;
+  oldValue?: unknown;
+  newValue?: unknown;
   description: string;
   ipAddress?: string;
 }
@@ -26,8 +38,8 @@ export class AuditoriaService {
         action: options.action,
         entity: options.entity,
         entityId: options.entityId,
-        oldValue: options.oldValue,
-        newValue: options.newValue,
+        oldValue: serialize(options.oldValue),
+        newValue: serialize(options.newValue),
         description: options.description,
         ipAddress: options.ipAddress
       }

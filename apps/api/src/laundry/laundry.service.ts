@@ -52,7 +52,7 @@ export class LaundryService {
       entity: 'LAVANDERIA',
       entityId: laundry.id.toString(),
       description: `Creó registro de lavandería: ${data.item} x${data.quantity} para ${data.clientName}`,
-      newValue: JSON.stringify(laundry)
+      newValue: laundry
     });
 
     return laundry;
@@ -72,8 +72,8 @@ export class LaundryService {
       entity: 'LAVANDERIA',
       entityId: id.toString(),
       description: `Actualizó registro de lavandería ID ${id}`,
-      oldValue: JSON.stringify(existing),
-      newValue: JSON.stringify(laundry)
+      oldValue: existing,
+      newValue: laundry
     });
 
     return laundry;
@@ -90,7 +90,7 @@ export class LaundryService {
       entity: 'LAVANDERIA',
       entityId: id.toString(),
       description: `Eliminó registro de lavandería ID ${id}`,
-      oldValue: JSON.stringify(existing)
+      oldValue: existing
     });
 
     return { message: 'Registro eliminado' };

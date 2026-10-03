@@ -208,7 +208,7 @@ export class StaysService {
         entity: 'CLIENTE',
         entityId: client.id.toString(),
         description: `Creó cliente: ${client.firstName} ${client.lastName} (CC: ${client.cc})`,
-        newValue: JSON.stringify(client)
+        newValue: client
       });
     }
 
@@ -217,7 +217,7 @@ export class StaysService {
       entity: 'STAY',
       entityId: stay.id.toString(),
       description: `Check-in: ${client.firstName} ${client.lastName} en habitación ${dto.roomNumber} (${dto.acType}, ${nights} noches)`,
-      newValue: JSON.stringify(stay)
+      newValue: stay
     });
 
     return stay;
@@ -291,8 +291,8 @@ export class StaysService {
       entity: 'STAY',
       entityId: stay.id.toString(),
       description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsReal} noches, total: $${Math.round(grandTotal).toLocaleString('es-CO')})`,
-      oldValue: JSON.stringify(stay),
-      newValue: JSON.stringify(updatedStay)
+      oldValue: stay,
+      newValue: updatedStay
     });
 
     return updatedStay;
@@ -376,8 +376,8 @@ export class StaysService {
         entity: 'STAY',
         entityId: id.toString(),
         description: `Actualizó hospedaje ID ${id}: ${changes.join(', ')}`,
-        oldValue: JSON.stringify(stay),
-        newValue: JSON.stringify(updatedStay)
+        oldValue: stay,
+        newValue: updatedStay
       });
     }
 
@@ -426,8 +426,8 @@ export class StaysService {
       entity: 'STAY',
       entityId: id.toString(),
       description: `Canceló hospedaje: ${stay.client.firstName} ${stay.client.lastName} en habitación ${stay.roomNumber}`,
-      oldValue: JSON.stringify(stay),
-      newValue: JSON.stringify(updatedStay)
+      oldValue: stay,
+      newValue: updatedStay
     });
 
     return updatedStay;

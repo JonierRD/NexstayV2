@@ -50,7 +50,7 @@ export class HabitacionesService {
       entity: 'HABITACION',
       entityId: room.number,
       description: `Creó la habitación ${room.number} tipo ${room.type}`,
-      newValue: JSON.stringify(room)
+      newValue: room
     });
 
     return room;
@@ -105,8 +105,8 @@ export class HabitacionesService {
         entity: 'HABITACION',
         entityId: number,
         description: `Actualizó habitación ${number}: ${changes.join(', ')}`,
-        oldValue: JSON.stringify(room),
-        newValue: JSON.stringify(updatedRoom)
+        oldValue: room,
+        newValue: updatedRoom
       });
     }
 
@@ -155,7 +155,7 @@ export class HabitacionesService {
       entity: 'HABITACION',
       entityId: number,
       description: `Eliminó la habitación ${number} tipo ${room.type}`,
-      oldValue: JSON.stringify(room)
+      oldValue: room
     });
 
     return { message: `Habitación ${number} eliminada.` };

@@ -4,7 +4,7 @@ import dobleImg from '../assets/habitaciones/doblecama.jpeg';
 
 export type RoomTypeKey = 'DOSCAMAS' | 'MATRIMONIAL' | 'SENCILLA';
 
-export const roomImages: Record<string, string> = {
+export const roomImages: Record<RoomTypeKey, string> = {
   DOSCAMAS: dobleImg,
   MATRIMONIAL: matrimonialImg,
   SENCILLA: sencillaImg
@@ -13,5 +13,7 @@ export const roomImages: Record<string, string> = {
 export const roomImageFallback = sencillaImg;
 
 export function roomImage(type?: string | null): string {
-  return (type && roomImages[type]) || roomImageFallback;
+  // La clave llega como string desde la API; si no es un tipo conocido cae al fallback.
+  const image = type ? roomImages[type as RoomTypeKey] : undefined;
+  return image || roomImageFallback;
 }

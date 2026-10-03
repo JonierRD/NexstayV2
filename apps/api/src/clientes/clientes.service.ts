@@ -107,7 +107,7 @@ export class ClientesService {
       entity: 'CLIENTE',
       entityId: client.id.toString(),
       description: `Creó cliente: ${client.firstName} ${client.lastName} (CC: ${client.cc})`,
-      newValue: JSON.stringify(client)
+      newValue: client
     });
 
     return client;
@@ -158,8 +158,8 @@ export class ClientesService {
         entity: 'CLIENTE',
         entityId: id.toString(),
         description: `Actualizó cliente ID ${id}: ${changes.join(', ')}`,
-        oldValue: JSON.stringify(existing),
-        newValue: JSON.stringify(client)
+        oldValue: existing,
+        newValue: client
       });
     }
 
@@ -207,7 +207,7 @@ export class ClientesService {
       entity: 'CLIENTE',
       entityId: id.toString(),
       description: `Eliminó cliente: ${client.firstName} ${client.lastName} (CC: ${client.cc})`,
-      oldValue: JSON.stringify(client)
+      oldValue: client
     });
 
     return { message: 'Cliente eliminado' };

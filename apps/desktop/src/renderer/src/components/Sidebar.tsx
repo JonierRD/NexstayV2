@@ -71,6 +71,35 @@ type SidebarProps = {
   user?: PublicUser | null;
 };
 
+function NavButton({
+  item,
+  active,
+  onNavigate,
+  dimmed = false
+}: {
+  item: NavItem;
+  active: ModuleKey;
+  onNavigate: (key: ModuleKey) => void;
+  dimmed?: boolean;
+}) {
+  return (
+    <button
+      onClick={() => onNavigate(item.key)}
+      className={cn(
+        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-semibold transition-colors',
+        active === item.key
+          ? 'bg-[#f3c34a]/20 text-[#f3c34a]'
+          : dimmed
+            ? 'text-white/70 hover:bg-white/10 hover:text-white'
+            : 'text-white/85 hover:bg-white/10 hover:text-white'
+      )}
+    >
+      <item.icon size={14} />
+      <span>{item.label}</span>
+    </button>
+  );
+}
+
 export function Sidebar({ active, onNavigate, onLogout, open, onToggle, user }: SidebarProps) {
   const { canAccess } = usePermissions({ user });
 
@@ -101,19 +130,7 @@ export function Sidebar({ active, onNavigate, onLogout, open, onToggle, user }: 
           Principal
         </p>
         {visibleMainModules.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => onNavigate(item.key)}
-            className={cn(
-              'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-semibold transition-colors',
-              active === item.key
-                ? 'bg-[#f3c34a]/20 text-[#f3c34a]'
-                : 'text-white/85 hover:bg-white/10 hover:text-white'
-            )}
-          >
-            <item.icon size={14} />
-            <span>{item.label}</span>
-          </button>
+          <NavButton key={item.key} item={item} active={active} onNavigate={onNavigate} />
         ))}
 
         {visibleFutureModules.length > 0 && (
@@ -122,19 +139,13 @@ export function Sidebar({ active, onNavigate, onLogout, open, onToggle, user }: 
               Más módulos
             </p>
             {visibleFutureModules.map((item) => (
-              <button
+              <NavButton
                 key={item.key}
-                onClick={() => onNavigate(item.key)}
-                className={cn(
-                  'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-semibold transition-colors',
-                  active === item.key
-                    ? 'bg-[#f3c34a]/20 text-[#f3c34a]'
-                    : 'text-white/70 hover:bg-white/10 hover:text-white'
-                )}
-              >
-                <item.icon size={14} />
-                <span>{item.label}</span>
-              </button>
+                item={item}
+                active={active}
+                onNavigate={onNavigate}
+                dimmed
+              />
             ))}
           </>
         )}
@@ -142,19 +153,7 @@ export function Sidebar({ active, onNavigate, onLogout, open, onToggle, user }: 
 
       <div className="border-t border-white/10 px-2 py-1.5 space-y-0.5">
         {visibleBottomItems.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => onNavigate(item.key)}
-            className={cn(
-              'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-semibold transition-colors',
-              active === item.key
-                ? 'bg-[#f3c34a]/20 text-[#f3c34a]'
-                : 'text-white/85 hover:bg-white/10 hover:text-white'
-            )}
-          >
-            <item.icon size={14} />
-            <span>{item.label}</span>
-          </button>
+          <NavButton key={item.key} item={item} active={active} onNavigate={onNavigate} />
         ))}
         <button
           onClick={onLogout}

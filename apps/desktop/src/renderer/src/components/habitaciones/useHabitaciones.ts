@@ -11,6 +11,7 @@ import {
   updateHabitacionRequest
 } from '../../lib/api';
 import { mapApiRoom, type Room, type RoomStatus } from './types';
+import { useConfirmDialog } from '../ui/useConfirmDialog';
 
 export type PendingRoomAction = 'create' | 'edit' | 'liberar';
 
@@ -40,11 +41,16 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
   const [imageError, setImageError] = useState('');
   const imageFileRef = useRef<HTMLInputElement>(null);
   // Modal de confirmación (liberar, eliminar imagen)
-  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
-  const [confirmTitle, setConfirmTitle] = useState('');
-  const [confirmMessage, setConfirmMessage] = useState('');
-  const [confirmLabel, setConfirmLabel] = useState('Confirmar');
-  const [confirmDanger, setConfirmDanger] = useState(false);
+  const {
+    showConfirm,
+    confirmAction,
+    confirmTitle,
+    confirmMessage,
+    confirmLabel,
+    confirmDanger,
+    confirm,
+    closeConfirm
+  } = useConfirmDialog();
 
   const isAdmin = user.role === 'ADMIN';
 
@@ -162,19 +168,19 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
     setEditingRoom(null);
     setRoomToDelete(roomNumber);
 
-    showConfirm(
-      `¿Eliminar la habitación ${roomNumber}?`,
-      'Esta acción no se puede deshacer y requiere la contraseña de un administrador.',
-      'Sí, eliminar',
-      true,
-      () => {
-        if (isAdmin) {
-          void performDelete(roomNumber, undefined);
-        } else {
-          setShowAdminAuth(true);
+showConfirm({
+        title: `¿Eliminar la habitación ${roomNumber}?`,
+        message: 'Esta acción no se puede deshacer y requiere la contraseña de un administrador.',
+        label: 'Sí, eliminar',
+        danger: true,
+onConfirm: () => {
+          if (isAdmin) {
+            void performDelete(roomNumber, undefined);
+          } else {
+            setShowAdminAuth(true);
+          }
         }
-      }
-    );
+      });
   }
 
   // Solo admin: abre el diálogo para elegir imagen (pusa 2MB)
@@ -191,13 +197,16 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
     if (!isAdmin) {
       return;
     }
-    showConfirm(
-      `¿Eliminar la imagen de la habitación ${roomNumber}?`,
-      'La habitación volverá a mostrarse con su imagen por defecto.',
-      'Sí, eliminar',
-      true,
-      () => updateHabitacionRequest(roomNumber, { image: null }).then(() => loadRooms()).catch(() => {})
-    );
+showConfirm({
+          title: `¿Eliminar la imagen de la habitación ${roomNumber}?`,
+          message: 'La habitación volverá a mostrarse con su imagen por defecto.',
+          label: 'Sí, eliminar',
+          danger: true,
+          onConfirm: () =>
+            updateHabitacionRequest(roomNumber, { image: null })
+              .then(() => loadRooms())
+              .catch(() => {})
+        });
   }
 
   // Ejecuta la acción: abre modal de crear/editar o confirma liberar
@@ -212,22 +221,14 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
         setShowRoomForm(true);
       }
     } else if (action === 'liberar' && roomNumber) {
-      showConfirm(
-        `¿Liberar habitación ${roomNumber}?`,
-        'La habitación quedará disponible para nuevos huéspedes.',
-        'Sí, liberar',
-        true,
-        () => handleLiberar(roomNumber)
-      );
+      showConfirm({
+        title: `¿Liberar habitación ${roomNumber}?`,
+        message: 'La habitación quedará disponible para nuevos huéspedes.',
+        label: 'Sí, liberar',
+        danger: true,
+        onConfirm: () => handleLiberar(roomNumber)
+      });
     }
-  }
-
-  function showConfirm(title: string, message: string, label: string, danger: boolean, onConfirm: () => void) {
-    setConfirmTitle(title);
-    setConfirmMessage(message);
-    setConfirmLabel(label);
-    setConfirmDanger(danger);
-    setConfirmAction(() => onConfirm);
   }
 
   function onAdminAuthorized(password: string) {
@@ -289,13 +290,13 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
       // Si el error es por hospedaje activo, mostrar mensaje específico
       const errorMessage = err instanceof Error ? err.message : 'Error al liberar la habitación.';
       if (errorMessage.includes('hospedaje activo')) {
-        showConfirm(
-          'No se puede liberar la habitación',
-          errorMessage,
-          'Entendido',
-          false,
-          () => {}
-        );
+showConfirm({
+        title: 'No se puede liberar la habitación',
+        message: errorMessage,
+        label: 'Entendido',
+        danger: false,
+        onConfirm: () => {}
+      });
       }
       // error handled by the request
     }
@@ -336,13 +337,6 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
     }
   }
 
-  function confirm() {
-    if (confirmAction) {
-      confirmAction();
-      setConfirmAction(null);
-    }
-  }
-
   return {
     loading,
     filteredRooms,
@@ -379,6 +373,6 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
     confirmLabel,
     confirmDanger,
     confirm,
-    closeConfirm: () => setConfirmAction(null)
+    closeConfirm
   };
 }

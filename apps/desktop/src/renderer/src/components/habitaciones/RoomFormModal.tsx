@@ -1,6 +1,6 @@
 import { Trash2, X } from 'lucide-react';
 import { useRef, useState, useEffect, type FormEvent, type ReactElement } from 'react';
-import { type CreateHabitacionInput, type Habitacion, type UpdateHabitacionInput, createHabitacionRequest, updateHabitacionRequest, habitacionesRequest } from '../../lib/api';
+import { type Habitacion, createHabitacionRequest, updateHabitacionRequest, habitacionesRequest } from '../../lib/api';
 import { Button } from '../ui/button';
 
 type RoomFormModalProps = {
@@ -12,9 +12,11 @@ type RoomFormModalProps = {
 
 type RoomStatus = 'DISPONIBLE' | 'OCUPADA' | 'RESERVADA' | 'MANTENIMIENTO';
 
+type RoomType = 'SENCILLA' | 'MATRIMONIAL' | 'DOSCAMAS';
+
 type FormData = {
   number: string;
-  type: 'SENCILLA' | 'MATRIMONIAL' | 'DOSCAMAS';
+  type: RoomType;
   status: RoomStatus;
   hasAir: boolean;
   hasFan: boolean;
@@ -24,12 +26,10 @@ type FormData = {
   notes: string;
 };
 
-export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFormModalProps): ReactElement {
-  const isEdit = !!room;
-  const canDelete = isEdit && !!onRequestDelete;
-  const [existingRooms, setExistingRooms] = useState<Habitacion[]>([]);
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
 
-  const [form, setForm] = useState<FormData>({
+function initialForm(room?: Habitacion): FormData {
+  return {
     number: room?.number ?? '',
     type: room?.type ?? 'SENCILLA',
     status: room?.status ?? 'DISPONIBLE',
@@ -39,14 +39,60 @@ export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFo
     priceWithFan: room?.priceWithFan ? String(Number(room.priceWithFan)) : '',
     image: room?.image ?? null,
     notes: room?.notes ?? ''
-  });
+  };
+}
+
+/** Referencia de precios de otra habitación del mismo tipo. */
+function findPriceReference(rooms: Habitacion[], type: RoomType): Habitacion | undefined {
+  return rooms.find((r) => r.type === type && r.priceWithAir && r.priceWithFan);
+}
+
+/** null si todo ok; en el texto a mostrar si no se puede guardar. */
+function validateRoomForm(form: FormData, isEdit: boolean): string | null {
+  if (!isEdit && !form.number.trim()) {
+    return 'El número de habitación es obligatorio.';
+  }
+  if (!/^\d{3,4}$/.test(form.number)) {
+    return 'El número de habitación debe ser de 3 a 4 dígitos numéricos.';
+  }
+
+  const warnings: string[] = [];
+  if (form.hasAir && !form.priceWithAir) {
+    warnings.push('La habitación tiene aire pero no tiene precio con aire configurado.');
+  }
+  if (form.hasFan && !form.priceWithFan) {
+    warnings.push('La habitación tiene ventilador pero no tiene precio con ventilador configurado.');
+  }
+  if (!form.hasAir && !form.hasFan && !form.priceWithAir && !form.priceWithFan) {
+    warnings.push('La habitación no tiene precios configurados.');
+  }
+
+  return warnings.length > 0 ? warnings.join(' ') : null;
+}
+
+/** Campos comunes a creación y edición. */
+function priceFields(form: FormData) {
+  return {
+    type: form.type,
+    hasAir: form.hasAir,
+    hasFan: form.hasFan,
+    priceWithAir: form.priceWithAir ? Number(form.priceWithAir) : undefined,
+    priceWithFan: form.priceWithFan ? Number(form.priceWithFan) : undefined,
+    notes: form.notes || undefined
+  };
+}
+
+export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFormModalProps): ReactElement {
+  const isEdit = !!room;
+  const canDelete = isEdit && !!onRequestDelete;
+  const [existingRooms, setExistingRooms] = useState<Habitacion[]>([]);
+
+  const [form, setForm] = useState<FormData>(() => initialForm(room));
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState(room?.image ? 'Imagen cargada' : '');
   const [originalImage, setOriginalImage] = useState(room?.image ?? null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
-
   // Cargar habitaciones existentes para obtener precios de referencia
   useEffect(() => {
     habitacionesRequest().then(setExistingRooms).catch(() => {});
@@ -55,9 +101,9 @@ export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFo
   // Establecer precios iniciales basados en el tipo cuando es creación
   useEffect(() => {
     if (!isEdit && existingRooms.length > 0) {
-      const roomWithSameType = existingRooms.find(r => r.type === form.type && r.priceWithAir && r.priceWithFan);
+      const roomWithSameType = findPriceReference(existingRooms, form.type);
       if (roomWithSameType && !form.priceWithAir && !form.priceWithFan) {
-        setForm(prev => ({
+        setForm((prev) => ({
           ...prev,
           priceWithAir: String(Number(roomWithSameType.priceWithAir)),
           priceWithFan: String(Number(roomWithSameType.priceWithFan))
@@ -72,9 +118,7 @@ export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFo
 
       // Si cambia el tipo, actualizar precios automáticamente usando habitaciones existentes
       if (field === 'type') {
-        const newType = value as 'SENCILLA' | 'MATRIMONIAL' | 'DOSCAMAS';
-        // Buscar una habitación existente del mismo tipo para usar sus precios
-        const roomWithSameType = existingRooms.find(r => r.type === newType && r.priceWithAir && r.priceWithFan);
+        const roomWithSameType = findPriceReference(existingRooms, value as RoomType);
         if (roomWithSameType) {
           newForm.priceWithAir = String(Number(roomWithSameType.priceWithAir));
           newForm.priceWithFan = String(Number(roomWithSameType.priceWithFan));
@@ -133,61 +177,27 @@ export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFo
     event.preventDefault();
     setError('');
 
-    if (!isEdit && !form.number.trim()) {
-      setError('El número de habitación es obligatorio.');
-      return;
-    }
-
-    // Validación de formato de número
-    if (!/^\d{3,4}$/.test(form.number)) {
-      setError('El número de habitación debe ser de 3 a 4 dígitos numéricos.');
-      return;
-    }
-
-    // Validación de lógica de precios (advertencias)
-    const warnings: string[] = [];
-    if (form.hasAir && !form.priceWithAir) {
-      warnings.push('La habitación tiene aire pero no tiene precio con aire configurado.');
-    }
-    if (form.hasFan && !form.priceWithFan) {
-      warnings.push('La habitación tiene ventilador pero no tiene precio con ventilador configurado.');
-    }
-    if (!form.hasAir && !form.hasFan && !form.priceWithAir && !form.priceWithFan) {
-      warnings.push('La habitación no tiene precios configurados.');
-    }
-
-    if (warnings.length > 0) {
-      setError(warnings.join(' '));
+    const validationError = validateRoomForm(form, isEdit);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     setSubmitting(true);
     try {
       if (isEdit && room) {
-        const payload: UpdateHabitacionInput = {
-          type: form.type,
+        const updated = await updateHabitacionRequest(room.number, {
+          ...priceFields(form),
           status: form.status,
-          hasAir: form.hasAir,
-          hasFan: form.hasFan,
-          priceWithAir: form.priceWithAir ? Number(form.priceWithAir) : undefined,
-          priceWithFan: form.priceWithFan ? Number(form.priceWithFan) : undefined,
-          image: form.image,
-          notes: form.notes || undefined
-        };
-        const updated = await updateHabitacionRequest(room.number, payload);
+          image: form.image
+        });
         onSave(updated);
       } else {
-        const payload: CreateHabitacionInput = {
+        const created = await createHabitacionRequest({
+          ...priceFields(form),
           number: form.number.trim(),
-          type: form.type,
-          hasAir: form.hasAir,
-          hasFan: form.hasFan,
-          priceWithAir: form.priceWithAir ? Number(form.priceWithAir) : undefined,
-          priceWithFan: form.priceWithFan ? Number(form.priceWithFan) : undefined,
-          image: form.image ?? undefined,
-          notes: form.notes || undefined
-        };
-        const created = await createHabitacionRequest(payload);
+          image: form.image ?? undefined
+        });
         onSave(created);
       }
     } catch (err) {

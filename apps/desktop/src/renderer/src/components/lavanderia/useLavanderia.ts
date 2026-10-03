@@ -6,6 +6,7 @@ import {
   updateLaundryRequest
 } from '../../lib/api';
 import { type LaundryItemType, type LaundryStatus } from './types';
+import { useConfirmDialog } from '../ui/useConfirmDialog';
 
 export function useLavanderia() {
   // Estado de la página (listado, filtros, selección, modales)
@@ -17,9 +18,14 @@ export function useLavanderia() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Laundry | null>(null);
-  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
-  const [confirmTitle, setConfirmTitle] = useState('');
-  const [confirmMessage, setConfirmMessage] = useState('');
+  const {
+    showConfirm,
+    confirmAction,
+    confirmTitle,
+    confirmMessage,
+    confirm,
+    closeConfirm
+  } = useConfirmDialog();
 
   // PROCESO: Cargar el listado de órdenes desde la API (GET /laundry)
   const loadOrders = useCallback(() => {
@@ -65,12 +71,6 @@ export function useLavanderia() {
     listos: orders.filter((o) => o.status === 'LISTO').length
   };
 
-  function showConfirm(title: string, message: string, onConfirm: () => void) {
-    setConfirmTitle(title);
-    setConfirmMessage(message);
-    setConfirmAction(() => onConfirm);
-  }
-
   // PROCESO: Avanzar el estado de la orden (PENDIENTE → EN_PROCESO → LISTO → ENTREGADO)
   function handleAdvanceStatus(order: Laundry) {
     const next: Partial<Record<LaundryStatus, LaundryStatus>> = {
@@ -93,15 +93,15 @@ export function useLavanderia() {
 
   // PROCESO: Confirmar y eliminar la orden (DELETE /laundry/:id)
   function confirmDelete(id: number) {
-    showConfirm(
-      '¿Eliminar esta orden de lavandería?',
-      'Esta acción no se puede deshacer.',
-      () => {
-        deleteLaundryRequest(id)
-          .then(() => loadOrders())
-          .catch((error) => console.error('Error deleting order:', error));
-      }
-    );
+    showConfirm({
+        title: '¿Eliminar esta orden de lavandería?',
+        message: 'Esta acción no se puede deshacer.',
+        onConfirm: () => {
+          deleteLaundryRequest(id)
+            .then(() => loadOrders())
+            .catch((error) => console.error('Error deleting order:', error));
+        }
+      });
   }
 
   function openCreateForm() {
@@ -123,13 +123,6 @@ export function useLavanderia() {
   function closeForm() {
     setShowForm(false);
     setEditingOrder(null);
-  }
-
-  function confirm() {
-    if (confirmAction) {
-      confirmAction();
-      setConfirmAction(null);
-    }
   }
 
   return {
@@ -157,6 +150,6 @@ export function useLavanderia() {
     confirmTitle,
     confirmMessage,
     confirm,
-    closeConfirm: () => setConfirmAction(null)
+    closeConfirm
   };
 }
