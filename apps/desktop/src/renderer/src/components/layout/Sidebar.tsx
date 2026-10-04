@@ -1,32 +1,10 @@
-import {
-  LayoutDashboard,
-  Users,
-  BedDouble,
-  ShoppingCart,
-  Car,
-  Droplets,
-  DollarSign,
-  CalendarDays,
-  Wind,
-  Candy,
-  FileText,
-  UserCircle,
-  Settings,
-  LogOut,
-  PanelLeftClose,
-  ConciergeBell,
-  CalendarCheck,
-  UserCheck,
-  ClipboardList,
-  Shirt,
-  Package,
-  type LucideIcon
-} from 'lucide-react';
-import Logo from '../assets/login/Logo.png';
-import { cn } from '../lib/utils';
-import type { PublicUser } from '../lib/api';
-import { usePermissions } from '../security';
-import type { ModuleKey } from '../routes/types';
+import { LogOut, PanelLeftClose, type LucideIcon } from 'lucide-react';
+import Logo from '../../assets/login/Logo.png';
+import { cn } from '../../lib/utils';
+import type { PublicUser } from '../../lib/api';
+import { usePermissions } from '../../security';
+import { moduleRoutes } from '../../routes/moduleRoutes';
+import type { ModuleKey } from '../../routes/types';
 
 type NavItem = {
   key: ModuleKey;
@@ -34,33 +12,18 @@ type NavItem = {
   icon: LucideIcon;
 };
 
-const mainModules: NavItem[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'recepcion', label: 'Recepción', icon: ConciergeBell },
-  { key: 'reservas', label: 'Reservas', icon: CalendarCheck },
-  { key: 'huespedes', label: 'Huéspedes', icon: UserCheck },
-  { key: 'habitaciones', label: 'Habitaciones', icon: BedDouble },
-  { key: 'clientes', label: 'Clientes', icon: Users },
-  { key: 'ventas', label: 'Ventas', icon: ShoppingCart },
-  { key: 'parqueadero', label: 'Parqueadero', icon: Car },
-  { key: 'lavanderia', label: 'Lavandería', icon: Shirt },
-  { key: 'inventario', label: 'Inventario', icon: Package },
-  { key: 'auditoria', label: 'Auditoría', icon: ClipboardList }
-];
+// Se derivan dinámicamente de la única fuente de verdad: moduleRoutes
+const mainModules: NavItem[] = moduleRoutes
+  .filter((r) => r.meta.section === 'main' && r.meta.icon)
+  .map((r) => ({ key: r.key, label: r.meta.title, icon: r.meta.icon! }));
 
-const futureModules: NavItem[] = [
-  { key: 'lavado', label: 'Lavado tanque', icon: Droplets },
-  { key: 'ingresos-gastos', label: 'Ingresos y Gastos', icon: DollarSign },
-  { key: 'semanario', label: 'Semanario', icon: CalendarDays },
-  { key: 'aires', label: 'Aires', icon: Wind },
-  { key: 'mecato', label: 'Mecato', icon: Candy },
-  { key: 'facturas', label: 'Facturas', icon: FileText }
-];
+const futureModules: NavItem[] = moduleRoutes
+  .filter((r) => r.meta.section === 'future' && r.meta.icon)
+  .map((r) => ({ key: r.key, label: r.meta.title, icon: r.meta.icon! }));
 
-const bottomItems: NavItem[] = [
-  { key: 'perfil', label: 'Perfil', icon: UserCircle },
-  { key: 'config', label: 'Configuración', icon: Settings }
-];
+const bottomItems: NavItem[] = moduleRoutes
+  .filter((r) => r.meta.section === 'bottom' && r.meta.icon)
+  .map((r) => ({ key: r.key, label: r.meta.title, icon: r.meta.icon! }));
 
 type SidebarProps = {
   active: ModuleKey;
