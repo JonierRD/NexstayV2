@@ -35,6 +35,7 @@ import { HuespedesPage } from '../pages/HuespedesPage';
 import { InventarioPage } from '../pages/InventarioPage';
 import { LavanderiaPage } from '../pages/LavanderiaPage';
 import { RecepcionPage } from '../pages/RecepcionPage';
+import { SemanarioPage } from '../pages/SemanarioPage';
 import { VentasPage } from '../pages/VentasPage';
 import { Role } from './roles';
 import { type AppRoute } from './types';
@@ -187,6 +188,20 @@ export const moduleRoutes: AppRoute[] = [
     component: InventarioPage
   },
 
+  {
+    key: 'semanario',
+    path: '/semanario',
+    meta: {
+      title: 'Semanario',
+      roles: staff,
+      section: 'main',
+      icon: CalendarDays,
+      assistantSummary:
+        'Semanario: horario semanal de recepción de domingo a sábado, con turnos de día (07:00-19:00) y noche (19:00-07:00), rotando entre las recepcionistas activas. El administrador define el rango y edita el horario; la recepcionista solo lo consulta.'
+    },
+    component: SemanarioPage
+  },
+
   // ── Módulos Futuros ────────────────────────────────────────────────
   {
     key: 'lavado',
@@ -210,18 +225,6 @@ export const moduleRoutes: AppRoute[] = [
       icon: DollarSign,
       assistantSummary:
         'Ingresos y gastos: seguimiento de movimientos financieros del negocio y control de egresos.'
-    },
-    component: ModulePlaceholder
-  },
-  {
-    key: 'semanario',
-    path: '/semanario',
-    meta: {
-      title: 'Semanario',
-      roles: staff,
-      section: 'future',
-      icon: CalendarDays,
-      assistantSummary: 'Semanario: análisis del desempeño semanal del hotel y servicios.'
     },
     component: ModulePlaceholder
   },

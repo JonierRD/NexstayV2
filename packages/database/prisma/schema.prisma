@@ -40,6 +40,7 @@ model User {
   startedShifts Shift[]          @relation("ShiftStart")
   endedShifts   Shift[]          @relation("ShiftEnd")
   auditLogs     AuditLog[]       @relation("AuditLogs")
+  recepcionista Recepcionista?
   @@map("users")
 }
 
@@ -293,4 +294,67 @@ model Laundry {
   updatedAt   DateTime      @updatedAt @map("actualizado_en")
 
   @@map("lavanderia")
+}
+
+// [Semanario] Turnos de recepcion. Son solo dos y sus horas son fijas
+// (DIA 07:00-19:00, NOCHE 19:00-07:00), asi que viven en el enum y no en una tabla.
+enum TurnoLabor {
+  DIA
+  NOCHE
+}
+
+// [Semanario] Roster editable. Se lleva dentro del modulo y no en `users`
+// porque una recepcionista puede estar en la rotacion sin tener acceso al sistema;
+// `userId` permite enlazarla despues si se le crea la cuenta.
+model Recepcionista {
+  id        Int      @id @default(autoincrement())
+  userId    String?  @unique @map("usuario_id")
+  nombre    String   @map("nombre")
+  orden     Int      @default(0) @map("orden")
+  activo    Boolean  @default(true) @map("activo")
+  notas     String?  @map("notas")
+  createdAt DateTime @default(now()) @map("creado_en")
+  updatedAt DateTime @updatedAt @map("actualizado_en")
+
+  user         User?        @relation(fields: [userId], references: [id])
+  asignaciones Asignacion[]
+  @@map("recepcionistas")
+}
+
+// [Semanario] Una semana domingo a sabado. `fechaInicio` siempre es domingo y
+// es unica, de modo que nunca se puedan crear semanas de 6 u 8 dias.
+model Semana {
+  id           Int      @id @default(autoincrement())
+  fechaInicio  DateTime @unique @map("fecha_inicio") @db.Date
+  anio         Int      @map("anio")
+  numeroSemana Int      @map("numero_semana")
+  notas        String?  @map("notas")
+  createdAt    DateTime @default(now()) @map("creado_en")
+  updatedAt    DateTime @updatedAt @map("actualizado_en")
+
+  asignaciones Asignacion[]
+  @@map("semanas")
+}
+
+// [Semanario] Una persona en un turno de un dia concreto. El indice unico
+// garantiza que no haya dos personas en el mismo turno del mismo dia.
+// `destacado` y `nota` son por celda, no por semana: corresponden a una sola
+// asignacion (un cambio, una incapacidad, una nota del administrador).
+model Asignacion {
+  id              Int        @id @default(autoincrement())
+  semanaId        Int        @map("semana_id")
+  fecha           DateTime   @map("fecha") @db.Date
+  turno           TurnoLabor @map("turno")
+  recepcionistaId Int        @map("recepcionista_id")
+  destacado       Boolean    @default(false) @map("destacado")
+  nota            String?    @map("nota")
+  createdAt       DateTime   @default(now()) @map("creado_en")
+  updatedAt       DateTime   @updatedAt @map("actualizado_en")
+
+  semana        Semana        @relation(fields: [semanaId], references: [id], onDelete: Cascade)
+  recepcionista Recepcionista @relation(fields: [recepcionistaId], references: [id])
+
+  @@unique([semanaId, fecha, turno])
+  @@index([fecha])
+  @@map("asignaciones_semanario")
 }
