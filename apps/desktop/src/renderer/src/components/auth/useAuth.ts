@@ -2,45 +2,16 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import {
   ApiError,
   authEvents,
-  firstRunRequest,
   forgotPasswordRequest,
-  getStoredToken,
   loginRequest,
-  meRequest,
   registerRequest,
   resetPasswordRequest,
-  setStoredToken,
-  type FirstRunInfo,
-  type PublicUser
+  setStoredToken
 } from '../../lib/api';
+import { useSessionRestore } from './useSessionRestore';
+import { type AuthMode, type LoginRole, type LoginStatus } from './types';
 
-export type AuthMode = 'login' | 'register' | 'forgot-password' | 'reset-password';
-
-export type LoginStatus = {
-  kind: 'success' | 'error';
-  message: string;
-};
-
-export type LoginRole = 'ADMIN' | 'RECEPTION' | '';
-
-// Arranque en desarrollo: NestJS tarda en compilar, así que la API puede
-// no responder todavía. Se reintenta con pausas en lugar de fallar de una.
-const RESTORE_MAX_ATTEMPTS = 5;
-const RESTORE_RETRY_DELAY_MS = 2000;
-
-function isUnauthorized(error: unknown): boolean {
-  return error instanceof ApiError && error.status === 401;
-}
-
-// fetch lanza TypeError cuando no hay servidor escuchando; los errores con
-// status son respuestas reales del backend y no se deben reintentar.
-function isRetryable(error: unknown): boolean {
-  return !(error instanceof ApiError);
-}
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+export type { AuthMode, LoginRole, LoginStatus };
 
 export function useAuth() {
   const [mode, setMode] = useState<AuthMode>('login');
@@ -63,10 +34,13 @@ export function useAuth() {
   const [resetConfirmPassword, setResetConfirmPassword] = useState('');
   const [status, setStatus] = useState<LoginStatus | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRestoringSession, setIsRestoringSession] = useState(true);
-  const [loggedUser, setLoggedUser] = useState<PublicUser | null>(null);
-  const [firstRun, setFirstRun] = useState<FirstRunInfo | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { loggedUser, setUser: setLoggedUser, firstRun, isRestoringSession, restoreError, clearFirstRun } =
+    useSessionRestore();
+
+  // useSessionRestore no toca `status` (no lo necesita); este estado especial muestra
+  // sus mensajes y se limpia al primer cambio de pantalla.
+  const visibleStatus = status ?? restoreError;
 
   const handleLogout = useCallback((message?: string): void => {
     setIsLoggingOut(true);
@@ -117,86 +91,7 @@ export function useAuth() {
     };
   }, [handleLogout]);
 
-  // 1) Al arrancar: si hay token guardado, validarlo contra la API.
-  //    Además consulta si es el primer arranque (credenciales semilla).
-  //    En desarrollo NestJS tarda en compilar, así que un fallo de conexión
-  //    no invalida el token: se reintenta hasta RESTORE_MAX_ATTEMPTS veces.
-  useEffect(() => {
-    let cancelled = false;
-
-    async function restoreSession(): Promise<void> {
-      for (let attempt = 1; attempt <= RESTORE_MAX_ATTEMPTS; attempt += 1) {
-        if (cancelled) {
-          return;
-        }
-
-        try {
-          const [token, firstRunInfo] = await Promise.all([
-            Promise.resolve(getStoredToken()),
-            firstRunRequest()
-          ]);
-
-          if (cancelled) {
-            return;
-          }
-
-          if (firstRunInfo.pending) {
-            setFirstRun(firstRunInfo);
-            setIsRestoringSession(false);
-            return;
-          }
-
-          if (!token) {
-            setIsRestoringSession(false);
-            return;
-          }
-
-          const user = await meRequest();
-          if (cancelled) {
-            return;
-          }
-          setLoggedUser(user);
-          setIsRestoringSession(false);
-          return;
-        } catch (error) {
-          if (cancelled) {
-            return;
-          }
-
-          // El servidor respondió y el token no sirve: se cierra la sesión.
-          if (isUnauthorized(error)) {
-            setStoredToken(null);
-            setStatus({
-              kind: 'error',
-              message: 'Tu sesión anterior expiró. Inicia sesión nuevamente.'
-            });
-            setIsRestoringSession(false);
-            return;
-          }
-
-          // La API todavía no está escuchando: reintentar sin tocar el token.
-          if (isRetryable(error) && attempt < RESTORE_MAX_ATTEMPTS) {
-            await wait(RESTORE_RETRY_DELAY_MS);
-            continue;
-          }
-
-          setStatus({
-            kind: 'error',
-            message:
-              'No se pudo conectar con la API. Verifica que el backend esté ejecutándose.'
-          });
-          setIsRestoringSession(false);
-          return;
-        }
-      }
-    }
-
-    void restoreSession();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // 1) La restauración de sesión vive en useSessionRestore (con sus reintentos).
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
@@ -335,7 +230,7 @@ export function useAuth() {
     setLoginIdentifier(cc);
     setLoginPassword('');
     setLoginRole('ADMIN');
-    setFirstRun(null);
+    clearFirstRun();
   }
 
   return {
@@ -383,7 +278,7 @@ export function useAuth() {
       confirmPassword: resetConfirmPassword,
       setConfirmPassword: setResetConfirmPassword
     },
-    status,
+    status: visibleStatus,
     isSubmitting,
     isRestoringSession,
     isLoggingOut,

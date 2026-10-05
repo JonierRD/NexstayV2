@@ -5,146 +5,41 @@ import {
   Building2,
   CalendarDays,
   CheckCircle2,
-  Clock,
   DollarSign,
-  Package,
   RefreshCw,
   Shirt,
   UserCheck,
   Users,
   Wallet
 } from 'lucide-react';
-import { type ReactElement, useCallback, useEffect, useState } from 'react';
+import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { type Habitacion, habitacionesRequest } from '../lib/api/habitaciones';
-import { type StockItem, type StaySale, inventoryRequest, salesRequest } from '../lib/api/inventory';
-import { type Laundry, laundryRequest } from '../lib/api/laundry';
-import { type Stay, staysActiveRequest } from '../lib/api/stays';
-import { formatCOP, formatDateTime, formatDateShort } from '../lib/format';
-import { Button } from '../components/ui/button';
+import { formatCOP, formatDateTime } from '../lib/format';
+import { Button } from '../components/ui/Button';
+import { useDashboard } from '../components/dashboard/useDashboard';
+import { getLaundryBadge } from '../components/dashboard/metrics';
 
 type Props = {
   user: PublicUser;
 };
 
 export function DashboardPage({ user }: Props): ReactElement {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [rooms, setRooms] = useState<Habitacion[]>([]);
-  const [activeStays, setActiveStays] = useState<Stay[]>([]);
-  const [inventory, setInventory] = useState<StockItem[]>([]);
-  const [laundryOrders, setLaundryOrders] = useState<Laundry[]>([]);
-  const [sales, setSales] = useState<StaySale[]>([]);
-
-  const isAdmin = user?.role === 'ADMIN';
-
-  const isToday = (dateString?: string | Date | null): boolean => {
-    if (!dateString) return false;
-    const d = new Date(dateString);
-    const now = new Date();
-    return (
-      d.getFullYear() === now.getFullYear() &&
-      d.getMonth() === now.getMonth() &&
-      d.getDate() === now.getDate()
-    );
-  };
-
-  const loadDashboardData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [roomsData, staysData, invData, laundryData] = await Promise.all([
-        habitacionesRequest().catch(() => [] as Habitacion[]),
-        staysActiveRequest().catch(() => [] as Stay[]),
-        inventoryRequest().catch(() => [] as StockItem[]),
-        laundryRequest().catch(() => [] as Laundry[])
-      ]);
-
-      setRooms(roomsData);
-      setActiveStays(staysData);
-      setInventory(invData);
-      setLaundryOrders(laundryData);
-
-      if (isAdmin) {
-        try {
-          const salesData = await salesRequest();
-          setSales(salesData);
-        } catch {
-          setSales([]);
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar los datos del dashboard');
-    } finally {
-      setLoading(false);
-    }
-  }, [isAdmin]);
-
-  useEffect(() => {
-    void loadDashboardData();
-  }, [loadDashboardData]);
-
-  // Cálculos de métricas
-  const totalRooms = rooms.length;
-  const occupiedRooms = rooms.filter((r) => r.status === 'OCUPADA').length;
-  const availableRooms = rooms.filter((r) => r.status === 'DISPONIBLE').length;
-  const maintenanceRooms = rooms.filter(
-    (r) => r.status === 'MANTENIMIENTO' || r.status === 'RESERVADA'
-  ).length;
-
-  const occupancyRate = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
-  const guestsCount = activeStays.length;
-
-  const todayCheckIns = activeStays.filter((stay) => isToday(stay.checkIn)).length;
-
-  // Cálculos financieros (solo para ADMIN)
-  const todaySalesRevenue = sales
-    .filter((s) => isToday(s.date) && s.saleType === 'CONTADO')
-    .reduce((sum, s) => sum + (Number(s.unitPrice) || 0) * s.quantity, 0);
-
-  const pendingReceivable = activeStays.reduce((sum, stay) => {
-    const roomCost = Number(stay.total) || 0;
-    const fiadoSales = (stay.sales || [])
-      .filter((s) => s.saleType === 'FIADO' || !s.saleType)
-      .reduce((sSum, s) => sSum + (Number(s.unitPrice) || 0) * s.quantity, 0);
-    const laundryCost = (stay.laundry || []).reduce(
-      (lSum, l) => lSum + (Number(l.totalPrice) || 0),
-      0
-    );
-    return sum + roomCost + fiadoSales + laundryCost;
-  }, 0);
-
-  // Alertas
-  const lowStockItems = inventory.filter((item) => item.quantity <= item.minStock);
-  const activeLaundry = laundryOrders.filter((l) =>
-    ['PENDIENTE', 'EN_PROCESO', 'LISTO'].includes(l.status)
-  );
-
-  // Últimos huéspedes registrados (ordenados por checkIn descendente)
-  const recentGuests = [...activeStays]
-    .sort((a, b) => new Date(b.checkIn).getTime() - new Date(a.checkIn).getTime())
-    .slice(0, 5);
-
-  const getLaundryBadge = (status: string) => {
-    switch (status) {
-      case 'LISTO':
-        return {
-          bg: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-          label: 'Listo para entrega'
-        };
-      case 'EN_PROCESO':
-        return {
-          bg: 'bg-sky-50 text-sky-800 border-sky-200',
-          label: 'En lavado'
-        };
-      default:
-        return {
-          bg: 'bg-amber-50 text-amber-800 border-amber-200',
-          label: 'Pendiente'
-        };
-    }
-  };
+  const {
+    isAdmin,
+    loading,
+    error,
+    reload,
+    activeStays,
+    roomMetrics,
+    guestsCount,
+    todayCheckIns,
+    todaySalesRevenue,
+    pendingReceivable,
+    lowStockItems,
+    activeLaundry,
+    recentGuests
+  } = useDashboard(user);
+  const { occupiedRooms, availableRooms, maintenanceRooms, occupancyRate } = roomMetrics;
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
@@ -163,7 +58,7 @@ export function DashboardPage({ user }: Props): ReactElement {
         </div>
 
         <Button
-          onClick={() => void loadDashboardData()}
+          onClick={() => void reload()}
           disabled={loading}
           className="h-8 self-start sm:self-auto rounded-xl border border-sapay-450 bg-white px-3 text-[11px] font-semibold text-sapay-900 transition hover:bg-sapay-100"
         >

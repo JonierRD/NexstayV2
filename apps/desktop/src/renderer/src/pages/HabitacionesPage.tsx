@@ -7,10 +7,10 @@ import { RoomFormModal } from '../components/habitaciones/RoomFormModal';
 import { RoomDetailCard } from '../components/habitaciones/RoomDetailCard';
 import { RoomsTable } from '../components/habitaciones/RoomsTable';
 import { useHabitaciones } from '../components/habitaciones/useHabitaciones';
-import { AccentButton } from '../components/ui/accent-button';
-import { FilterSelect } from '../components/ui/filter-select';
-import { SearchInput } from '../components/ui/search-input';
-import { StatCard } from '../components/ui/stat-card';
+import { AccentButton } from '../components/ui/AccentButton';
+import { FilterSelect } from '../components/ui/FilterSelect';
+import { SearchInput } from '../components/ui/SearchInput';
+import { StatCard } from '../components/ui/StatCard';
 
 const statsConfig = [
   { key: 'total', icon: BedDouble, title: 'Total Habitaciones', detail: 'Habitaciones registradas', tone: 'from-[#f0dfc9] to-[#f7efe4]' },
@@ -118,7 +118,8 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
       {h.showRoomForm && (
         <RoomFormModal
           room={h.editingRoom ?? undefined}
-          onSave={h.onSaveRoom}
+          existingRooms={h.apiRooms}
+          onSubmit={h.submitRoom}
           onRequestDelete={h.requestDeleteRoom}
           onClose={h.closeRoomForm}
         />

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   type PublicUser,
   type Habitacion,
@@ -274,7 +274,7 @@ export function useReception(_user?: PublicUser) {
   };
 
   // Solo las disponibles se muestran/exigen para ocupar
-  const availableRooms = rooms.filter(r => r.status === 'DISPONIBLE');
+  const availableRooms = useMemo(() => rooms.filter(r => r.status === 'DISPONIBLE'), [rooms]);
 
   return {
     step,

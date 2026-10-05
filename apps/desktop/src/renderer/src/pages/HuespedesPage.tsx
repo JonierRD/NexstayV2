@@ -4,7 +4,7 @@ import { type PublicUser } from '../lib/api';
 import { CheckoutModal } from '../components/huespedes/CheckoutModal';
 import { GuestCard } from '../components/huespedes/GuestCard';
 import { useHuespedes } from '../components/huespedes/useHuespedes';
-import { Button } from '../components/ui/button';
+import { Button } from '../components/ui/Button';
 
 type Props = { user: PublicUser };
 

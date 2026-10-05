@@ -6,8 +6,8 @@ import { ClientFormModal } from '../components/clientes/ClientFormModal';
 import { ClientHistoryModal } from '../components/clientes/ClientHistoryModal';
 import { ClientsTable } from '../components/clientes/ClientsTable';
 import { useClientes } from '../components/clientes/useClientes';
-import { Button } from '../components/ui/button';
-import { SearchInput } from '../components/ui/search-input';
+import { Button } from '../components/ui/Button';
+import { SearchInput } from '../components/ui/SearchInput';
 
 type Props = { user: PublicUser };
 

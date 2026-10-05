@@ -9,7 +9,7 @@ import {
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { cn } from '../lib/utils';
-import { Button } from '../components/ui/button';
+import { Button } from '../components/ui/Button';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { InventoryFilters } from '../components/inventario/InventoryFilters';

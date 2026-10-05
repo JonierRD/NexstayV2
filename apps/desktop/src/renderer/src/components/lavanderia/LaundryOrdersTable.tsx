@@ -2,8 +2,8 @@ import { Eye, Trash2 } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type Laundry } from '../../lib/api';
 import { cn } from '../../lib/utils';
-import { IconButton } from '../ui/icon-button';
-import { StatusPill } from '../ui/status-pill';
+import { IconButton } from '../ui/IconButton';
+import { StatusPill } from '../ui/StatusPill';
 import {
     type LaundryItemType,
     type LaundryStatus,

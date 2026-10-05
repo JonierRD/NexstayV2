@@ -2,7 +2,7 @@ import { BedDouble, Clock3, DollarSign, LogOut, Moon, UserRound } from 'lucide-r
 import { type ReactElement } from 'react';
 import { type Stay } from '../../lib/api';
 import { formatCOP, formatDateTime } from '../../lib/format';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 import { elapsed } from './types';
 
 type Props = {

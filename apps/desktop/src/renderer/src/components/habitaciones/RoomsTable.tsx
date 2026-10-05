@@ -1,8 +1,8 @@
 import { Eye, PencilLine } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { cn } from '../../lib/utils';
-import { IconButton } from '../ui/icon-button';
-import { StatusPill } from '../ui/status-pill';
+import { IconButton } from '../ui/IconButton';
+import { StatusPill } from '../ui/StatusPill';
 import { statusStyles, type Room } from './types';
 
 export function RoomsTable({

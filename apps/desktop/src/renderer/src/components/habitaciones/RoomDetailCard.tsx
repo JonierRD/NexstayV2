@@ -2,8 +2,8 @@ import { PencilLine, Wrench } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { cn } from '../../lib/utils';
 import { formatCOP } from '../../lib/format';
-import { AccentButton } from '../ui/accent-button';
-import { DetailLine } from '../ui/detail-line';
+import { AccentButton } from '../ui/AccentButton';
+import { DetailLine } from '../ui/DetailLine';
 import { usePermissions } from '../../security';
 import { AC_LABEL, type Room } from './types';
 

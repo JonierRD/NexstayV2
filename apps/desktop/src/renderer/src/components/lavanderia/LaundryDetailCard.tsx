@@ -1,9 +1,9 @@
 import { CheckCircle, PencilLine, Trash2 } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type Laundry } from '../../lib/api';
-import { AccentButton } from '../ui/accent-button';
-import { DetailLine } from '../ui/detail-line';
-import { StatusPill } from '../ui/status-pill';
+import { AccentButton } from '../ui/AccentButton';
+import { DetailLine } from '../ui/DetailLine';
+import { StatusPill } from '../ui/StatusPill';
 import {
     type LaundryItemType,
     type LaundryStatus,

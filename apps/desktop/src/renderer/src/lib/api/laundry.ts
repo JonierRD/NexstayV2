@@ -20,6 +20,20 @@ export async function laundryRequest(): Promise<Laundry[]> {
   return apiRequest<Laundry[]>('/laundry', { method: 'GET' });
 }
 
+export type LaundryPayload = {
+  item: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  clientName: string;
+  deliveryDate?: string;
+  roomNumber?: string;
+  notes?: string;
+  /** Solo en actualización; al crear la orden arranca en PENDIENTE. */
+  status?: string;
+};
+
 export async function createLaundryRequest(data: {
   item: string;
   description: string;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, MessageCircle, Send, Sparkles, X, RotateCcw } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 import { askOpenRouter, buildPageContext, type ChatMessage } from '../../lib/openrouter';
 import type { PublicUser } from '../../lib/api';
 

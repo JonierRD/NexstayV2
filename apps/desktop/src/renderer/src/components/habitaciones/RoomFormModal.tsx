@@ -1,13 +1,22 @@
 import { Trash2 } from 'lucide-react';
 import { useRef, useState, useEffect, type FormEvent, type ReactElement } from 'react';
-import { type Habitacion, createHabitacionRequest, updateHabitacionRequest, habitacionesRequest } from '../../lib/api';
-import { Button } from '../ui/button';
+import { type Habitacion } from '../../lib/api';
+import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { type RoomStatus, type RoomType } from './types';
 
+type RoomPayload = ReturnType<typeof priceFields>;
+
 type RoomFormModalProps = {
   room?: Habitacion;
-  onSave: (room: Habitacion) => void;
+  /** Habitaciones ya cargadas, para tomar precios de referencia del mismo tipo. */
+  existingRooms: Habitacion[];
+  /** Ejecuta create/update. Lanza si la API falla. */
+  onSubmit: (payload: RoomPayload & {
+    number?: string;
+    status?: RoomStatus;
+    image?: string | null;
+  }) => Promise<void>;
   onRequestDelete?: (number: string) => void;
   onClose: () => void;
 };
@@ -80,10 +89,9 @@ function priceFields(form: FormData) {
   };
 }
 
-export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFormModalProps): ReactElement {
+export function RoomFormModal({ room, existingRooms, onSubmit, onRequestDelete, onClose }: RoomFormModalProps): ReactElement {
   const isEdit = !!room;
   const canDelete = isEdit && !!onRequestDelete;
-  const [existingRooms, setExistingRooms] = useState<Habitacion[]>([]);
 
   const [form, setForm] = useState<FormData>(() => initialForm(room));
   const [error, setError] = useState('');
@@ -91,10 +99,6 @@ export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFo
   const [selectedFileName, setSelectedFileName] = useState(room?.image ? 'Imagen cargada' : '');
   const [originalImage, setOriginalImage] = useState(room?.image ?? null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  // Cargar habitaciones existentes para obtener precios de referencia
-  useEffect(() => {
-    habitacionesRequest().then(setExistingRooms).catch(() => {});
-  }, []);
 
   // Establecer precios iniciales basados en el tipo cuando es creación
   useEffect(() => {
@@ -184,19 +188,17 @@ export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFo
     setSubmitting(true);
     try {
       if (isEdit && room) {
-        const updated = await updateHabitacionRequest(room.number, {
+        await onSubmit({
           ...priceFields(form),
           status: form.status,
           image: form.image
         });
-        onSave(updated);
       } else {
-        const created = await createHabitacionRequest({
+        await onSubmit({
           ...priceFields(form),
           number: form.number.trim(),
           image: form.image ?? undefined
         });
-        onSave(created);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al guardar la habitación.');

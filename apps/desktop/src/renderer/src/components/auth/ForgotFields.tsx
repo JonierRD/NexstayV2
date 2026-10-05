@@ -1,5 +1,5 @@
 import { ArrowRight, Shield } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 
 export function ForgotFields({
   email,

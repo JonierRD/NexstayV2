@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type Laundry,
+  type LaundryPayload,
+  createLaundryRequest,
   deleteLaundryRequest,
   laundryRequest,
   updateLaundryRequest
@@ -28,48 +30,60 @@ export function useLavanderia() {
   } = useConfirmDialog();
 
   // PROCESO: Cargar el listado de órdenes desde la API (GET /laundry)
+  // `selectedIdRef` evita depender del estado: si no, cada cambio de selección
+  // disparaba otra carga y el efecto inicial necesitaba el eslint-disable.
+  const selectedIdRef = useRef<number | null>(selectedId);
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
+
   const loadOrders = useCallback(() => {
     setLoading(true);
     laundryRequest()
       .then((data) => {
         setOrders(data);
-        if (data.length > 0 && !data.find((o) => o.id === selectedId)) {
+        const current = selectedIdRef.current;
+        if (data.length > 0 && !data.find((o) => o.id === current)) {
           setSelectedId(data[0].id);
         }
       })
       .catch((error) => console.error('Error loading laundry orders:', error))
       .finally(() => setLoading(false));
-  }, [selectedId]);
+  }, []);
 
   useEffect(() => {
     loadOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadOrders]);
 
   // PROCESO: Búsqueda y filtros por estado y prenda
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
-    const matchesSearch =
-      !normalizedSearch ||
-      order.clientName.toLowerCase().includes(normalizedSearch) ||
-      order.description.toLowerCase().includes(normalizedSearch) ||
-      (order.roomNumber ?? '').toLowerCase().includes(normalizedSearch);
+    return orders.filter((order) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        order.clientName.toLowerCase().includes(normalizedSearch) ||
+        order.description.toLowerCase().includes(normalizedSearch) ||
+        (order.roomNumber ?? '').toLowerCase().includes(normalizedSearch);
 
-    const matchesStatus = statusFilter === 'TODOS' || order.status === statusFilter;
-    const matchesItem = itemFilter === 'TODOS' || order.item === itemFilter;
+      const matchesStatus = statusFilter === 'TODOS' || order.status === statusFilter;
+      const matchesItem = itemFilter === 'TODOS' || order.item === itemFilter;
 
-    return matchesSearch && matchesStatus && matchesItem;
-  });
+      return matchesSearch && matchesStatus && matchesItem;
+    });
+  }, [orders, search, statusFilter, itemFilter]);
 
   const selectedOrder = filteredOrders.find((o) => o.id === selectedId) ?? filteredOrders[0];
 
   // PROCESO: Cálculo de estadísticas (totales por estado)
-  const stats = {
-    total: orders.length,
-    pendientes: orders.filter((o) => o.status === 'PENDIENTE').length,
-    enProceso: orders.filter((o) => o.status === 'EN_PROCESO').length,
-    listos: orders.filter((o) => o.status === 'LISTO').length
-  };
+  const stats = useMemo(
+    () => ({
+      total: orders.length,
+      pendientes: orders.filter((o) => o.status === 'PENDIENTE').length,
+      enProceso: orders.filter((o) => o.status === 'EN_PROCESO').length,
+      listos: orders.filter((o) => o.status === 'LISTO').length
+    }),
+    [orders]
+  );
 
   // PROCESO: Avanzar el estado de la orden (PENDIENTE → EN_PROCESO → LISTO → ENTREGADO)
   function handleAdvanceStatus(order: Laundry) {
@@ -114,6 +128,16 @@ export function useLavanderia() {
     setShowForm(true);
   }
 
+  // PROCESO: Crear o actualizar la orden. La ejecuta el modal, no él mismo.
+  async function submitOrder(payload: LaundryPayload): Promise<void> {
+    if (editingOrder) {
+      await updateLaundryRequest(editingOrder.id, payload);
+    } else {
+      await createLaundryRequest(payload);
+    }
+    onFormSaved();
+  }
+
   function onFormSaved() {
     setShowForm(false);
     setEditingOrder(null);
@@ -142,7 +166,7 @@ export function useLavanderia() {
     editingOrder,
     openCreateForm,
     openEditForm,
-    onFormSaved,
+    submitOrder,
     closeForm,
     requestDelete,
     handleAdvanceStatus,
