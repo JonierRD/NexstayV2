@@ -1,7 +1,7 @@
 import { RefreshCw } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { ConsumptionModal } from '../components/huespedes/ConsumptionModal';
+import { CheckoutModal } from '../components/huespedes/CheckoutModal';
 import { GuestCard } from '../components/huespedes/GuestCard';
 import { useHuespedes } from '../components/huespedes/useHuespedes';
 import { Button } from '../components/ui/button';
@@ -46,24 +46,18 @@ export function HuespedesPage({ user }: Props): ReactElement {
             <GuestCard
               key={stay.id}
               stay={stay}
-              onConsumption={g.setConsumptionStay}
-              onCheckout={g.handleCheckout}
+              onCheckout={g.handleCheckoutClick}
             />
           ))}
         </div>
       )}
 
-      {g.consumptionStay && (
-        <ConsumptionModal
-          stay={g.consumptionStay}
-          storeItems={g.storeItems}
-          selectedStock={g.selectedStock}
-          setSelectedStock={g.setSelectedStock}
-          quantity={g.quantity}
-          setQuantity={g.setQuantity}
-          savingSale={g.savingSale}
-          onSubmit={g.saveConsumption}
-          onClose={() => g.setConsumptionStay(null)}
+      {g.checkoutStay && (
+        <CheckoutModal
+          stay={g.checkoutStay}
+          onClose={() => g.setCheckoutStay(null)}
+          onConfirm={(nights) => void g.confirmCheckout(nights)}
+          isProcessing={g.isCheckingOut}
         />
       )}
     </div>

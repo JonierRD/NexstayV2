@@ -81,9 +81,18 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
             room.checkOut = activeStay.checkOut;
             room.selectedAc = activeStay.acTypeUsed;
             room.stayId = activeStay.id;
-            // Deuda de tienda: consumos registrados a nombre de este hospedaje.
-            room.storeDebt = (activeStay.sales ?? []).reduce(
+            // Deuda de tienda: solo consumos pendientes cargados a la habitación (FIADO).
+            const pendingSales = (activeStay.sales ?? []).filter(
+              (sale) => sale.saleType === 'FIADO' || !sale.saleType
+            );
+            room.storeDebt = pendingSales.reduce(
               (sum, sale) => sum + Number(sale.unitPrice) * sale.quantity,
+              0
+            );
+            // Lavandería asociada al hospedaje
+            const laundryItems = activeStay.laundry ?? [];
+            room.laundryDebt = laundryItems.reduce(
+              (sum, item) => sum + Number(item.totalPrice),
               0
             );
           }

@@ -168,7 +168,7 @@ export class InventoryService {
             date: new Date(),
             quantity: item.quantity,
             unitPrice: stock.product.price,
-            saleType: stayId ? 'FIADO' : 'CONTADO',
+            saleType: (data.saleType as any) ?? (stayId ? 'FIADO' : 'CONTADO'),
             customerName
           },
           include: {

@@ -29,6 +29,7 @@ import {
 import { AuthScreen } from '../components/auth/AuthScreen';
 import { AuditoriaPage } from '../pages/AuditoriaPage';
 import { ClientesPage } from '../pages/ClientesPage';
+import { DashboardPage } from '../pages/DashboardPage';
 import { HabitacionesPage } from '../pages/HabitacionesPage';
 import { HuespedesPage } from '../pages/HuespedesPage';
 import { InventarioPage } from '../pages/InventarioPage';
@@ -66,7 +67,7 @@ export const moduleRoutes: AppRoute[] = [
       assistantSummary:
         'Dashboard general del hotel con métricas de ocupación, ingresos estimados, stock bajo y accesos rápidos a check-in, habitaciones, ventas y atención al cliente.'
     },
-    component: ModulePlaceholder
+    component: DashboardPage
   },
   {
     key: 'recepcion',

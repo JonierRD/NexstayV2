@@ -30,6 +30,7 @@ export type Room = {
   priceWithAir: number;
   priceWithFan: number;
   storeDebt: number;
+  laundryDebt?: number;
   heroTone: string;     // gradientes visuales
   accentTone: string;
   stayId?: number; // ID del hospedaje actual para editar

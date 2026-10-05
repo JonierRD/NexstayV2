@@ -1,6 +1,7 @@
 import { apiRequest } from './client';
 import { type Cliente } from './clientes';
 import { type Habitacion } from './habitaciones';
+import { type Laundry } from './laundry';
 
 // Stays (Hospedajes)
 export type StaySaleLine = {
@@ -29,6 +30,7 @@ export type Stay = {
   client?: Cliente;
   room?: Habitacion;
   sales?: StaySaleLine[];
+  laundry?: Laundry[];
 };
 
 export type CheckinInput = {
@@ -58,6 +60,9 @@ export async function checkinRequest(input: CheckinInput): Promise<Stay> {
   return apiRequest<Stay>('/stays/checkin', { method: 'POST', body: input });
 }
 
-export async function checkoutRequest(id: number): Promise<Stay> {
-  return apiRequest<Stay>(`/stays/${id}/checkout`, { method: 'POST' });
+export async function checkoutRequest(id: number, nights?: number): Promise<Stay> {
+  return apiRequest<Stay>(`/stays/${id}/checkout`, {
+    method: 'POST',
+    body: nights ? { nights } : undefined
+  });
 }

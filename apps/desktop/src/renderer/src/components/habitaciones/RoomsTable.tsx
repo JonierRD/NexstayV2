@@ -17,7 +17,7 @@ export function RoomsTable({
   onEdit: (number: string) => void;
 }): ReactElement {
   return (
-    <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-[#ebe1d8]">
+    <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-x-auto rounded-[18px] border border-[#ebe1d8]">
       <div className="grid grid-cols-[100px_60px_1fr_120px_1fr_100px] gap-2 border-b border-[#ece2d8] bg-[#fbf7f2] px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#8f7c70] min-w-[600px]">
         <div>Habitación</div>
         <div />
