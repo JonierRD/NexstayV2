@@ -36,9 +36,9 @@ export function useInventario() {
       setError(null);
       const data = await inventoryRequest();
       setItems(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching inventory:', err);
-      setError(err?.message || 'Error al cargar los artículos de inventario.');
+      setError(err instanceof Error ? err.message : 'Error al cargar los artículos de inventario.');
     } finally {
       setLoading(false);
     }
@@ -207,9 +207,9 @@ export function useInventario() {
 
       setIsModalOpen(false);
       await fetchInventory();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving product:', err);
-      setError(err?.message || 'Error al guardar el producto.');
+      setError(err instanceof Error ? err.message : 'Error al guardar el producto.');
     } finally {
       setActionLoading(null);
     }
@@ -236,7 +236,7 @@ export function useInventario() {
       );
 
       await adjustInventoryQuantityRequest(item.id, quantity, operation);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error adjusting inventory:', err);
       setError('Error al ajustar la cantidad en inventario.');
       await fetchInventory(); // Revertir en caso de error
@@ -257,9 +257,9 @@ export function useInventario() {
       setSuccessMsg(`El producto "${itemToDelete.product.name}" ha sido eliminado.`);
       setItemToDelete(null);
       await fetchInventory();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting product:', err);
-      setError(err?.message || 'Error al eliminar el producto de inventario.');
+      setError(err instanceof Error ? err.message : 'Error al eliminar el producto de inventario.');
     } finally {
       setActionLoading(null);
     }

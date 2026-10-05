@@ -104,6 +104,7 @@ export type BatchSaleInput = {
   items: SaleItemInput[];
   stayId?: number | null;
   customerName?: string | null;
+  saleType?: 'CONTADO' | 'FIADO';
 };
 
 export type StaySale = {

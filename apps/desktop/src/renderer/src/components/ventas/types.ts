@@ -1,8 +1,5 @@
-export const currencyFormatter = new Intl.NumberFormat('es-CO', {
-  style: 'currency',
-  currency: 'COP',
-  maximumFractionDigits: 0
-});
+// Re-exportación para retrocompatibilidad desde la fuente única de verdad
+export { currencyFormatter, formatDateShort as formatDate } from '../../lib/format';
 
 export type Product = {
   stockId: number;
@@ -36,11 +33,3 @@ export type SaleRecord = {
   huesped?: string;
   clienteExterno?: string;
 };
-
-export function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-}

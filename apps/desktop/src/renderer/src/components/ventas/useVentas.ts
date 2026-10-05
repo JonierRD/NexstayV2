@@ -94,6 +94,7 @@ export function useVentas() {
   const [modalMode, setModalMode] = useState<SaleMode | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedStayId, setSelectedStayId] = useState<number | null>(null);
+  const [guestPaymentType, setGuestPaymentType] = useState<'FIADO' | 'CONTADO'>('FIADO');
   const [externalName, setExternalName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -179,6 +180,7 @@ export function useVentas() {
       }
     ]);
     setExternalName('');
+    setGuestPaymentType('FIADO');
     setSelectedStayId(activeStays[0]?.id ?? null);
   }, [activeStays]);
 
@@ -186,6 +188,7 @@ export function useVentas() {
     setModalMode(null);
     setCart([]);
     setExternalName('');
+    setGuestPaymentType('FIADO');
   }, []);
 
   const handleConfirmSale = useCallback(async () => {
@@ -202,7 +205,8 @@ export function useVentas() {
       await createSalesRequest({
         items: cart.map((item) => ({ stockId: item.stockId, quantity: item.quantity })),
         stayId: modalMode === 'guest' ? selectedStayId : null,
-        customerName: modalMode === 'external' ? externalName.trim() || undefined : undefined
+        customerName: modalMode === 'external' ? externalName.trim() || undefined : undefined,
+        saleType: modalMode === 'guest' ? guestPaymentType : 'CONTADO'
       });
       closeSaleModal();
       const data = await loadAllData();
@@ -215,7 +219,7 @@ export function useVentas() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [cart, closeSaleModal, externalName, modalMode, selectedStayId]);
+  }, [cart, closeSaleModal, externalName, guestPaymentType, modalMode, selectedStayId]);
 
   return {
     products,
@@ -234,6 +238,8 @@ export function useVentas() {
     setCart,
     selectedStayId,
     setSelectedStayId,
+    guestPaymentType,
+    setGuestPaymentType,
     externalName,
     setExternalName,
     isSubmitting,

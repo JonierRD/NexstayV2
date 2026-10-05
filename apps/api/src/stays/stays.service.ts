@@ -30,7 +30,7 @@ export class StaysService {
   }
 
   async findActive() {
-    return this.prisma.stay.findMany({
+    const stays = await this.prisma.stay.findMany({
       where: { status: 'ACTIVA' },
       include: {
         client: true,
@@ -40,6 +40,24 @@ export class StaysService {
       },
       orderBy: { checkIn: 'desc' }
     });
+
+    const staysWithLaundry = await Promise.all(
+      stays.map(async (stay) => {
+        const laundry = await this.prisma.laundry.findMany({
+          where: {
+            roomNumber: stay.roomNumber,
+            createdAt: { gte: stay.checkIn }
+          },
+          orderBy: { createdAt: 'asc' }
+        });
+        return {
+          ...stay,
+          laundry
+        };
+      })
+    );
+
+    return staysWithLaundry;
   }
 
   async findOne(id: number) {
@@ -223,7 +241,7 @@ export class StaysService {
     return stay;
   }
 
-  async checkout(id: number, user: JwtPayload) {
+  async checkout(id: number, user: JwtPayload, dto?: { nights?: number }) {
     // 1. Buscar el stay
     const stay = await this.prisma.stay.findUnique({
       where: { id },
@@ -248,28 +266,36 @@ export class StaysService {
       );
     }
 
-    // 3. Calcular noches reales y totales
+    // 3. Calcular noches a cobrar y totales
+    // Por defecto se liquidan las noches pactadas al ingresar (stay.nights).
+    // Si recepción autorizó una extensión explícita, se usa dto.nights.
     const checkOut = new Date();
-    const checkIn = new Date(stay.checkIn);
-    const nightsReal = Math.ceil(
-      (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
-    ) || 1;
-
-    const totalRoom = Number(stay.pricePerNight) * nightsReal;
+    const nightsToBill = dto?.nights && dto.nights > 0 ? dto.nights : stay.nights;
+    const totalRoom = Number(stay.pricePerNight) * nightsToBill;
     
-    // Calcular total de ventas (tienda)
-    const totalSales = stay.sales.reduce((sum, sale) => {
+    // Calcular total de ventas (tienda) - Solo las que quedaron a la cuenta (FIADO o sin tipo)
+    const pendingSales = stay.sales.filter((sale) => sale.saleType === 'FIADO' || !sale.saleType);
+    const totalSales = pendingSales.reduce((sum, sale) => {
       return sum + (Number(sale.unitPrice) * sale.quantity);
     }, 0);
 
-    const grandTotal = totalRoom + totalSales;
+    // Buscar órdenes de lavandería de esta habitación durante la estancia
+    const laundryOrders = await this.prisma.laundry.findMany({
+      where: {
+        roomNumber: stay.roomNumber,
+        createdAt: { gte: stay.checkIn }
+      }
+    });
+    const totalLaundry = laundryOrders.reduce((sum, item) => sum + Number(item.totalPrice), 0);
+
+    const grandTotal = totalRoom + totalSales + totalLaundry;
 
     // 4. Actualizar el stay
     const updatedStay = await this.prisma.stay.update({
       where: { id },
       data: {
         checkOut,
-        nights: nightsReal,
+        nights: nightsToBill,
         total: grandTotal,
         status: 'FINALIZADA'
       },
@@ -285,12 +311,12 @@ export class StaysService {
       data: { status: 'DISPONIBLE' }
     });
 
-    // 6. Auditoría del check-out
+    // 6. Auditoría del check-out con desglose completo
     await this.auditoria.log(user, {
       action: 'CHECK_OUT',
       entity: 'STAY',
       entityId: stay.id.toString(),
-      description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsReal} noches, total: $${Math.round(grandTotal).toLocaleString('es-CO')})`,
+      description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsToBill} noches: $${Math.round(totalRoom).toLocaleString('es-CO')}, tienda pendiente: $${Math.round(totalSales).toLocaleString('es-CO')}, lavandería: $${Math.round(totalLaundry).toLocaleString('es-CO')}, total: $${Math.round(grandTotal).toLocaleString('es-CO')})`,
       oldValue: stay,
       newValue: updatedStay
     });

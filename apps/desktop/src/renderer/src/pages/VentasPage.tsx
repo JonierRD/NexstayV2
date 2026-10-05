@@ -27,6 +27,8 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
     products,
     search,
     selectedStayId,
+    guestPaymentType,
+    setGuestPaymentType,
     setCart,
     setExternalName,
     setHistoryDate,
@@ -61,7 +63,7 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
         </div>
       )}
 
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-2 xl:grid-cols-4">
         {summary.map((card) => (
           <SummaryCard key={card.label} label={card.label} value={card.value} icon={card.icon} tint={card.tint} />
         ))}
@@ -94,7 +96,7 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
             No se encontraron productos.
           </div>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filteredProducts.map((product) => (
               <ProductCard key={product.stockId} product={product} onOpenModal={openSaleModal} />
             ))}
@@ -193,6 +195,8 @@ export function VentasPage({ user }: { user: PublicUser }): ReactElement {
           activeStays={activeStays}
           selectedStayId={selectedStayId}
           setSelectedStayId={setSelectedStayId}
+          guestPaymentType={guestPaymentType}
+          setGuestPaymentType={setGuestPaymentType}
           externalName={externalName}
           setExternalName={setExternalName}
           onClose={closeSaleModal}

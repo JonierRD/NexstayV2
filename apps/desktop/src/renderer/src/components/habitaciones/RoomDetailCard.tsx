@@ -25,7 +25,8 @@ export function RoomDetailCard({
   const nights = room.nights ?? 1;
   const selectedPrice = room.selectedAc === 'AIRE' && room.priceWithAir > 0 ? room.priceWithAir : room.priceWithFan > 0 ? room.priceWithFan : 0;
   const roomTotal = nights * selectedPrice;
-  const grandTotal = roomTotal + room.storeDebt;
+  const extraServicesTotal = room.storeDebt + (room.laundryDebt ?? 0);
+  const grandTotal = roomTotal + extraServicesTotal;
   const fmt = formatCOP;
 
   return (
@@ -114,7 +115,7 @@ export function RoomDetailCard({
             <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
               <DetailLine label="Habitación" value={`${fmt(selectedPrice)} × ${nights} ${nights === 1 ? 'noche' : 'noches'}`} />
               <DetailLine label="Subtotal hospedaje" value={fmt(roomTotal)} />
-              <DetailLine label="Servicios Extra" value={fmt(room.storeDebt)} />
+              <DetailLine label="Servicios Extra" value={fmt(extraServicesTotal)} />
               <DetailLine label="Total" value={fmt(grandTotal)} />
             </div>
           </div>

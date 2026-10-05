@@ -42,8 +42,12 @@ export class StaysController {
   }
 
   @Post(':id/checkout')
-  async checkout(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-    return this.service.checkout(Number(id), user);
+  async checkout(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+    @Body() dto?: { nights?: number }
+  ) {
+    return this.service.checkout(Number(id), user, dto);
   }
 
   @Patch(':id')
