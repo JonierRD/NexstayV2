@@ -2,7 +2,7 @@ import { ArrowRight, Copy, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import FondoLogin from '../../assets/login/FondoLogin.png';
 import { type FirstRunInfo } from '../../lib/api';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 
 export function FirstRunScreen({
   admin,

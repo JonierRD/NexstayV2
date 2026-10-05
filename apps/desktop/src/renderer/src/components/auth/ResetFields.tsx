@@ -1,5 +1,5 @@
 import { ArrowRight, Eye, EyeOff, LockKeyhole, Shield } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 
 export function ResetFields({
   code,

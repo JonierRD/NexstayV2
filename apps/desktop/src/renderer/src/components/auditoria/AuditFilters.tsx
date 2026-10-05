@@ -1,7 +1,7 @@
 import { type ReactElement } from 'react';
 import { type AuditAction } from '../../lib/api';
-import { FilterSelect } from '../ui/filter-select';
-import { SearchInput } from '../ui/search-input';
+import { FilterSelect } from '../ui/FilterSelect';
+import { SearchInput } from '../ui/SearchInput';
 import { actionLabels, actionOptions } from './constants';
 
 type Props = {

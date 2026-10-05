@@ -8,10 +8,10 @@ import {
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { AccentButton } from '../components/ui/accent-button';
-import { FilterSelect } from '../components/ui/filter-select';
-import { SearchInput } from '../components/ui/search-input';
-import { StatCard } from '../components/ui/stat-card';
+import { AccentButton } from '../components/ui/AccentButton';
+import { FilterSelect } from '../components/ui/FilterSelect';
+import { SearchInput } from '../components/ui/SearchInput';
+import { StatCard } from '../components/ui/StatCard';
 import { LaundryFormModal } from '../components/lavanderia/LaundryFormModal';
 import { LaundryDetailCard } from '../components/lavanderia/LaundryDetailCard';
 import { LaundryOrdersTable } from '../components/lavanderia/LaundryOrdersTable';
@@ -139,7 +139,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                 // PROCESO: Modal de creación / edición (con 'editingOrder' presente → editar)
                 <LaundryFormModal
                     laundry={l.editingOrder ?? undefined}
-                    onSave={l.onFormSaved}
+                    onSubmit={l.submitOrder}
                     onClose={l.closeForm}
                 />
             )}

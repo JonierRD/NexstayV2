@@ -1,12 +1,8 @@
 import { X } from 'lucide-react';
 import { type ReactElement, useState } from 'react';
-import {
-    type Laundry,
-    createLaundryRequest,
-    updateLaundryRequest
-} from '../../lib/api';
-import { AccentButton } from '../ui/accent-button';
-import { DetailLine } from '../ui/detail-line';
+import { type Laundry, type LaundryPayload } from '../../lib/api';
+import { AccentButton } from '../ui/AccentButton';
+import { DetailLine } from '../ui/DetailLine';
 import {
     type LaundryItemType,
     type LaundryStatus,
@@ -21,11 +17,12 @@ import {
 
 type Props = {
     laundry?: Laundry;
-    onSave: () => void;
+    /** Ejecuta create/update. Lanza si la API falla. */
+    onSubmit: (payload: LaundryPayload) => Promise<void>;
     onClose: () => void;
 };
 
-export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElement {
+export function LaundryFormModal({ laundry, onSubmit, onClose }: Props): ReactElement {
     const [form, setForm] = useState<LaundryFormState>(
         laundry
             ? {
@@ -77,7 +74,7 @@ export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElem
         setSaving(true);
         try {
             // PROCESO: Envío a la API. Si hay 'laundry' → actualizar (PUT) / si no → crear (POST)
-            const payload = {
+            const payload: LaundryPayload = {
                 item: form.item,
                 description: form.description.trim(),
                 quantity: quantityNum,
@@ -91,12 +88,11 @@ export function LaundryFormModal({ laundry, onSave, onClose }: Props): ReactElem
 
             if (laundry) {
                 // PROCESO: Editar / actualizar orden existente (PUT /laundry/:id)
-                await updateLaundryRequest(laundry.id, { ...payload, status: form.status });
+                await onSubmit({ ...payload, status: form.status });
             } else {
                 // PROCESO: Crear nueva orden (POST /laundry)
-                await createLaundryRequest(payload);
+                await onSubmit(payload);
             }
-            onSave();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error al guardar la orden de lavandería.');
         } finally {

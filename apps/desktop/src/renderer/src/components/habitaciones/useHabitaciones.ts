@@ -1,9 +1,11 @@
-import { type ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type Habitacion,
   type PublicUser,
   type Stay,
+  type UpdateHabitacionInput,
   checkoutRequest,
+  createHabitacionRequest,
   deleteHabitacionRequest,
   habitacionesRequest,
   staysActiveRequest,
@@ -114,54 +116,65 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
   }, [loadRooms]);
 
   // Aplica búsqueda + filtros (estado, estilo, ventilador) + orden
-  const filteredRooms = rooms.filter((room) => {
-    const normalizedSearch = search.trim().toLowerCase();
-    const styleLabel = room.type === 'DOSCAMAS' ? 'DOS CAMAS' : room.type;
-    const matchesSearch =
-      !normalizedSearch ||
-      room.number.includes(normalizedSearch) ||
-      room.description.toLowerCase().includes(normalizedSearch);
+  // Se copia antes de sort(): .sort() muta, y `rooms` es el estado de la lista.
+  const filteredRooms = useMemo(
+    () =>
+      rooms
+        .filter((room) => {
+          const normalizedSearch = search.trim().toLowerCase();
+          const styleLabel = room.type === 'DOSCAMAS' ? 'DOS CAMAS' : room.type;
+          const matchesSearch =
+            !normalizedSearch ||
+            room.number.includes(normalizedSearch) ||
+            room.description.toLowerCase().includes(normalizedSearch);
 
-    const matchesStatus = statusFilter === 'TODOS' || room.status === statusFilter;
-    const matchesStyle = styleFilter === 'TODOS' || styleLabel === styleFilter;
+          const matchesStatus = statusFilter === 'TODOS' || room.status === statusFilter;
+          const matchesStyle = styleFilter === 'TODOS' || styleLabel === styleFilter;
 
-    // Arreglar filtro de ventilador
-    let matchesFan = true;
-    if (fanFilter === 'Ventilador') {
-      matchesFan = room.hasFan;
-    } else if (fanFilter === 'Sin Ventilador') {
-      matchesFan = !room.hasFan;
-    }
+          // Arreglar filtro de ventilador
+          let matchesFan = true;
+          if (fanFilter === 'Ventilador') {
+            matchesFan = room.hasFan;
+          } else if (fanFilter === 'Sin Ventilador') {
+            matchesFan = !room.hasFan;
+          }
 
-    return matchesSearch && matchesStatus && matchesStyle && matchesFan;
-  }).sort((a, b) => {
-    const direction = sortOrder === 'asc' ? 1 : -1;
+          return matchesSearch && matchesStatus && matchesStyle && matchesFan;
+        })
+        .sort((a, b) => {
+          const direction = sortOrder === 'asc' ? 1 : -1;
 
-    if (sortBy === 'Número') {
-      return a.number.localeCompare(b.number) * direction;
-    } else if (sortBy === 'Tipo') {
-      return a.type.localeCompare(b.type) * direction;
-    } else if (sortBy === 'Precio') {
-      const priceA = Math.max(a.priceWithAir, a.priceWithFan);
-      const priceB = Math.max(b.priceWithAir, b.priceWithFan);
-      return (priceA - priceB) * direction;
-    }
-    return 0;
-  });
+          if (sortBy === 'Número') {
+            return a.number.localeCompare(b.number) * direction;
+          } else if (sortBy === 'Tipo') {
+            return a.type.localeCompare(b.type) * direction;
+          } else if (sortBy === 'Precio') {
+            const priceA = Math.max(a.priceWithAir, a.priceWithFan);
+            const priceB = Math.max(b.priceWithAir, b.priceWithFan);
+            return (priceA - priceB) * direction;
+          }
+          return 0;
+        }),
+    [rooms, search, statusFilter, styleFilter, fanFilter, sortBy, sortOrder]
+  );
 
   // Habitación seleccionada (panel derecho) o la primera como default
-  const selectedRoom =
-    filteredRooms.find((room) => room.number === selectedRoomNumber) ??
-    filteredRooms[0];
+  const selectedRoom = useMemo(
+    () => filteredRooms.find((room) => room.number === selectedRoomNumber) ?? filteredRooms[0],
+    [filteredRooms, selectedRoomNumber]
+  );
 
   // Conteos para las tarjetas de estadísticas del top
-  const stats = {
-    total: rooms.length,
-    ocupadas: rooms.filter((room) => room.status === 'OCUPADA').length,
-    disponibles: rooms.filter((room) => room.status === 'DISPONIBLE').length,
-    reservadas: rooms.filter((room) => room.status === 'RESERVADA').length,
-    mantenimiento: rooms.filter((room) => room.status === 'MANTENIMIENTO').length
-  };
+  const stats = useMemo(
+    () => ({
+      total: rooms.length,
+      ocupadas: rooms.filter((room) => room.status === 'OCUPADA').length,
+      disponibles: rooms.filter((room) => room.status === 'DISPONIBLE').length,
+      reservadas: rooms.filter((room) => room.status === 'RESERVADA').length,
+      mantenimiento: rooms.filter((room) => room.status === 'MANTENIMIENTO').length
+    }),
+    [rooms]
+  );
 
   const pct = (n: number) => stats.total > 0 ? `${((n / stats.total) * 100).toFixed(1)}% del total` : '0% del total';
 
@@ -266,6 +279,30 @@ showConfirm({
     }
   }
 
+  // PROCESO: Crear o actualizar habitación. La ejecuta el modal, no él mismo.
+  async function submitRoom(payload: Omit<UpdateHabitacionInput, 'adminPassword'>): Promise<void> {
+    try {
+      if (editingRoom) {
+        await updateHabitacionRequest(editingRoom.number, payload);
+      } else {
+        await createHabitacionRequest({
+          type: payload.type ?? 'SENCILLA',
+          hasAir: payload.hasAir,
+          hasFan: payload.hasFan,
+          priceWithAir: payload.priceWithAir,
+          priceWithFan: payload.priceWithFan,
+          image: payload.image,
+          notes: payload.notes,
+          number: (payload as { number?: string }).number ?? ''
+        });
+      }
+      onSaveRoom();
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Error al guardar la habitación.');
+      throw err;
+    }
+  }
+
   function onSaveRoom() {
     setShowRoomForm(false);
     setEditingRoom(null);
@@ -348,8 +385,9 @@ showConfirm({
 
   return {
     loading,
-    filteredRooms,
-    selectedRoom,
+apiRooms,
+   filteredRooms,
+   selectedRoom,
     stats,
     pct,
     isAdmin,
@@ -370,9 +408,9 @@ showConfirm({
     closeAdminAuth,
     showRoomForm,
     editingRoom,
-    requestDeleteRoom,
-    onSaveRoom,
-    closeRoomForm,
+requestDeleteRoom,
+   submitRoom,
+   closeRoomForm,
     imageFileRef,
     handleImagePick,
     imageError,

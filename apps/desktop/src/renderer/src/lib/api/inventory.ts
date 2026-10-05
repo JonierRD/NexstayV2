@@ -26,16 +26,6 @@ export async function inventoryRequest(): Promise<StockItem[]> {
   return apiRequest<StockItem[]>('/inventory', { method: 'GET' });
 }
 
-export type StoreStock = {
-  id: number;
-  quantity: number;
-  product: { id: number; name: string; price: number };
-};
-
-export async function storeStockRequest(): Promise<StoreStock[]> {
-  return apiRequest<StoreStock[]>('/inventory/category/TIENDA', { method: 'GET' });
-}
-
 export async function createProductRequest(data: {
   name: string;
   price: number;
@@ -130,10 +120,6 @@ export type StaySale = {
 
 export async function salesRequest(): Promise<StaySale[]> {
   return apiRequest<StaySale[]>('/inventory/sales', { method: 'GET' });
-}
-
-export async function createStaySaleRequest(input: { stockId: number; stayId: number; quantity: number }): Promise<StaySale> {
-  return apiRequest<StaySale>('/inventory/sale', { method: 'POST', body: input });
 }
 
 export async function createSalesRequest(input: BatchSaleInput): Promise<StaySale[]> {

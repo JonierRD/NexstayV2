@@ -17,7 +17,7 @@ type DashboardLayoutProps = {
 export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): ReactElement {
   const { user: sessionUser } = useAuthSession();
   const resolvedUser = user ?? sessionUser ?? null;
-  const [active, setActive] = useState<ModuleKey>('recepcion');
+  const [active, setActive] = useState<ModuleKey>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const route = findRoute(active);
   const pageTitle = route?.meta.title ?? 'SAPAY';
@@ -108,7 +108,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
           <RouteGuard
             activeModule={active}
             user={resolvedUser ?? undefined}
-            onNavigateHome={() => setActive('recepcion')}
+            onNavigateHome={() => setActive('dashboard')}
           >
             {route ? createElement(route.component, { user: resolvedUser ?? user }) : null}
           </RouteGuard>

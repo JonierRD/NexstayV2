@@ -1,6 +1,6 @@
 import { Package } from 'lucide-react';
 import { type StockItem } from '../../lib/api';
-import { Button } from '../ui/button';
+import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { type ProductFormData } from './types';
 
