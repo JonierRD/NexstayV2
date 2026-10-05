@@ -30,4 +30,8 @@ export class CreateSalesBatchDto {
   @IsString()
   @MaxLength(120)
   customerName?: string | null;
+
+  @IsOptional()
+  @IsString()
+  saleType?: 'CONTADO' | 'FIADO';
 }

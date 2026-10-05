@@ -1,13 +1,13 @@
 import { createElement, type ReactElement, useEffect, useState } from 'react';
 import { Bell, CalendarDays, LogOut, PanelRightClose } from 'lucide-react';
-import type { PublicUser } from '../lib/api';
-import { formatClock, formatHeaderDate } from '../lib/format';
-import { useAuthSession } from '../context/AuthContext';
+import type { PublicUser } from '../../lib/api';
+import { formatClock, formatHeaderDate } from '../../lib/format';
+import { useAuthSession } from '../../context/AuthContext';
 import { Sidebar } from './Sidebar';
-import { AssistantChat } from './AssistantChat';
-import { RouteGuard } from '../routes/RouteGuard';
-import { findRoute } from '../routes/routeAccess';
-import type { ModuleKey } from '../routes/types';
+import { AssistantChat } from '../assistant/AssistantChat';
+import { RouteGuard } from '../../routes/RouteGuard';
+import { findRoute } from '../../routes/routeAccess';
+import type { ModuleKey } from '../../routes/types';
 
 type DashboardLayoutProps = {
   user: PublicUser;
@@ -23,7 +23,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
   const pageTitle = route?.meta.title ?? 'SAPAY';
 
   // El reloj debe avanzar solo; calcularlo en el render lo dejaba congelado
-  // hasta que ocurriera otro re-render sin relacion.
+  // hasta que ocurriera otro re-render sin relación.
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {

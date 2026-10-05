@@ -1,6 +1,7 @@
-import { Package, X } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { type StockItem } from '../../lib/api';
 import { Button } from '../ui/button';
+import { Modal } from '../ui/Modal';
 import { type ProductFormData } from './types';
 
 export function ProductModal({
@@ -17,33 +18,29 @@ export function ProductModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-[480px] rounded-[24px] border border-sapay-350 bg-white p-6 shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 text-sapay-650 hover:text-sapay-900 transition"
-        >
-          <X size={18} />
-        </button>
-
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sapay-200 text-sapay-900 border border-sapay-350">
-            <Package size={20} />
-          </div>
-          <div>
-            <h3 className="text-[16px] font-bold text-sapay-950">
-              {editingItem ? 'Editar Producto' : 'Nuevo Producto en Catálogo'}
-            </h3>
-            <p className="text-[11px] text-sapay-750">
-              {editingItem
-                ? 'Actualiza los datos de venta y stock del artículo.'
-                : 'Ingresa los detalles para registrar un nuevo producto en tienda.'}
-            </p>
-          </div>
+    <Modal
+      onClose={onClose}
+      maxWidthClass="max-w-[480px]"
+      zIndexClass="z-50"
+      className="p-6 rounded-[24px]"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sapay-200 text-sapay-900 border border-sapay-350">
+          <Package size={20} />
         </div>
+        <div>
+          <h3 className="text-[16px] font-bold text-sapay-950">
+            {editingItem ? 'Editar Producto' : 'Nuevo Producto en Catálogo'}
+          </h3>
+          <p className="text-[11px] text-sapay-750">
+            {editingItem
+              ? 'Actualiza los datos de venta y stock del artículo.'
+              : 'Ingresa los detalles para registrar un nuevo producto en tienda.'}
+          </p>
+        </div>
+      </div>
 
-        <form onSubmit={onSubmit} className="mt-5 space-y-3.5">
+      <form onSubmit={onSubmit} className="mt-5 space-y-3.5">
           {/* Nombre */}
           <div>
             <label className="mb-1 block text-[11px] font-bold text-sapay-900">
@@ -188,7 +185,6 @@ export function ProductModal({
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

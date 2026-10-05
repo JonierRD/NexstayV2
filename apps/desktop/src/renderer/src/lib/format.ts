@@ -55,6 +55,20 @@ const NUMERIC_DATE_TIME_FORMAT = new Intl.DateTimeFormat('es-CO', {
   hour12: true
 });
 
+export const currencyFormatter = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0
+});
+
+export function formatElapsed(checkIn: string): string {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(checkIn).getTime()) / 60000));
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  const remaining = minutes % 60;
+  return `${days ? `${days}d ` : ''}${hours}h ${remaining}m`;
+}
+
 export function formatDateTimeNumeric(value: string | Date): string {
   return NUMERIC_DATE_TIME_FORMAT.format(new Date(value));
 }

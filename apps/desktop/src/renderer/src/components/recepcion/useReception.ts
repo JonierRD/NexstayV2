@@ -38,7 +38,7 @@ function todayInputValue(): string {
   return `${today.getFullYear()}-${month}-${day}`;
 }
 
-export function useReception(user: PublicUser) {
+export function useReception(_user?: PublicUser) {
   // Wizard: CLIENT_DATA → SELECT_ROOM → CONFIRM → SUCCESS
   const [step, setStep] = useState<CheckinStep>('CLIENT_DATA');
   // Habitaciones disponibles traídas de la API
@@ -56,8 +56,6 @@ export function useReception(user: PublicUser) {
   const [nights, setNights] = useState<number>(1);
   // Fecha de ingreso (por defecto hoy, editable)
   const [checkInDate, setCheckInDate] = useState<string>(todayInputValue);
-  // Contraseña del admin (se pide si el usuario es RECEPTION)
-  // Acción pendiente mientras se valida la contraseña del admin
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 

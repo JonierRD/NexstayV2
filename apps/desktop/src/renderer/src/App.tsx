@@ -2,7 +2,7 @@ import { type ReactElement, useEffect } from 'react';
 import { AuthScreen } from './components/auth/AuthScreen';
 import { FirstRunScreen } from './components/auth/FirstRunScreen';
 import { useAuth } from './components/auth/useAuth';
-import { DashboardLayout } from './components/DashboardLayout';
+import { DashboardLayout } from './components/layout';
 import { LoadingOverlay } from './components/ui/LoadingOverlay';
 import { applyAuthInterceptors } from './lib/api';
 import { AuthProvider } from './context/AuthContext';

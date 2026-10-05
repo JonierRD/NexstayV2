@@ -1,7 +1,9 @@
-import { Trash2, X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useRef, useState, useEffect, type FormEvent, type ReactElement } from 'react';
 import { type Habitacion, createHabitacionRequest, updateHabitacionRequest, habitacionesRequest } from '../../lib/api';
 import { Button } from '../ui/button';
+import { Modal } from '../ui/Modal';
+import { type RoomStatus, type RoomType } from './types';
 
 type RoomFormModalProps = {
   room?: Habitacion;
@@ -9,10 +11,6 @@ type RoomFormModalProps = {
   onRequestDelete?: (number: string) => void;
   onClose: () => void;
 };
-
-type RoomStatus = 'DISPONIBLE' | 'OCUPADA' | 'RESERVADA' | 'MANTENIMIENTO';
-
-type RoomType = 'SENCILLA' | 'MATRIMONIAL' | 'DOSCAMAS';
 
 type FormData = {
   number: string;
@@ -208,24 +206,16 @@ export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFo
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="relative w-full max-w-[460px] rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-3 top-3 text-sapay-650 hover:text-sapay-900 transition"
-        >
-          <X size={18} />
-        </button>
-
-        <h3 className="text-[15px] font-semibold text-sapay-950">
-          {isEdit ? 'Editar Habitación' : 'Nueva Habitación'}
-        </h3>
-
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-          {error && (
-            <div className="rounded-lg border border-danger-200 bg-danger-100 px-3 py-2 text-[11px] text-[#b33a3a]">{error}</div>
-          )}
+    <Modal
+      onClose={onClose}
+      title={isEdit ? 'Editar Habitación' : 'Nueva Habitación'}
+      maxWidthClass="max-w-[460px]"
+      zIndexClass="z-50"
+    >
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {error && (
+          <div className="rounded-lg border border-danger-200 bg-danger-100 px-3 py-2 text-[11px] text-[#b33a3a]">{error}</div>
+        )}
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Número">
@@ -389,8 +379,7 @@ export function RoomFormModal({ room, onSave, onRequestDelete, onClose }: RoomFo
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }
 

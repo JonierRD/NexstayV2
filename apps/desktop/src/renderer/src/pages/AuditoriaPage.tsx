@@ -5,7 +5,7 @@ import { AuditFilters } from '../components/auditoria/AuditFilters';
 import { AuditLogCard } from '../components/auditoria/AuditLogCard';
 import { useAuditoria } from '../components/auditoria/useAuditoria';
 
-export function AuditoriaPage({ user }: { user: PublicUser }): ReactElement {
+export function AuditoriaPage({ user: _user }: { user?: PublicUser } = {}): ReactElement {
   const a = useAuditoria();
 
   if (a.loading) {
