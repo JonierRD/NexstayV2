@@ -16,7 +16,7 @@ export function ClientesPage({ user }: Props): ReactElement {
 
   return (
     <div className="flex h-full flex-col gap-3 p-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-sm font-semibold">Directorio de clientes</h1>
           <p className="text-[10px] text-sapay-750">Consulta datos, historial y visitas anteriores.</p>

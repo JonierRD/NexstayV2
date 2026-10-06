@@ -27,7 +27,7 @@ export function AuditFilters({
     <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <SearchInput value={search} onChange={onSearchChange} placeholder="Buscar en historial..." />
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <FilterSelect
           label="Todas las acciones"
           value={actionFilter}

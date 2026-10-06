@@ -20,8 +20,8 @@ export function AvailableRoomsPanel({
   handleSelectRoom
 }: Props) {
   return (
-    <div className="w-96 overflow-y-auto rounded-2xl border border-sapay-350 bg-white p-4">
-      <h3 className="mb-3 font-medium text-sapay-900">Habitaciones Disponibles</h3>
+    <div className="flex min-h-0 flex-1 w-full lg:w-1/2 flex-col overflow-y-auto rounded-2xl border border-sapay-350 bg-white p-4">
+      <h3 className="mb-3 shrink-0 font-medium text-sapay-900">Habitaciones Disponibles</h3>
 
       {loading && rooms.length === 0 ? (
         <div className="flex items-center justify-center py-8">
@@ -32,7 +32,7 @@ export function AvailableRoomsPanel({
           No hay habitaciones disponibles
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
           {availableRooms.map((room) => (
             <button
               key={room.number}

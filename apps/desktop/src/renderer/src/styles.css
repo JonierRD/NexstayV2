@@ -45,3 +45,12 @@ img {
   display: block;
   max-width: 100%;
 }
+
+/* Tablas responsivas: scroll horizontal en ventanas angostas */
+.table-responsive {
+  @apply overflow-x-auto;
+}
+
+.table-responsive table {
+  @apply min-w-[600px];
+}
