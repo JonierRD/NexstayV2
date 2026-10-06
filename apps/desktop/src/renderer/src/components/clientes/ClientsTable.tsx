@@ -12,8 +12,8 @@ type Props = {
 
 export function ClientsTable({ clients, loading, onView, onEdit, onDelete }: Props): ReactElement {
   return (
-    <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-sapay-350 bg-white">
-      <table className="w-full text-left text-xs">
+    <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto rounded-lg border border-sapay-350 bg-white">
+      <table className="w-full min-w-[640px] text-left text-xs">
         <thead className="sticky top-0 bg-[#fcf8f4] text-[10px] uppercase text-sapay-750">
           <tr>
             <th className="px-3 py-2">Cliente</th>

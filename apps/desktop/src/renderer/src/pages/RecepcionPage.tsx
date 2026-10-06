@@ -40,14 +40,14 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   } = useReception(user);
 
   return (
-    <div className="flex h-full flex-col p-4">
-      <div className="mb-4">
-        <h1 className="text-lg font-semibold text-sapay-950">Recepción - Check-In</h1>
+    <div className="flex h-full min-h-0 flex-1 flex-col p-3 sm:p-4 overflow-hidden">
+      <div className="mb-3 shrink-0">
+        <h1 className="text-base sm:text-lg font-semibold text-sapay-950">Recepción - Check-In</h1>
         <p className="text-xs text-sapay-700">Registro de huéspedes y asignación de habitaciones</p>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="mb-3 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -62,9 +62,9 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
       )}
 
       {!success && (
-        <div className="flex flex-1 gap-4 overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-4 overflow-hidden lg:flex-row">
           {/* Panel Izquierdo - Formulario */}
-          <div className="flex-1 overflow-y-auto rounded-2xl border border-sapay-350 bg-white p-6">
+          <div className="flex min-h-0 flex-1 w-full lg:w-1/2 flex-col overflow-y-auto rounded-2xl border border-sapay-350 bg-white p-4 sm:p-5 lg:p-6">
             {step === 'CLIENT_DATA' && (
               <ClientDataStep
                 ccSearch={ccSearch}

@@ -92,30 +92,30 @@ export function SemanarioGrid({
   onSelectSemana
 }: Props): ReactElement {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-sapay-350 bg-white">
-      <div className={cn('grid min-w-[960px] gap-px border-b border-sapay-300 bg-sapay-350', GRID)}>
-        <div className="bg-[#fbf7f2] px-2 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-sapay-700">
-          Semana
-        </div>
-        {DIAS_SEMANA.map((dia) => (
-          <div key={dia} className="bg-[#fbf7f2] px-2 py-1.5 text-center">
-            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-sapay-700">{dia}</p>
-            <div className="mt-1 flex items-center justify-center gap-1.5 text-[8px] text-sapay-550">
-              <span>{TURNO_HORAS.DIA}</span>
-              <span className="h-2.5 border-l border-sapay-400" />
-              <span>{TURNO_HORAS.NOCHE}</span>
-            </div>
+    <div className="flex min-h-0 flex-1 flex-col overflow-auto rounded-[18px] border border-sapay-350 bg-white">
+      <div className="min-w-[960px]">
+        <div className={cn('sticky top-0 z-10 grid gap-px border-b border-sapay-300 bg-sapay-350 shadow-sm', GRID)}>
+          <div className="bg-[#fbf7f2] px-2 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-sapay-700">
+            Semana
           </div>
-        ))}
-      </div>
+          {DIAS_SEMANA.map((dia) => (
+            <div key={dia} className="bg-[#fbf7f2] px-2 py-1.5 text-center">
+              <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-sapay-700">{dia}</p>
+              <div className="mt-1 flex items-center justify-center gap-1.5 text-[8px] text-sapay-550">
+                <span>{TURNO_HORAS.DIA}</span>
+                <span className="h-2.5 border-l border-sapay-400" />
+                <span>{TURNO_HORAS.NOCHE}</span>
+              </div>
+            </div>
+          ))}
+        </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
         {semanas.length === 0 ? (
           <div className="flex h-40 items-center justify-center text-[11px] text-sapay-550">
             Todavía no hay semanas generadas.
           </div>
         ) : (
-          <div className="min-w-[960px]">
+          <div>
             {semanas.map((semana) => {
               const celdas = celdasPorSemana.get(semana.id);
               const contieneHoy = semana.fechaInicio <= hoy && semana.fechaFin >= hoy;

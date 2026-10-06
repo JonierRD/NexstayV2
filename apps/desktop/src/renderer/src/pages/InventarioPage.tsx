@@ -25,19 +25,19 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
     inv.search !== '' || inv.selectedCategory !== 'TODAS' || inv.stockFilter !== 'ALL';
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto bg-[#fbf8f4] p-5">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#fbf8f4] p-3 sm:p-4 md:p-5">
       {inv.actionLoading && <LoadingOverlay message={inv.actionLoading} />}
 
       {/* Header Principal */}
-      <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mb-3 shrink-0 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-sapay-950">Inventario</h1>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-sapay-950">Inventario</h1>
             <span className="rounded-full bg-sapay-350 px-2.5 py-0.5 text-[11px] font-semibold text-sapay-900">
               {inv.items.length} {inv.items.length === 1 ? 'artículo' : 'artículos'}
             </span>
           </div>
-          <p className="text-[12px] text-sapay-750">
+          <p className="text-[11px] sm:text-[12px] text-sapay-750">
             Control de existencias, suministros, mecato y bebidas para huéspedes y recepción.
           </p>
         </div>
@@ -64,7 +64,7 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
 
       {/* Mensajes de Alerta / Éxito */}
       {inv.error && (
-        <div className="mb-4 flex items-center justify-between rounded-xl border border-danger-150 bg-danger-50 px-4 py-3 text-[12px] text-danger">
+        <div className="mb-2 shrink-0 flex items-center justify-between rounded-xl border border-danger-150 bg-danger-50 px-4 py-2.5 text-[12px] text-danger">
           <div className="flex items-center gap-2">
             <AlertTriangle size={16} className="shrink-0" />
             <span>{inv.error}</span>
@@ -76,7 +76,7 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
       )}
 
       {inv.successMsg && (
-        <div className="mb-4 flex items-center justify-between rounded-xl border border-success-100 bg-success-50 px-4 py-3 text-[12px] text-success">
+        <div className="mb-2 shrink-0 flex items-center justify-between rounded-xl border border-success-100 bg-success-50 px-4 py-2.5 text-[12px] text-success">
           <div className="flex items-center gap-2">
             <CheckCircle2 size={16} className="shrink-0" />
             <span>{inv.successMsg}</span>
@@ -105,46 +105,48 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
       />
 
       {/* Lista / Tabla de Productos estilo Excel */}
-      {inv.loading ? (
-        <div className="flex h-64 items-center justify-center rounded-[20px] border border-dashed border-sapay-350 bg-white">
-          <div className="flex flex-col items-center gap-2 text-sapay-750">
-            <RefreshCw size={24} className="animate-spin text-sapay-900" />
-            <p className="text-[12px] font-medium">Cargando inventario...</p>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {inv.loading ? (
+          <div className="flex h-64 items-center justify-center rounded-[20px] border border-dashed border-sapay-350 bg-white">
+            <div className="flex flex-col items-center gap-2 text-sapay-750">
+              <RefreshCw size={24} className="animate-spin text-sapay-900" />
+              <p className="text-[12px] font-medium">Cargando inventario...</p>
+            </div>
           </div>
-        </div>
-      ) : inv.filteredItems.length === 0 ? (
-        <div className="flex h-64 flex-col items-center justify-center rounded-[20px] border border-dashed border-sapay-350 bg-white p-6 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sapay-200 text-sapay-900">
-            <Package size={22} />
+        ) : inv.filteredItems.length === 0 ? (
+          <div className="flex h-64 flex-col items-center justify-center rounded-[20px] border border-dashed border-sapay-350 bg-white p-6 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-sapay-200 text-sapay-900">
+              <Package size={22} />
+            </div>
+            <h3 className="mt-3 text-[14px] font-semibold text-sapay-950">No se encontraron artículos</h3>
+            <p className="mt-1 max-w-sm text-[11px] text-sapay-750">
+              {filterActive
+                ? 'No hay productos que coincidan con los filtros aplicados. Intenta restablecer la búsqueda.'
+                : 'El catálogo de inventario está vacío. Comienza registrando tu primer producto.'}
+            </p>
+            {filterActive && (
+              <Button
+                onClick={() => {
+                  inv.setSearch('');
+                  inv.setSelectedCategory('TODAS');
+                  inv.setStockFilter('ALL');
+                }}
+                className="mt-4 h-8 rounded-xl border border-sapay-450 bg-white px-3 text-[11px] text-sapay-900 hover:bg-sapay-200"
+              >
+                Restablecer filtros
+              </Button>
+            )}
           </div>
-          <h3 className="mt-3 text-[14px] font-semibold text-sapay-950">No se encontraron artículos</h3>
-          <p className="mt-1 max-w-sm text-[11px] text-sapay-750">
-            {filterActive
-              ? 'No hay productos que coincidan con los filtros aplicados. Intenta restablecer la búsqueda.'
-              : 'El catálogo de inventario está vacío. Comienza registrando tu primer producto.'}
-          </p>
-          {filterActive && (
-            <Button
-              onClick={() => {
-                inv.setSearch('');
-                inv.setSelectedCategory('TODAS');
-                inv.setStockFilter('ALL');
-              }}
-              className="mt-4 h-8 rounded-xl border border-sapay-450 bg-white px-3 text-[11px] text-sapay-900 hover:bg-sapay-200"
-            >
-              Restablecer filtros
-            </Button>
-          )}
-        </div>
-      ) : (
-        <InventoryTable
-          items={inv.filteredItems}
-          totalItems={inv.items.length}
-          onQuickAdjust={inv.quickAdjust}
-          onEdit={inv.openEditModal}
-          onDelete={inv.requestDelete}
-        />
-      )}
+        ) : (
+          <InventoryTable
+            items={inv.filteredItems}
+            totalItems={inv.items.length}
+            onQuickAdjust={inv.quickAdjust}
+            onEdit={inv.openEditModal}
+            onDelete={inv.requestDelete}
+          />
+        )}
+      </div>
 
       {/* Modal Crear / Editar Producto */}
       {inv.isModalOpen && (

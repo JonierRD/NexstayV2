@@ -42,11 +42,11 @@ export function InventoryTable({
   onDelete: (item: StockItem) => void;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-sapay-350 bg-white shadow-[0_10px_30px_rgba(67,42,27,0.04)]">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[850px] border-collapse text-left">
-          <thead>
-            <tr className="border-b border-sapay-350 bg-sapay-200 text-[11px] font-bold uppercase tracking-wider text-[#6e584a]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-sapay-350 bg-white shadow-[0_10px_30px_rgba(67,42,27,0.04)]">
+      <div className="min-h-0 flex-1 overflow-auto">
+        <table className="w-full min-w-[700px] border-collapse text-left">
+          <thead className="sticky top-0 z-10 border-b border-sapay-350 bg-sapay-200 text-[11px] font-bold uppercase tracking-wider text-[#6e584a] shadow-sm">
+            <tr>
               <th className="py-3 px-4">Producto</th>
               <th className="py-3 px-3">Categoría</th>
               <th className="py-3 px-3">Ubicación</th>
@@ -177,7 +177,7 @@ export function InventoryTable({
         </table>
       </div>
       {/* Footer tipo hoja de cálculo con resumen de registros */}
-      <div className="flex flex-col sm:flex-row items-center justify-between border-t border-sapay-350 bg-sapay-200 px-4 py-2 text-[11px] text-sapay-750 gap-1">
+      <div className="shrink-0 flex flex-col sm:flex-row items-center justify-between border-t border-sapay-350 bg-sapay-200 px-4 py-2 text-[11px] text-sapay-750 gap-1">
         <span>
           Mostrando <strong className="text-sapay-950">{items.length}</strong> de <strong className="text-sapay-950">{totalItems}</strong> productos
         </span>

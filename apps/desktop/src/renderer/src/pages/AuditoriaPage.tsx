@@ -34,7 +34,7 @@ export function AuditoriaPage({ user: _user }: { user?: PublicUser } = {}): Reac
           entities={a.uniqueEntities}
         />
 
-        <div className="mb-2 flex items-center justify-between rounded-xl border border-sapay-350 bg-white px-4 py-2">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sapay-350 bg-white px-4 py-2">
           <p className="text-[10px] text-sapay-750">
             Mostrando {a.rangeLabel} registros
           </p>

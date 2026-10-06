@@ -30,9 +30,9 @@ export function RoomDetailCard({
   const fmt = formatCOP;
 
   return (
-    <section className="flex min-h-0 w-full flex-col rounded-[26px] border border-sapay-350 bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[420px]">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[26px]">
-        <div className="relative h-[240px] overflow-hidden group">
+    <section className="flex min-h-0 flex-1 w-full lg:w-1/2 flex-col rounded-[26px] border border-sapay-350 bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-[26px]">
+        <div className="relative h-[180px] sm:h-[210px] xl:h-[230px] shrink-0 overflow-hidden group">
           {room.image ? (
             <>
               <img src={room.image} alt={room.type} className="h-full w-full object-cover" />
@@ -120,7 +120,7 @@ export function RoomDetailCard({
             </div>
           </div>
 
-          <div className="mt-auto flex gap-2 pt-1">
+          <div className="mt-auto flex gap-2 pt-2 shrink-0">
             <AccentButton onClick={onLiberar} className="flex-1 gap-1.5 h-8 text-[11px] border-[#efb7b7] bg-white text-[#d13d3d] hover:border-[#e5a0a0] hover:bg-[#fff5f5]">
               <Wrench size={13} aria-hidden="true" />
               Liberar
