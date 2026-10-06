@@ -41,7 +41,7 @@ export function HuespedesPage({ user }: Props): ReactElement {
           No hay huéspedes activos.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {g.stays.map((stay) => (
             <GuestCard
               key={stay.id}

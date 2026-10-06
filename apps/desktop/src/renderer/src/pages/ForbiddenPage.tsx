@@ -8,7 +8,7 @@ type ForbiddenPageProps = {
 
 export function ForbiddenPage({ moduleTitle, onNavigateHome }: ForbiddenPageProps): ReactElement {
 	return (
-		<section className="flex min-h-0 flex-1 items-center justify-center bg-sapay-250 p-6">
+		<section className="flex min-h-0 flex-1 items-center justify-center bg-sapay-250 px-4 py-6 sm:px-6">
 			<div className="max-w-sm text-center">
 				<div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-danger-100 text-danger-600">
 					<ShieldAlert size={26} aria-hidden="true" />
