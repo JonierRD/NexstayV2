@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 import type { CheckinDto } from './dto/checkin.dto';
 import type { UpdateStayDto } from './dto/update-stay.dto';
+import type { CheckoutDto } from './dto/checkout.dto';
 import { AuditoriaService, AuditAction } from '../auditoria/auditoria.service';
 
 @Injectable()
@@ -35,6 +36,7 @@ export class StaysService {
       include: {
         client: true,
         room: true,
+        reservation: { include: { payments: true } },
         // Sin esto el huesped aparece siempre sin consumos.
         sales: { include: { product: true }, orderBy: { date: 'asc' } }
       },
@@ -66,6 +68,7 @@ export class StaysService {
       include: {
         client: true,
         room: true,
+        reservation: { include: { payments: true } },
         sales: {
           include: {
             product: true
@@ -114,6 +117,36 @@ export class StaysService {
     return client;
   }
 
+  async checkinFromReservation(reservationId: number, user: JwtPayload) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id: reservationId }, include: { client: true }
+    });
+    if (!reservation) throw new NotFoundException('Reserva no encontrada.');
+    if (reservation.status !== 'CONFIRMADA') throw new BadRequestException('La reserva ya no está confirmada.');
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(new Date());
+    const today = `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}-${parts.find((part) => part.type === 'day')?.value}`;
+    if (reservation.checkIn.toISOString().slice(0, 10) !== today) {
+      throw new BadRequestException('El check-in de la reserva solo se puede realizar en la fecha de llegada.');
+    }
+    return this.checkin({
+      cc: reservation.client.cc,
+      firstName: reservation.client.firstName,
+      lastName: reservation.client.lastName,
+      phone: reservation.client.phone ?? undefined,
+      cityOrigin: reservation.client.cityOrigin ?? undefined,
+      cityDestination: reservation.client.cityDestination ?? undefined,
+      profession: reservation.client.profession ?? undefined,
+      notes: reservation.client.notes ?? undefined,
+      roomNumber: reservation.roomNumber,
+      acType: reservation.acTypeUsed,
+      nights: reservation.nights,
+      checkIn: new Date().toISOString(),
+      reservationId
+    }, user);
+  }
+
   async checkin(dto: CheckinDto, user: JwtPayload) {
     const nights = dto.nights || 1;
 
@@ -121,6 +154,12 @@ export class StaysService {
     // check-ins simultaneos sobre la misma habitacion no puedan aceptarse ambos.
     const { stay, client, clientCreated } = await this.prisma.$transaction(
       async (tx) => {
+        const linkedReservation = dto.reservationId
+          ? await tx.reservation.findUnique({ where: { id: dto.reservationId } })
+          : null;
+        if (dto.reservationId && (!linkedReservation || linkedReservation.status !== 'CONFIRMADA')) {
+          throw new BadRequestException('La reserva no existe o ya no está confirmada.');
+        }
         // 1. Buscar cliente por cédula
         let client = await tx.client.findUnique({
           where: { cc: dto.cc }
@@ -163,6 +202,11 @@ export class StaysService {
             `La habitación ${dto.roomNumber} no está disponible. Estado actual: ${room.status}`
           );
         }
+        if (linkedReservation && (linkedReservation.clientId !== client.id ||
+          linkedReservation.roomNumber !== dto.roomNumber ||
+          linkedReservation.acTypeUsed !== dto.acType || linkedReservation.nights !== nights)) {
+          throw new BadRequestException('Los datos del check-in no coinciden con la reserva confirmada.');
+        }
 
         // 4. Validar A/C
         if (dto.acType === 'AIRE' && !room.hasAir) {
@@ -173,8 +217,8 @@ export class StaysService {
         }
 
         // 5. Calcular precio según A/C
-        const pricePerNight =
-          dto.acType === 'AIRE' ? room.priceWithAir : room.priceWithFan;
+        const currentRoomPrice = dto.acType === 'AIRE' ? room.priceWithAir : room.priceWithFan;
+        const pricePerNight = linkedReservation?.pricePerNight ?? currentRoomPrice;
 
         if (!pricePerNight || Number(pricePerNight) <= 0) {
           throw new BadRequestException(
@@ -182,7 +226,21 @@ export class StaysService {
           );
         }
 
-        const total = Number(pricePerNight) * nights;
+        const total = linkedReservation?.total ?? Number(pricePerNight) * nights;
+        const requestedCheckIn = dto.checkIn ? new Date(dto.checkIn) : new Date();
+        const requestedCheckOut = new Date(requestedCheckIn.getTime() + nights * 24 * 60 * 60 * 1000);
+        const conflictingReservation = await tx.reservation.findFirst({
+          where: {
+            roomNumber: dto.roomNumber,
+            status: 'CONFIRMADA',
+            checkIn: { lt: requestedCheckOut },
+            checkOut: { gt: requestedCheckIn },
+            ...(dto.reservationId !== undefined && { id: { not: dto.reservationId } })
+          }
+        });
+        if (conflictingReservation) {
+          throw new ConflictException(`La habitación ${dto.roomNumber} está reservada durante parte de esas fechas.`);
+        }
 
         // 6. Reclamar la habitación con compare-and-set: el filtro status
         // DISPONIBLE hace que solo una de las transacciones concurrentes gane.
@@ -202,18 +260,23 @@ export class StaysService {
           data: {
             clientId: client.id,
             roomNumber: dto.roomNumber,
-            checkIn: dto.checkIn ? new Date(dto.checkIn) : new Date(),
+            checkIn: requestedCheckIn,
             nights,
             pricePerNight,
             total,
             acTypeUsed: dto.acType,
-            status: 'ACTIVA'
+            status: 'ACTIVA',
+            reservationId: dto.reservationId
           },
           include: {
             client: true,
             room: true
           }
         });
+
+        if (dto.reservationId) {
+          await tx.reservation.update({ where: { id: dto.reservationId }, data: { status: 'CHECKED_IN' } });
+        }
 
         return { stay, client, clientCreated };
       }
@@ -238,16 +301,25 @@ export class StaysService {
       newValue: stay
     });
 
+    if (dto.reservationId) {
+      await this.auditoria.log(user, {
+        action: 'CHECK_IN', entity: 'RESERVA', entityId: dto.reservationId.toString(),
+        description: `La reserva ${dto.reservationId} se convirtió en el hospedaje ${stay.id}.`,
+        newValue: { reservationId: dto.reservationId, stayId: stay.id, status: 'CHECKED_IN' }
+      });
+    }
+
     return stay;
   }
 
-  async checkout(id: number, user: JwtPayload, dto?: { nights?: number }) {
+  async checkout(id: number, user: JwtPayload, dto: CheckoutDto = {}) {
     // 1. Buscar el stay
     const stay = await this.prisma.stay.findUnique({
       where: { id },
       include: {
         client: true,
         room: true,
+        reservation: { include: { payments: true } },
         sales: {
           include: {
             product: true
@@ -288,27 +360,34 @@ export class StaysService {
     });
     const totalLaundry = laundryOrders.reduce((sum, item) => sum + Number(item.totalPrice), 0);
 
-    const grandTotal = totalRoom + totalSales + totalLaundry;
+    const reservationPaid = stay.reservation?.payments.reduce(
+      (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
+      0
+    ) ?? 0;
+    const roomBalance = Math.max(0, totalRoom - reservationPaid);
+    const grandTotal = roomBalance + totalSales + totalLaundry;
 
-    // 4. Actualizar el stay
-    const updatedStay = await this.prisma.stay.update({
-      where: { id },
-      data: {
-        checkOut,
-        nights: nightsToBill,
-        total: grandTotal,
-        status: 'FINALIZADA'
-      },
-      include: {
-        client: true,
-        room: true
+    if (grandTotal > 0 && (!dto.paymentConfirmed || !dto.paymentMethod?.trim())) {
+      throw new BadRequestException(`Registra y confirma el pago final de ${Math.round(grandTotal)} antes de completar el check-out.`);
+    }
+
+    const updatedStay = await this.prisma.$transaction(async (tx) => {
+      const transitioned = await tx.stay.updateMany({
+        where: { id, status: 'ACTIVA' },
+        data: { checkOut, nights: nightsToBill, total: grandTotal, status: 'FINALIZADA' }
+      });
+      if (transitioned.count !== 1) throw new ConflictException('El hospedaje ya fue cerrado por otra operación. Actualiza la pantalla.');
+
+      if (grandTotal > 0) {
+        await tx.stayPayment.create({ data: {
+          stayId: id, userId: user.sub, amount: new Prisma.Decimal(grandTotal),
+          method: dto.paymentMethod!.trim(), reference: dto.paymentReference?.trim() || null
+        } });
       }
-    });
-
-    // 5. Actualizar habitación a DISPONIBLE
-    await this.prisma.room.update({
-      where: { number: stay.roomNumber },
-      data: { status: 'DISPONIBLE' }
+      await tx.room.update({ where: { number: stay.roomNumber }, data: { status: 'DISPONIBLE' } });
+      return tx.stay.findUniqueOrThrow({
+        where: { id }, include: { client: true, room: true, payments: true, reservation: true }
+      });
     });
 
     // 6. Auditoría del check-out con desglose completo
@@ -316,7 +395,7 @@ export class StaysService {
       action: 'CHECK_OUT',
       entity: 'STAY',
       entityId: stay.id.toString(),
-      description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsToBill} noches: $${Math.round(totalRoom).toLocaleString('es-CO')}, tienda pendiente: $${Math.round(totalSales).toLocaleString('es-CO')}, lavandería: $${Math.round(totalLaundry).toLocaleString('es-CO')}, total: $${Math.round(grandTotal).toLocaleString('es-CO')})`,
+      description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsToBill} noches: $${Math.round(totalRoom).toLocaleString('es-CO')}, anticipo aplicado: $${Math.round(Math.min(totalRoom, reservationPaid)).toLocaleString('es-CO')}, saldo de hospedaje: $${Math.round(roomBalance).toLocaleString('es-CO')}, tienda pendiente: $${Math.round(totalSales).toLocaleString('es-CO')}, lavandería: $${Math.round(totalLaundry).toLocaleString('es-CO')}, pago final registrado: $${Math.round(grandTotal).toLocaleString('es-CO')})`,
       oldValue: stay,
       newValue: updatedStay
     });

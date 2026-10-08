@@ -35,6 +35,7 @@ import { HuespedesPage } from '../pages/HuespedesPage';
 import { InventarioPage } from '../pages/InventarioPage';
 import { LavanderiaPage } from '../pages/LavanderiaPage';
 import { RecepcionPage } from '../pages/RecepcionPage';
+import { ReservasPage } from '../pages/ReservasPage';
 import { SemanarioPage } from '../pages/SemanarioPage';
 import { VentasPage } from '../pages/VentasPage';
 import { Role } from './roles';
@@ -98,7 +99,7 @@ export const moduleRoutes: AppRoute[] = [
       assistantSummary:
         'Reservas: manejo de reservaciones, fechas de ingreso y salida, disponibilidad y confirmaciones.'
     },
-    component: ModulePlaceholder
+    component: ReservasPage
   },
   {
     key: 'huespedes',
