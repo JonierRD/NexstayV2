@@ -7,7 +7,12 @@ import {
   laundryRequest,
   updateLaundryRequest
 } from '../../lib/api';
-import { type LaundryItemType, type LaundryStatus } from './types';
+import {
+  type LaundryItemType,
+  type LaundryStatus,
+  itemPluralLabels,
+  parseLaundryItemCounts
+} from './types';
 import { useConfirmDialog } from '../ui/useConfirmDialog';
 
 export function useLavanderia() {
@@ -66,13 +71,35 @@ export function useLavanderia() {
         (order.roomNumber ?? '').toLowerCase().includes(normalizedSearch);
 
       const matchesStatus = statusFilter === 'TODOS' || order.status === statusFilter;
-      const matchesItem = itemFilter === 'TODOS' || order.item === itemFilter;
+      const matchesItem =
+        itemFilter === 'TODOS' ||
+        order.item === itemFilter ||
+        order.description.toLowerCase().includes(itemPluralLabels[itemFilter].toLowerCase());
 
       return matchesSearch && matchesStatus && matchesItem;
     });
   }, [orders, search, statusFilter, itemFilter]);
 
   const selectedOrder = filteredOrders.find((o) => o.id === selectedId) ?? filteredOrders[0];
+
+  async function repriceOrders(prices: Record<LaundryItemType, number>): Promise<void> {
+    const updatedOrders = await Promise.all(orders.map((order) => {
+      const counts = parseLaundryItemCounts(
+        order.description,
+        order.item as LaundryItemType,
+        order.quantity
+      );
+      const totalPrice = Object.entries(counts).reduce(
+        (total, [item, count]) => total + count * prices[item as LaundryItemType],
+        0
+      );
+      return updateLaundryRequest(order.id, {
+        unitPrice: Math.round(totalPrice / order.quantity),
+        totalPrice
+      });
+    }));
+    setOrders(updatedOrders);
+  }
 
   // PROCESO: Cálculo de estadísticas (totales por estado)
   const stats = useMemo(
@@ -153,6 +180,7 @@ export function useLavanderia() {
     loading,
     filteredOrders,
     selectedOrder,
+    repriceOrders,
     stats,
     search,
     setSearch,

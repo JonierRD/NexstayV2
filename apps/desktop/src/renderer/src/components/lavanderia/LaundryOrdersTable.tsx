@@ -24,7 +24,7 @@ export function LaundryOrdersTable({ orders, selectedId, onSelect, onDelete }: P
     return (
         <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-[#ebe1d8]">
             <div className="grid grid-cols-[110px_1fr_120px_100px_100px_90px] gap-2 border-b border-[#ece2d8] bg-[#fbf7f2] px-3 py-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#8f7c70] min-w-[700px]">
-                <div>Prenda</div>
+                <div>Prendas</div>
                 <div>Cliente / Descripción</div>
                 <div className="text-center">Habitación</div>
                 <div className="text-center">Total</div>
@@ -40,6 +40,7 @@ export function LaundryOrdersTable({ orders, selectedId, onSelect, onDelete }: P
                 )}
                 {orders.map((order) => {
                     const isSelected = order.id === selectedId;
+                    const hasMultipleItemTypes = order.description.includes(',');
                     return (
                         <button
                             key={order.id}
@@ -51,7 +52,7 @@ export function LaundryOrdersTable({ orders, selectedId, onSelect, onDelete }: P
                             )}
                         >
                             <div className="text-[12px] font-semibold text-sapay-950">
-                                {itemLabels[order.item as LaundryItemType]}
+                                {hasMultipleItemTypes ? 'Varias prendas' : itemLabels[order.item as LaundryItemType]}
                             </div>
 
                             <div className="min-w-0">

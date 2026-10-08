@@ -28,6 +28,7 @@ export function LaundryDetailCard({
     onDelete
 }: Props): ReactElement {
     const status = laundry.status as LaundryStatus;
+    const hasMultipleItemTypes = laundry.description.includes(',');
     const nextStatusLabel: Partial<Record<LaundryStatus, string>> = {
         PENDIENTE: 'Marcar En Proceso',
         EN_PROCESO: 'Marcar Listo',
@@ -40,7 +41,7 @@ export function LaundryDetailCard({
                 <div className="mb-3 flex items-start justify-between">
                     <div>
                         <h3 className="text-[16px] font-bold tracking-tight text-sapay-950">
-                            {itemLabels[laundry.item as LaundryItemType]}
+                            {hasMultipleItemTypes ? 'Varias prendas' : itemLabels[laundry.item as LaundryItemType]}
                         </h3>
                         <p className="text-[12px] text-[#6f6055]">Orden #{laundry.id}</p>
                     </div>
@@ -55,16 +56,7 @@ export function LaundryDetailCard({
                 <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-xl border border-sapay-300 bg-sapay-150 px-4 py-3 text-[12px]">
                     <DetailLine label="Cliente" value={laundry.clientName} />
                     <DetailLine label="Habitación" value={laundry.roomNumber ?? '---'} />
-                    <DetailLine label="Cantidad" value={String(laundry.quantity)} />
-                    <DetailLine label="Precio unit." value={fmtMoney(laundry.unitPrice)} />
-                </div>
-
-                <div className="mt-2 rounded-xl border border-[#c3b5a8] bg-[#f9f0e6] px-4 py-3">
-                    <h4 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sapay-650">Cobro</h4>
-                    <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px]">
-                        <DetailLine label="Cant. × Precio" value={`${laundry.quantity} × ${fmtMoney(laundry.unitPrice)}`} />
-                        <DetailLine label="Total" value={fmtMoney(laundry.totalPrice)} />
-                    </div>
+                    <DetailLine label="Precio total" value={fmtMoney(laundry.totalPrice)} />
                 </div>
 
                 <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-xl border border-sapay-300 bg-sapay-150 px-4 py-3 text-[12px]">

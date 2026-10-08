@@ -27,6 +27,63 @@ export const itemLabels: Record<LaundryItemType, string> = {
     OTRO: 'Otro'
 };
 
+export const itemPluralLabels: Record<LaundryItemType, string> = {
+    CAMISA: 'camisas',
+    PANTALON: 'pantalones',
+    TOALLA: 'toallas',
+    SABANA: 'sábanas',
+    FUNDAS_ALMOHADA: 'fundas de almohada',
+    EDREDON: 'edredones',
+    OTRO: 'otras prendas'
+};
+
+export const itemPrices: Record<LaundryItemType, number> = {
+    CAMISA: 1000,
+    PANTALON: 3000,
+    TOALLA: 1000,
+    SABANA: 3000,
+    FUNDAS_ALMOHADA: 1000,
+    EDREDON: 5000,
+    OTRO: 1000
+};
+
+const LAUNDRY_PRICES_STORAGE_KEY = 'sapay-laundry-prices';
+
+export function loadLaundryPrices(): Record<LaundryItemType, number> {
+    try {
+        const storedPrices = localStorage.getItem(LAUNDRY_PRICES_STORAGE_KEY);
+        if (!storedPrices) return { ...itemPrices };
+
+        const parsed = JSON.parse(storedPrices) as Partial<Record<LaundryItemType, unknown>>;
+        return Object.fromEntries(itemOptions.map((item) => {
+            const price = parsed[item];
+            return [item, typeof price === 'number' && Number.isSafeInteger(price) && price > 0 ? price : itemPrices[item]];
+        })) as Record<LaundryItemType, number>;
+    } catch {
+        return { ...itemPrices };
+    }
+}
+
+export function saveLaundryPrices(prices: Record<LaundryItemType, number>): void {
+    localStorage.setItem(LAUNDRY_PRICES_STORAGE_KEY, JSON.stringify(prices));
+}
+
+export function parseLaundryItemCounts(
+    description: string,
+    fallbackItem?: LaundryItemType,
+    fallbackQuantity = 0
+): Record<LaundryItemType, number> {
+    const counts = Object.fromEntries(itemOptions.map((item) => [item, 0])) as Record<LaundryItemType, number>;
+    for (const item of itemOptions) {
+        const match = new RegExp(`(?:^|,\\s*)(\\d+)\\s+${itemPluralLabels[item]}\\b`, 'i').exec(description);
+        if (match) counts[item] = Number(match[1]);
+    }
+    if (Object.values(counts).every((count) => count === 0) && fallbackItem && fallbackQuantity > 0) {
+        counts[fallbackItem] = fallbackQuantity;
+    }
+    return counts;
+}
+
 export const itemOptions: LaundryItemType[] = ['CAMISA', 'PANTALON', 'TOALLA', 'SABANA', 'FUNDAS_ALMOHADA', 'EDREDON', 'OTRO'];
 export const statusOptions: LaundryStatus[] = ['PENDIENTE', 'EN_PROCESO', 'LISTO', 'ENTREGADO'];
 
@@ -40,10 +97,6 @@ export function fmtDate(iso: string | null): string {
 }
 
 export type LaundryFormState = {
-    item: LaundryItemType;
-    description: string;
-    quantity: string;
-    unitPrice: string;
     clientName: string;
     roomNumber: string;
     notes: string;
@@ -52,10 +105,6 @@ export type LaundryFormState = {
 };
 
 export const emptyForm: LaundryFormState = {
-    item: 'CAMISA',
-    description: '',
-    quantity: '1',
-    unitPrice: '',
     clientName: '',
     roomNumber: '',
     notes: '',

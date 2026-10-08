@@ -3,9 +3,10 @@ import {
     Clock3,
     PackageCheck,
     Plus,
+    SlidersHorizontal,
     Shirt
 } from 'lucide-react';
-import { type ReactElement } from 'react';
+import { type ReactElement, useState } from 'react';
 import { type PublicUser } from '../lib/api';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AccentButton } from '../components/ui/AccentButton';
@@ -13,20 +14,37 @@ import { FilterSelect } from '../components/ui/FilterSelect';
 import { SearchInput } from '../components/ui/SearchInput';
 import { StatCard } from '../components/ui/StatCard';
 import { LaundryFormModal } from '../components/lavanderia/LaundryFormModal';
+import { LaundryRatesModal } from '../components/lavanderia/LaundryRatesModal';
 import { LaundryDetailCard } from '../components/lavanderia/LaundryDetailCard';
 import { LaundryOrdersTable } from '../components/lavanderia/LaundryOrdersTable';
 import { useLavanderia } from '../components/lavanderia/useLavanderia';
 import {
     itemLabels,
     itemOptions,
+    loadLaundryPrices,
+    saveLaundryPrices,
     statusLabels,
     statusOptions
 } from '../components/lavanderia/types';
+import { type LaundryItemType } from '../components/lavanderia/types';
 
 // ---------- Componente principal ----------
 
 export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
     const l = useLavanderia();
+    const [prices, setPrices] = useState(loadLaundryPrices);
+    const [showRates, setShowRates] = useState(false);
+
+    async function handleSavePrices(nextPrices: Record<LaundryItemType, number>): Promise<boolean> {
+        try {
+            await l.repriceOrders(nextPrices);
+            saveLaundryPrices(nextPrices);
+            setPrices(nextPrices);
+            return true;
+        } catch {
+            return false;
+        }
+    }
 
     if (l.loading) {
         return (
@@ -99,6 +117,14 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                                 />
 
                                 <AccentButton
+                                    onClick={() => setShowRates(true)}
+                                    className="gap-1.5 h-8 shrink-0 text-[11px]"
+                                >
+                                    <SlidersHorizontal size={14} aria-hidden="true" />
+                                    Tarifas
+                                </AccentButton>
+
+                                <AccentButton
                                     onClick={l.openCreateForm}
                                     className="gap-1.5 bg-sapay-900 text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
                                 >
@@ -139,8 +165,17 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                 // PROCESO: Modal de creación / edición (con 'editingOrder' presente → editar)
                 <LaundryFormModal
                     laundry={l.editingOrder ?? undefined}
+                    prices={prices}
                     onSubmit={l.submitOrder}
                     onClose={l.closeForm}
+                />
+            )}
+
+            {showRates && (
+                <LaundryRatesModal
+                    prices={prices}
+                    onSave={handleSavePrices}
+                    onClose={() => setShowRates(false)}
                 />
             )}
 
