@@ -37,8 +37,8 @@ export function RecepcionistasPanel({
   }
 
   return (
-    <aside className="flex w-full flex-col overflow-hidden rounded-[18px] border border-sapay-350 bg-white xl:w-[292px]">
-      <div className="flex items-center justify-between gap-2 border-b border-sapay-200 px-3 py-2">
+    <aside className="flex min-h-0 flex-1 w-full lg:w-1/2 flex-col overflow-hidden rounded-[18px] border border-sapay-350 bg-white">
+      <div className="flex items-center justify-between gap-2 border-b border-sapay-200 px-3 py-2 shrink-0">
         <h3 className="text-[11px] font-semibold text-sapay-950">Recepcionistas</h3>
         <button
           type="button"
@@ -131,7 +131,7 @@ export function RecepcionistasPanel({
         })}
       </div>
 
-      <div className="border-t border-sapay-200 bg-[#fbf7f2] px-3 py-2 text-[9px] leading-relaxed text-sapay-600">
+      <div className="shrink-0 border-t border-sapay-200 bg-[#fbf7f2] px-3 py-2 text-[9px] leading-relaxed text-sapay-600">
         <p className="font-semibold text-sapay-750">Cómo funciona la rotación</p>
         <p>
           La <strong>#1</strong> abre el primer turno del rango y de ahí van rotando. Con 3

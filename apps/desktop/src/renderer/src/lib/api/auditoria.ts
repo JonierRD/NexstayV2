@@ -16,7 +16,7 @@ export type AuditLog = {
   user: {
     id: string;
     fullName: string;
-    role: 'ADMIN' | 'RECEPTION';
+    role: 'ADMIN' | 'RECEPTION' | 'CLEANING';
     email: string;
   };
 };

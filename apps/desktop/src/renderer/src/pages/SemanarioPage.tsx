@@ -51,8 +51,8 @@ export function SemanarioPage({ user }: { user: PublicUser }): ReactElement {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-sapay-250 text-sapay-950">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4">
-        <div className="grid gap-2 py-2 xl:grid-cols-4">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 sm:px-4">
+        <div className="grid grid-cols-2 gap-1.5 py-1.5 sm:grid-cols-4 md:gap-2 shrink-0">
           <StatCard
             icon={CalendarRange}
             title="Rango"
@@ -83,10 +83,10 @@ export function SemanarioPage({ user }: { user: PublicUser }): ReactElement {
           />
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-3 pb-3 xl:flex-row">
-          <section className="flex min-h-0 flex-1 flex-col rounded-[20px] border border-sapay-350 bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)]">
-            <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-              <div className="min-w-[200px]">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 pb-3 lg:flex-row">
+          <section className="flex min-h-0 flex-1 w-full lg:w-1/2 flex-col rounded-[20px] border border-sapay-350 bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)] overflow-hidden">
+            <div className="flex flex-col gap-2 shrink-0 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-[160px]">
                 <h2 className="text-[13px] font-semibold text-sapay-950">Horario semanal</h2>
                 <p className="mt-0.5 flex items-center gap-1.5 text-[9px] text-sapay-550">
                   {TURNO_LABELS.DIA} {TURNO_HORAS.DIA} · {TURNO_LABELS.NOCHE}{' '}

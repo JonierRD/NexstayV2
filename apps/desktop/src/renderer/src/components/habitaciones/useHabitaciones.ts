@@ -14,6 +14,7 @@ import {
 } from '../../lib/api';
 import { mapApiRoom, type Room, type RoomStatus } from './types';
 import { useConfirmDialog } from '../ui/useConfirmDialog';
+import { Role } from '../../routes/roles';
 
 export type PendingRoomAction = 'create' | 'edit' | 'liberar';
 
@@ -55,6 +56,7 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
   } = useConfirmDialog();
 
   const isAdmin = user.role === 'ADMIN';
+  const canManage = user.role !== Role.CLEANING;
 
   // GET /habitaciones + GET /stays/active → mestrar huésped en cada habitación ocupada
   const loadRooms = useCallback(() => {
@@ -180,12 +182,19 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
 
   // Crear, editar y liberar son operaciones normales: no piden contrasena de admin.
   // Solo eliminar una habitacion exige la contrasena de un administrador.
+  // El personal de limpieza es solo lectura: nunca ejecuta estas acciones.
   function requireAuth(action: PendingRoomAction, roomNumber?: string) {
+    if (!canManage) {
+      return;
+    }
     executeAction(action, roomNumber);
   }
 
   // Pide confirmacion y, si quien borra no es ADMIN, la contrasena de un administrador.
   function requestDeleteRoom(roomNumber: string) {
+    if (!canManage) {
+      return;
+    }
     setShowRoomForm(false);
     setEditingRoom(null);
     setRoomToDelete(roomNumber);

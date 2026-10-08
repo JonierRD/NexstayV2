@@ -14,7 +14,7 @@ export function InventoryFilters({
   onCategoryChange: (value: string) => void;
 }) {
   return (
-    <div className="mb-4 flex flex-col gap-3 rounded-[18px] border border-sapay-350 bg-white p-3.5 shadow-[0_10px_30px_rgba(67,42,27,0.04)] sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-3 shrink-0 flex flex-col gap-2 rounded-[16px] border border-sapay-350 bg-white p-2.5 shadow-[0_8px_24px_rgba(67,42,27,0.04)] sm:flex-row sm:items-center sm:justify-between">
       {/* Buscador */}
       <div className="relative flex-1">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-sapay-650" />

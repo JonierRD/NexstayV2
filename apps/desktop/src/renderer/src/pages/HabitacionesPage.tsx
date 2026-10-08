@@ -1,6 +1,7 @@
 import { BedDouble, CheckCircle, Clock3, Gavel, Plus } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
+import { Role } from '../routes/roles';
 import { AdminPasswordModal } from '../components/ui/AdminPasswordModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { RoomFormModal } from '../components/habitaciones/RoomFormModal';
@@ -22,6 +23,8 @@ const statsConfig = [
 
 export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
   const h = useHabitaciones({ user });
+  // El personal de limpieza solo consulta: no crea, edita, libera ni elimina.
+  const readOnly = user.role === Role.CLEANING;
 
   if (h.loading) {
     return (
@@ -36,8 +39,8 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-sapay-250 text-sapay-950">
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-4">
-        <div className="grid grid-cols-2 gap-2 py-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden px-3 sm:px-4 pb-3">
+        <div className="grid grid-cols-2 gap-1.5 py-1.5 sm:grid-cols-3 lg:grid-cols-5 shrink-0">
           {statsConfig.map((cfg) => (
             <StatCard
               key={cfg.key}
@@ -51,32 +54,34 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
         </div>
 
         {h.imageError && (
-          <div className="mb-2 rounded-xl border border-danger-200 bg-danger-100 px-3 py-2 text-[11px] text-[#b33a3a]">
+          <div className="mb-2 shrink-0 rounded-xl border border-danger-200 bg-danger-100 px-3 py-2 text-[11px] text-[#b33a3a]">
             {h.imageError}
           </div>
         )}
 
-        <div className="flex min-h-0 flex-1 flex-col gap-3 pb-3 xl:flex-row">
-          <section className="flex min-h-0 flex-1 flex-col rounded-[20px] border border-sapay-350 bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)]">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between w-full">
-              <div className="min-w-[180px]">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 pb-1 lg:flex-row">
+          <section className="flex min-h-0 flex-1 w-full lg:w-1/2 flex-col rounded-[20px] border border-sapay-350 bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)] overflow-hidden">
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between w-full shrink-0">
+              <div className="min-w-[140px]">
                 <h2 className="text-[13px] font-semibold text-sapay-950">Lista de Habitaciones</h2>
               </div>
 
-              <div className="flex flex-wrap items-center gap-1.5 flex-1 justify-start lg:justify-end">
+              <div className="flex flex-wrap items-center gap-1.5 flex-1 justify-start sm:justify-end">
                 <SearchInput value={h.search} onChange={h.setSearch} placeholder="Buscar habitación..." />
 
                 <FilterSelect label="Estado" value={h.statusFilter} onChange={h.setStatusFilter} options={['TODOS', 'DISPONIBLE', 'OCUPADA', 'RESERVADA', 'MANTENIMIENTO']} />
                 <FilterSelect label="Estilo" value={h.styleFilter} onChange={h.setStyleFilter} options={['TODOS', 'SENCILLA', 'MATRIMONIAL', 'DOS CAMAS']} />
                 <FilterSelect label="A/V" value={h.fanFilter} onChange={h.setFanFilter} options={['TODOS', 'Ventilador', 'Sin Ventilador']} />
 
-                <AccentButton
-                  onClick={() => h.requireAuth('create')}
-                  className="gap-1.5 bg-sapay-900 text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
-                >
-                  <Plus size={14} aria-hidden="true" />
-                  Nueva
-                </AccentButton>
+                {!readOnly && (
+                  <AccentButton
+                    onClick={() => h.requireAuth('create')}
+                    className="gap-1.5 bg-sapay-900 text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
+                  >
+                    <Plus size={14} aria-hidden="true" />
+                    Nueva
+                  </AccentButton>
+                )}
               </div>
             </div>
 
@@ -85,6 +90,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
               selectedNumber={h.selectedRoom?.number}
               onSelect={h.setSelectedRoomNumber}
               onEdit={(number) => h.requireAuth('edit', number)}
+              readOnly={readOnly}
             />
           </section>
 
@@ -94,11 +100,12 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
               onLiberar={() => h.requireAuth('liberar', h.selectedRoom!.number)}
               onAddImage={() => h.handleAddImage(h.selectedRoom!.number)}
               onRemoveImage={() => h.handleRemoveImage(h.selectedRoom!.number)}
+              readOnly={readOnly}
             />
           )}
 
           {!h.selectedRoom && (
-            <section className="flex min-h-[220px] xl:min-h-0 w-full flex-col rounded-[26px] border border-sapay-350 bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[420px] items-center justify-center p-6">
+            <section className="flex min-h-[220px] lg:min-h-0 flex-1 w-full lg:w-1/2 flex-col rounded-[26px] border border-sapay-350 bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] items-center justify-center p-6">
               <div className="text-center">
                 <p className="text-[13px] font-medium text-sapay-650">Selecciona una habitación</p>
                 <p className="mt-1 text-[11px] text-sapay-550">para ver los detalles</p>

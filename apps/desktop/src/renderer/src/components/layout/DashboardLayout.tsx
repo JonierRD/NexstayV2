@@ -2,11 +2,13 @@ import { createElement, type ReactElement, useEffect, useState } from 'react';
 import { Bell, CalendarDays, LogOut, PanelRightClose } from 'lucide-react';
 import type { PublicUser } from '../../lib/api';
 import { formatClock, formatHeaderDate } from '../../lib/format';
+import { useBreakpoint } from '../../lib/useBreakpoint';
 import { useAuthSession } from '../../context/AuthContext';
 import { Sidebar } from './Sidebar';
 import { AssistantChat } from '../assistant/AssistantChat';
 import { RouteGuard } from '../../routes/RouteGuard';
-import { findRoute } from '../../routes/routeAccess';
+import { findRoute, getAllowedRoutes } from '../../routes/routeAccess';
+import { Role } from '../../routes/roles';
 import type { ModuleKey } from '../../routes/types';
 
 type DashboardLayoutProps = {
@@ -14,13 +16,42 @@ type DashboardLayoutProps = {
   onLogout: () => void;
 };
 
+const ROLE_LABEL: Record<string, string> = {
+  ADMIN: 'Administrador',
+  RECEPTION: 'Recepcionista',
+  CLEANING: 'Personal de limpieza'
+};
+
+// Primer módulo navegable al que el rol tiene acceso; evita aterrizar en una
+// pantalla prohibida (el personal de limpieza entra directo a Habitaciones).
+function getHomeModule(user: PublicUser | null): ModuleKey {
+  if (!user) {
+    return 'dashboard';
+  }
+  const firstAllowed = getAllowedRoutes(user.role as Role).find(
+    (route) => route.meta.section === 'main' && route.meta.icon && !route.meta.isPublic
+  );
+  return (firstAllowed?.key as ModuleKey) ?? 'dashboard';
+}
+
 export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): ReactElement {
   const { user: sessionUser } = useAuthSession();
   const resolvedUser = user ?? sessionUser ?? null;
-  const [active, setActive] = useState<ModuleKey>('dashboard');
+  const [active, setActive] = useState<ModuleKey>(() => getHomeModule(resolvedUser));
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const bp = useBreakpoint();
   const route = findRoute(active);
   const pageTitle = route?.meta.title ?? 'SAPAY';
+
+  // Auto-colapsar sidebar cuando la ventana es angosta (< 1024px),
+  // y restaurarlo cuando crece de vuelta.
+  useEffect(() => {
+    if (bp === 'compact') {
+      setSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+    }
+  }, [bp]);
 
   // El reloj debe avanzar solo; calcularlo en el render lo dejaba congelado
   // hasta que ocurriera otro re-render sin relación.
@@ -69,7 +100,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
           <span className="text-[13px] font-semibold tracking-tight text-sapay-950">{pageTitle}</span>
           <div className="flex-1" />
 
-          <div className="flex items-center gap-2 rounded-[16px] border border-sapay-350 bg-[#fbf8f4] px-3 py-1.5 text-sapay-900 shadow-[0_10px_24px_rgba(67,42,27,0.06)]">
+          <div className="hidden items-center gap-2 rounded-[16px] border border-sapay-350 bg-[#fbf8f4] px-3 py-1.5 text-sapay-900 shadow-[0_10px_24px_rgba(67,42,27,0.06)] lg:flex">
             <CalendarDays size={15} aria-hidden="true" />
             <div className="leading-tight">
               <p className="text-[11px] font-medium">{formattedDate}</p>
@@ -86,11 +117,13 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
             <span className="absolute right-0.5 top-0.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-[#cf3d2e] text-[9px] font-semibold text-white shadow-md" />
           </button>
 
-          <span className="h-4 w-px bg-[hsl(var(--border))]" />
+          <span className="hidden h-4 w-px bg-[hsl(var(--border))] lg:block" />
           <div className="flex items-center gap-2">
-            <div className="text-right">
+            <div className="hidden text-right lg:block">
               <p className="text-[11px] font-medium leading-tight">{resolvedUser?.fullName ?? 'Usuario'}</p>
-              <p className="text-[9px] text-[hsl(var(--muted-foreground))]">{resolvedUser?.role === 'ADMIN' ? 'Administrador' : 'Recepcionista'}</p>
+              <p className="text-[9px] text-[hsl(var(--muted-foreground))]">
+                {resolvedUser ? (ROLE_LABEL[resolvedUser.role] ?? 'Personal') : 'Personal'}
+              </p>
             </div>
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-semibold text-white">
               {(resolvedUser?.fullName ?? 'U').charAt(0)}
@@ -108,7 +141,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
           <RouteGuard
             activeModule={active}
             user={resolvedUser ?? undefined}
-            onNavigateHome={() => setActive('dashboard')}
+            onNavigateHome={() => setActive(getHomeModule(resolvedUser))}
           >
             {route ? createElement(route.component, { user: resolvedUser ?? user }) : null}
           </RouteGuard>

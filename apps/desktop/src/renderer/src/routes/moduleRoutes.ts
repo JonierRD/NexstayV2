@@ -43,6 +43,10 @@ import { type AppRoute } from './types';
 const staff = [Role.ADMIN, Role.RECEPTION];
 const adminOnly = [Role.ADMIN];
 
+// Módulos a los que también accede el personal de limpieza (solo lectura en
+// Habitaciones; Lavandería y Perfil completos).
+const staffAndCleaning = [...staff, Role.CLEANING];
+
 // Vista provisional para módulos aún no implementados.
 function ModulePlaceholder(): ReactElement {
   return createElement(
@@ -114,11 +118,11 @@ export const moduleRoutes: AppRoute[] = [
     path: '/habitaciones',
     meta: {
       title: 'Habitaciones',
-      roles: staff,
+      roles: staffAndCleaning,
       section: 'main',
       icon: BedDouble,
       assistantSummary:
-        'Habitaciones: gestión de tipos, estados, precios, mantenimiento y disponibilidad de habitaciones.'
+        'Habitaciones: consulta de tipos, estados, precios, mantenimiento y disponibilidad de habitaciones. El personal de limpieza solo consulta (lee qué habitación está ocupada); la gestión la hace recepción y administración.'
     },
     component: HabitacionesPage
   },
@@ -166,7 +170,7 @@ export const moduleRoutes: AppRoute[] = [
     path: '/lavanderia',
     meta: {
       title: 'Lavandería',
-      roles: staff,
+      roles: staffAndCleaning,
       section: 'main',
       icon: Shirt,
       assistantSummary:
@@ -285,7 +289,7 @@ export const moduleRoutes: AppRoute[] = [
     path: '/perfil',
     meta: {
       title: 'Perfil',
-      roles: staff,
+      roles: staffAndCleaning,
       section: 'bottom',
       icon: UserCircle,
       assistantSummary: 'Perfil: visualización de información del usuario y cambio de contraseña.'
