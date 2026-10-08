@@ -77,6 +77,13 @@ enum VehicleType {
   PESADO
 }
 
+enum ParkingSessionStatus {
+  EN_CURSO
+  PENDIENTE_PAGO
+  PAGADO
+  EXONERADO
+}
+
 enum SaleType {
   CONTADO
   FIADO
@@ -244,6 +251,40 @@ model ParkingPayment {
 
   parking MonthlyParking @relation(fields: [parkingId], references: [id])
   @@map("pagos_parqueadero")
+}
+
+model ParkingRates {
+  id                  Int      @id @default(1)
+  motorcycleHourlyRate Decimal  @default(1000) @map("tarifa_moto_hora")
+  carHourlyRate        Decimal  @default(2000) @map("tarifa_carro_hora")
+  updatedAt            DateTime @updatedAt @map("actualizado_en")
+
+  @@map("tarifas_parqueadero")
+}
+
+model ParkingSession {
+  id              Int                  @id @default(autoincrement())
+  ownerName       String               @map("propietario")
+  ownerCc         String               @map("cedula")
+  licensePlate    String               @map("placa")
+  phone           String               @map("telefono")
+  vehicleLine     String               @map("linea")
+  vehicleType     VehicleType          @map("tipo_vehiculo")
+  entryAt         DateTime             @default(now()) @map("entrada")
+  exitAt          DateTime?            @map("salida")
+  hourlyRate      Decimal              @map("tarifa_hora")
+  billedHours     Int?                 @map("horas_cobradas")
+  totalPrice      Decimal?             @map("total")
+  status          ParkingSessionStatus @default(EN_CURSO) @map("estado")
+  hostedAtEntry   Boolean              @default(false) @map("hospedado_al_ingreso")
+  paidAt          DateTime?            @map("fecha_pago")
+  notes           String?              @map("notas")
+  createdAt       DateTime             @default(now()) @map("creado_en")
+  updatedAt       DateTime             @updatedAt @map("actualizado_en")
+
+  @@index([licensePlate, status])
+  @@index([ownerCc, entryAt])
+  @@map("parqueadero_sesiones")
 }
 
 model AuditLog {

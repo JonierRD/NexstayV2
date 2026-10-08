@@ -36,6 +36,7 @@ import { InventarioPage } from '../pages/InventarioPage';
 import { LavanderiaPage } from '../pages/LavanderiaPage';
 import { RecepcionPage } from '../pages/RecepcionPage';
 import { SemanarioPage } from '../pages/SemanarioPage';
+import { ParqueaderoPage } from '../pages/ParqueaderoPage';
 import { VentasPage } from '../pages/VentasPage';
 import { Role } from './roles';
 import { type AppRoute } from './types';
@@ -161,9 +162,9 @@ export const moduleRoutes: AppRoute[] = [
       section: 'main',
       icon: Car,
       assistantSummary:
-        'Parqueadero: control de parqueadero mensual y gestión asociada al huésped o cliente.'
+        'Parqueadero: registro de entradas y salidas, tarifas por hora para motos y carros, cobros a visitantes externos y exención para huéspedes activos.'
     },
-    component: ModulePlaceholder
+    component: ParqueaderoPage
   },
   {
     key: 'lavanderia',

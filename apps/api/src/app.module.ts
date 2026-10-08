@@ -10,6 +10,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { StaysModule } from './stays/stays.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { SemanarioModule } from './semanario/semanario.module';
+import { ParkingModule } from './parking/parking.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { SemanarioModule } from './semanario/semanario.module';
     InventoryModule,
     StaysModule,
     ClientesModule,
-    SemanarioModule
+    SemanarioModule,
+    ParkingModule
   ],
   controllers: [AppController]
 })
