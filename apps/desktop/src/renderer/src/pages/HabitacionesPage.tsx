@@ -1,6 +1,7 @@
 import { BedDouble, CheckCircle, Clock3, Gavel, Plus } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
+import { Role } from '../routes/roles';
 import { AdminPasswordModal } from '../components/ui/AdminPasswordModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { RoomFormModal } from '../components/habitaciones/RoomFormModal';
@@ -22,6 +23,8 @@ const statsConfig = [
 
 export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
   const h = useHabitaciones({ user });
+  // El personal de limpieza solo consulta: no crea, edita, libera ni elimina.
+  const readOnly = user.role === Role.CLEANING;
 
   if (h.loading) {
     return (
@@ -70,13 +73,15 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
                 <FilterSelect label="Estilo" value={h.styleFilter} onChange={h.setStyleFilter} options={['TODOS', 'SENCILLA', 'MATRIMONIAL', 'DOS CAMAS']} />
                 <FilterSelect label="A/V" value={h.fanFilter} onChange={h.setFanFilter} options={['TODOS', 'Ventilador', 'Sin Ventilador']} />
 
-                <AccentButton
-                  onClick={() => h.requireAuth('create')}
-                  className="gap-1.5 bg-sapay-900 text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
-                >
-                  <Plus size={14} aria-hidden="true" />
-                  Nueva
-                </AccentButton>
+                {!readOnly && (
+                  <AccentButton
+                    onClick={() => h.requireAuth('create')}
+                    className="gap-1.5 bg-sapay-900 text-white hover:bg-[#5b3428] h-8 text-[11px] shrink-0"
+                  >
+                    <Plus size={14} aria-hidden="true" />
+                    Nueva
+                  </AccentButton>
+                )}
               </div>
             </div>
 
@@ -85,6 +90,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
               selectedNumber={h.selectedRoom?.number}
               onSelect={h.setSelectedRoomNumber}
               onEdit={(number) => h.requireAuth('edit', number)}
+              readOnly={readOnly}
             />
           </section>
 
@@ -94,6 +100,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
               onLiberar={() => h.requireAuth('liberar', h.selectedRoom!.number)}
               onAddImage={() => h.handleAddImage(h.selectedRoom!.number)}
               onRemoveImage={() => h.handleRemoveImage(h.selectedRoom!.number)}
+              readOnly={readOnly}
             />
           )}
 

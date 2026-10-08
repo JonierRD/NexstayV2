@@ -7,7 +7,7 @@ export type AssistantChatMessage = {
 
 export type AssistantPageContext = {
   pageName: string;
-  userRole: 'ADMIN' | 'RECEPTION';
+  userRole: 'ADMIN' | 'RECEPTION' | 'CLEANING';
   appName: string;
   pageSummary: string;
 };

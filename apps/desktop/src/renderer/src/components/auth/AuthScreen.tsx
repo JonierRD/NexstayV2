@@ -1,4 +1,4 @@
-import { Shield, UsersRound } from 'lucide-react';
+import { Shield, Sparkles, UsersRound } from 'lucide-react';
 import FondoLogin from '../../assets/login/FondoLogin.png';
 import Logo from '../../assets/login/Logo.png';
 import { LoadingOverlay } from '../ui/LoadingOverlay';
@@ -13,13 +13,25 @@ const accessCards = [
     icon: UsersRound,
     title: 'Recepcionista',
     role: 'RECEPTION' as const,
-    description: 'Registrar recepcionista.'
+    description: 'Registrar recepcionista.',
+    iconBg: 'bg-[#f3c331]',
+    iconColor: 'text-sapay-1000'
   },
   {
     icon: Shield,
     title: 'Administrador',
     role: 'ADMIN' as const,
-    description: 'Registrar administrador.'
+    description: 'Registrar administrador.',
+    iconBg: 'bg-sapay-900',
+    iconColor: 'text-white'
+  },
+  {
+    icon: Sparkles,
+    title: 'Personal de limpieza',
+    role: 'CLEANING' as const,
+    description: 'Registrar personal de limpieza.',
+    iconBg: 'bg-emerald-600',
+    iconColor: 'text-white'
   }
 ];
 
@@ -61,7 +73,9 @@ export function AuthScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
                 : mode === 'register'
                   ? auth.register.role === 'ADMIN'
                     ? 'Registro de administrador'
-                    : 'Registro de recepcionista'
+                    : auth.register.role === 'CLEANING'
+                      ? 'Registro de personal de limpieza'
+                      : 'Registro de recepcionista'
                   : mode === 'forgot-password'
                     ? 'Restablecer contraseña'
                     : 'Nueva contraseña'}
@@ -164,33 +178,35 @@ export function AuthScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
           ) : null}
 
           {showAccessCards ? (
-            <div className="mt-3 grid grid-cols-2 gap-3">
+            <div className="mt-3 grid grid-cols-3 gap-2.5">
               {accessCards.map((card) => (
                 <button
                   key={card.title}
                   type="button"
                   onClick={() => auth.handleAccessCardClick(card.role)}
-                  className={`rounded-md border bg-white px-3 py-3 text-left transition hover:border-[#bcbcbc] hover:shadow-[0_8px_18px_rgba(0,0,0,0.06)] ${
+                  className={`rounded-md border bg-white px-2 py-3 text-left transition hover:border-[#bcbcbc] hover:shadow-[0_8px_18px_rgba(0,0,0,0.06)] ${
                     (mode === 'login' ? auth.login.role : auth.register.role) === card.role
                       ? 'border-sapay-900 ring-1 ring-sapay-900/20'
                       : 'border-[#dcdcdc]'
                   }`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex flex-col items-center gap-2 text-center">
                     <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                        card.title === 'Recepcionista' ? 'bg-[#f3c331]' : 'bg-sapay-900'
-                      }`}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${card.iconBg}`}
                     >
                       <card.icon
-                        className={card.title === 'Recepcionista' ? 'text-sapay-1000' : 'text-white'}
+                        className={card.iconColor}
                         size={17}
                         aria-hidden="true"
                       />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-[13px] font-semibold text-sapay-1000">{card.title}</h3>
-                      <p className="mt-0.5 text-[10px] leading-4 text-[#474747]">{card.description}</p>
+                      <h3 className="text-[12px] font-semibold leading-tight text-sapay-1000">
+                        {card.title}
+                      </h3>
+                      <p className="mt-0.5 text-[9px] leading-3 text-[#474747]">
+                        {card.description}
+                      </p>
                     </div>
                   </div>
                 </button>

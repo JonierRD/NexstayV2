@@ -3,7 +3,7 @@ import { apiRequest } from './client';
 export type PublicUser = {
   id: string;
   fullName: string;
-  role: 'ADMIN' | 'RECEPTION';
+  role: 'ADMIN' | 'RECEPTION' | 'CLEANING';
   cc: string;
   email: string;
   phone: string | null | undefined;
@@ -18,7 +18,7 @@ export type AuthResult = {
 export async function loginRequest(input: {
   identifier: string;
   password: string;
-  role: 'ADMIN' | 'RECEPTION';
+  role: 'ADMIN' | 'RECEPTION' | 'CLEANING';
 }): Promise<AuthResult> {
   return apiRequest<AuthResult>('/auth/login', {
     method: 'POST',
@@ -34,7 +34,7 @@ export async function registerRequest(input: {
   phone: string;
   password: string;
   confirmPassword: string;
-  role: 'ADMIN' | 'RECEPTION';
+  role: 'ADMIN' | 'RECEPTION' | 'CLEANING';
   adminPassword: string;
 }): Promise<AuthResult> {
   return apiRequest<AuthResult>('/auth/register', {

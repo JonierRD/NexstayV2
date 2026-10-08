@@ -7,7 +7,8 @@ import { useAuthSession } from '../../context/AuthContext';
 import { Sidebar } from './Sidebar';
 import { AssistantChat } from '../assistant/AssistantChat';
 import { RouteGuard } from '../../routes/RouteGuard';
-import { findRoute } from '../../routes/routeAccess';
+import { findRoute, getAllowedRoutes } from '../../routes/routeAccess';
+import { Role } from '../../routes/roles';
 import type { ModuleKey } from '../../routes/types';
 
 type DashboardLayoutProps = {
@@ -15,10 +16,28 @@ type DashboardLayoutProps = {
   onLogout: () => void;
 };
 
+const ROLE_LABEL: Record<string, string> = {
+  ADMIN: 'Administrador',
+  RECEPTION: 'Recepcionista',
+  CLEANING: 'Personal de limpieza'
+};
+
+// Primer módulo navegable al que el rol tiene acceso; evita aterrizar en una
+// pantalla prohibida (el personal de limpieza entra directo a Habitaciones).
+function getHomeModule(user: PublicUser | null): ModuleKey {
+  if (!user) {
+    return 'dashboard';
+  }
+  const firstAllowed = getAllowedRoutes(user.role as Role).find(
+    (route) => route.meta.section === 'main' && route.meta.icon && !route.meta.isPublic
+  );
+  return (firstAllowed?.key as ModuleKey) ?? 'dashboard';
+}
+
 export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): ReactElement {
   const { user: sessionUser } = useAuthSession();
   const resolvedUser = user ?? sessionUser ?? null;
-  const [active, setActive] = useState<ModuleKey>('dashboard');
+  const [active, setActive] = useState<ModuleKey>(() => getHomeModule(resolvedUser));
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const bp = useBreakpoint();
   const route = findRoute(active);
@@ -102,7 +121,9 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
           <div className="flex items-center gap-2">
             <div className="hidden text-right lg:block">
               <p className="text-[11px] font-medium leading-tight">{resolvedUser?.fullName ?? 'Usuario'}</p>
-              <p className="text-[9px] text-[hsl(var(--muted-foreground))]">{resolvedUser?.role === 'ADMIN' ? 'Administrador' : 'Recepcionista'}</p>
+              <p className="text-[9px] text-[hsl(var(--muted-foreground))]">
+                {resolvedUser ? (ROLE_LABEL[resolvedUser.role] ?? 'Personal') : 'Personal'}
+              </p>
             </div>
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-semibold text-white">
               {(resolvedUser?.fullName ?? 'U').charAt(0)}
@@ -120,7 +141,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
           <RouteGuard
             activeModule={active}
             user={resolvedUser ?? undefined}
-            onNavigateHome={() => setActive('dashboard')}
+            onNavigateHome={() => setActive(getHomeModule(resolvedUser))}
           >
             {route ? createElement(route.component, { user: resolvedUser ?? user }) : null}
           </RouteGuard>

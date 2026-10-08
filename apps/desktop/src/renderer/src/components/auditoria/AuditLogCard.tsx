@@ -15,7 +15,11 @@ export function AuditLogCard({ log }: { log: AuditLog }): ReactElement {
           <div>
             <p className="text-[11px] font-medium text-sapay-950">{log.user.fullName}</p>
             <p className="text-[10px] text-sapay-750">
-              {log.user.role === 'ADMIN' ? 'Administrador' : 'Recepcionista'}
+              {log.user.role === 'ADMIN'
+                ? 'Administrador'
+                : log.user.role === 'CLEANING'
+                  ? 'Personal de limpieza'
+                  : 'Recepcionista'}
             </p>
           </div>
         </div>

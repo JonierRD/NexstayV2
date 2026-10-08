@@ -5,4 +5,4 @@ export type LoginStatus = {
   message: string;
 };
 
-export type LoginRole = 'ADMIN' | 'RECEPTION' | '';
+export type LoginRole = 'ADMIN' | 'RECEPTION' | 'CLEANING' | '';
