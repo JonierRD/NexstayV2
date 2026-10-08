@@ -25,6 +25,8 @@ export type Stay = {
   total: number;
   acTypeUsed: 'AIRE' | 'VENTILADOR';
   status: 'ACTIVA' | 'FINALIZADA' | 'CANCELADA';
+  reservationId?: number | null;
+  reservation?: { id: number; total: number; payments?: Array<{ type: 'PAGO' | 'DEVOLUCION'; amount: number }> } | null;
   createdAt: string;
   updatedAt: string;
   client?: Cliente;
@@ -60,9 +62,11 @@ export async function checkinRequest(input: CheckinInput): Promise<Stay> {
   return apiRequest<Stay>('/stays/checkin', { method: 'POST', body: input });
 }
 
-export async function checkoutRequest(id: number, nights?: number): Promise<Stay> {
+export async function checkoutRequest(id: number, input: {
+  nights?: number; paymentConfirmed?: boolean; paymentMethod?: string; paymentReference?: string;
+} = {}): Promise<Stay> {
   return apiRequest<Stay>(`/stays/${id}/checkout`, {
     method: 'POST',
-    body: nights ? { nights } : undefined
+    body: input
   });
 }
