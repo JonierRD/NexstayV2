@@ -160,7 +160,7 @@ export function useAuth() {
         const result = await loginRequest({
           identifier: loginIdentifier,
           password: loginPassword,
-          role: loginRole as 'ADMIN' | 'RECEPTION'
+          role: loginRole as 'ADMIN' | 'RECEPTION' | 'CLEANING'
         });
         setStoredToken(result.token);
         setLoggedUser(result.user);
@@ -176,7 +176,7 @@ export function useAuth() {
           phone: registerPhone,
           password: registerPassword,
           confirmPassword: registerConfirmPassword,
-          role: registerRole as 'ADMIN' | 'RECEPTION',
+          role: registerRole as 'ADMIN' | 'RECEPTION' | 'CLEANING',
           adminPassword: registerAdminPassword
         });
         setStoredToken(result.token);
@@ -220,7 +220,7 @@ export function useAuth() {
     }
   }
 
-  function handleAccessCardClick(selectedRole: 'ADMIN' | 'RECEPTION'): void {
+  function handleAccessCardClick(selectedRole: 'ADMIN' | 'RECEPTION' | 'CLEANING'): void {
     setMode('register');
     setRegisterRole(selectedRole);
     setStatus(null);

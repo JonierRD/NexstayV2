@@ -17,8 +17,8 @@ export function LoginFields({
   onIdentifier: (value: string) => void;
   password: string;
   onPassword: (value: string) => void;
-  role: 'ADMIN' | 'RECEPTION' | '';
-  onRole: (value: 'ADMIN' | 'RECEPTION' | '') => void;
+  role: 'ADMIN' | 'RECEPTION' | 'CLEANING' | '';
+  onRole: (value: 'ADMIN' | 'RECEPTION' | 'CLEANING' | '') => void;
   showPassword: boolean;
   onTogglePassword: () => void;
   isSubmitting: boolean;
@@ -73,7 +73,7 @@ export function LoginFields({
           <select
             name="role"
             value={role}
-            onChange={(event) => onRole(event.target.value as 'ADMIN' | 'RECEPTION' | '')}
+            onChange={(event) => onRole(event.target.value as 'ADMIN' | 'RECEPTION' | 'CLEANING' | '')}
             className="w-full bg-transparent text-[13px] outline-none text-[#7f7f7f]"
           >
             <option value="" disabled>
@@ -81,6 +81,7 @@ export function LoginFields({
             </option>
             <option value="RECEPTION">Recepcionista</option>
             <option value="ADMIN">Administrador</option>
+            <option value="CLEANING">Personal de limpieza</option>
           </select>
         </div>
       </label>

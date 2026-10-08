@@ -11,7 +11,7 @@ declare global {
         messages: Array<{ role: 'user' | 'assistant'; content: string }>;
         pageContext: {
           pageName: string;
-          userRole: 'ADMIN' | 'RECEPTION';
+          userRole: 'ADMIN' | 'RECEPTION' | 'CLEANING';
           appName: string;
           pageSummary: string;
         };

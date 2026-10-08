@@ -27,6 +27,7 @@ export function usePermissions(options?: UsePermissionsOptions) {
       user: activeUser,
       isAdmin: activeRole === Role.ADMIN,
       isReception: activeRole === Role.RECEPTION,
+      isCleaning: activeRole === Role.CLEANING,
       canAccess: (moduleKey: ModuleKey | string): boolean => {
         return canAccessModule(activeRole, moduleKey);
       }

@@ -9,12 +9,14 @@ export function RoomsTable({
   rooms,
   selectedNumber,
   onSelect,
-  onEdit
+  onEdit,
+  readOnly = false
 }: {
   rooms: Room[];
   selectedNumber?: string;
   onSelect: (number: string) => void;
   onEdit: (number: string) => void;
+  readOnly?: boolean;
 }): ReactElement {
   return (
     <div className="mt-2 flex min-h-0 flex-1 flex-col overflow-x-auto rounded-[18px] border border-[#ebe1d8]">
@@ -63,11 +65,13 @@ export function RoomsTable({
               <div className="text-[10px] text-[#5d4d42] text-center">{room.acType}</div>
 
               <div className="flex items-center justify-center gap-2">
-                <IconButton
-                  label="Editar"
-                  icon={PencilLine}
-                  onClick={() => onEdit(room.number)}
-                />
+                {!readOnly && (
+                  <IconButton
+                    label="Editar"
+                    icon={PencilLine}
+                    onClick={() => onEdit(room.number)}
+                  />
+                )}
                 <IconButton
                   label="Ver"
                   icon={Eye}

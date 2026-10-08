@@ -12,12 +12,14 @@ export function RoomDetailCard({
   room,
   onLiberar,
   onAddImage,
-  onRemoveImage
+  onRemoveImage,
+  readOnly = false
 }: {
   room: Room;
   onLiberar: () => void;
   onAddImage: () => void;
   onRemoveImage: () => void;
+  readOnly?: boolean;
 }): ReactElement {
   const { isAdmin } = usePermissions();
 
@@ -120,11 +122,13 @@ export function RoomDetailCard({
             </div>
           </div>
 
-          <div className="mt-auto flex gap-2 pt-2 shrink-0">
-            <AccentButton onClick={onLiberar} className="flex-1 gap-1.5 h-8 text-[11px] border-[#efb7b7] bg-white text-[#d13d3d] hover:border-[#e5a0a0] hover:bg-[#fff5f5]">
-              <Wrench size={13} aria-hidden="true" />
-              Liberar
-            </AccentButton>
+<div className="mt-auto flex gap-2 pt-2 shrink-0">
+            {!readOnly && (
+              <AccentButton onClick={onLiberar} className="flex-1 gap-1.5 h-8 text-[11px] border-[#efb7b7] bg-white text-[#d13d3d] hover:border-[#e5a0a0] hover:bg-[#fff5f5]">
+                <Wrench size={13} aria-hidden="true" />
+                Liberar
+              </AccentButton>
+            )}
           </div>
         </div>
       </div>

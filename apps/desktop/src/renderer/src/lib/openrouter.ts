@@ -5,7 +5,7 @@ export type ChatMessage = {
 
 export type PageContext = {
   pageName: string;
-  userRole: 'ADMIN' | 'RECEPTION';
+  userRole: 'ADMIN' | 'RECEPTION' | 'CLEANING';
   appName: string;
   pageSummary: string;
 };
@@ -20,7 +20,10 @@ function getAssistantBridge(): NonNullable<Window['sapay']>['askAssistant'] {
 
 import { findRoute } from '../routes/routeAccess';
 
-export function buildPageContext(pageName: string, userRole: 'ADMIN' | 'RECEPTION'): PageContext {
+export function buildPageContext(
+  pageName: string,
+  userRole: 'ADMIN' | 'RECEPTION' | 'CLEANING'
+): PageContext {
   const route = findRoute(pageName);
   return {
     pageName,
