@@ -29,11 +29,13 @@ import {
 import { AuthScreen } from '../components/auth/AuthScreen';
 import { AuditoriaPage } from '../pages/AuditoriaPage';
 import { ClientesPage } from '../pages/ClientesPage';
+import { ConfiguracionPage } from '../pages/ConfiguracionPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { HabitacionesPage } from '../pages/HabitacionesPage';
 import { HuespedesPage } from '../pages/HuespedesPage';
 import { InventarioPage } from '../pages/InventarioPage';
 import { LavanderiaPage } from '../pages/LavanderiaPage';
+import { PerfilPage } from '../pages/PerfilPage';
 import { RecepcionPage } from '../pages/RecepcionPage';
 import { SemanarioPage } from '../pages/SemanarioPage';
 import { VentasPage } from '../pages/VentasPage';
@@ -294,7 +296,7 @@ export const moduleRoutes: AppRoute[] = [
       icon: UserCircle,
       assistantSummary: 'Perfil: visualización de información del usuario y cambio de contraseña.'
     },
-    component: ModulePlaceholder
+    component: PerfilPage
   },
   {
     key: 'config',
@@ -304,9 +306,9 @@ export const moduleRoutes: AppRoute[] = [
       roles: adminOnly,
       section: 'bottom',
       icon: Settings,
-      assistantSummary: 'Configuración: ajustes del sistema y administración general.'
+      assistantSummary: 'Configuración: datos del hotel, tema y modo oscuro, políticas, asistente IA y administración de usuarios.'
     },
-    component: ModulePlaceholder
+    component: ConfiguracionPage
   },
   {
     key: 'usuarios',

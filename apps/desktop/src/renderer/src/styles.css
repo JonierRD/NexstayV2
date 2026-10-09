@@ -12,6 +12,138 @@
   --muted-foreground: 160 10% 40%;
   --accent: 160 50% 42%;
   --accent-foreground: 0 0% 100%;
+
+  /* Paleta sapay (tema cafe / modo claro). Se comparte con tailwind via hsl(var(--sapay-*)). */
+  --sapay-50: 30 100% 98%;
+  --sapay-100: 30 40% 98%;
+  --sapay-150: 33 65% 97%;
+  --sapay-200: 30 44% 96%;
+  --sapay-250: 33 38% 94%;
+  --sapay-300: 26 36% 88%;
+  --sapay-350: 27 32% 88%;
+  --sapay-400: 27 26% 84%;
+  --sapay-450: 17 20% 83%;
+  --sapay-500: 19 21% 68%;
+  --sapay-550: 28 14% 58%;
+  --sapay-600: 22 25% 59%;
+  --sapay-650: 23 11% 50%;
+  --sapay-700: 25 12% 44%;
+  --sapay-750: 26 13% 44%;
+  --sapay-800: 13 41% 30%;
+  --sapay-850: 13 37% 26%;
+  --sapay-900: 14 39% 21%;
+  --sapay-950: 18 37% 12%;
+  --sapay-1000: 14 41% 10%;
+
+  /* Tonos solidos para botones/gradientes en modo oscuro (el token 900 se usa
+     tanto para texto como para fondo; en dark solo el fondo debe volver a solid). */
+  --sapay-800-solid: 13 41% 30%;
+  --sapay-850-solid: 13 37% 26%;
+  --sapay-900-solid: 14 39% 21%;
+  --sapay-950-solid: 18 37% 12%;
+}
+
+[data-theme='verde'] {
+  --sapay-600: 136 27% 43%;
+  --sapay-650: 143 22% 46%;
+  --sapay-700: 143 28% 34%;
+  --sapay-750: 143 28% 34%;
+  --sapay-800: 142 39% 30%;
+  --sapay-850: 143 39% 26%;
+  --sapay-900: 145 42% 21%;
+  --sapay-950: 145 46% 13%;
+  --sapay-1000: 148 50% 10%;
+  --sapay-800-solid: 149 38% 31%;
+  --sapay-850-solid: 151 38% 27%;
+  --sapay-900-solid: 153 41% 21%;
+  --sapay-950-solid: 145 46% 13%;
+}
+
+[data-theme='azul'] {
+  --sapay-600: 206 27% 49%;
+  --sapay-650: 208 23% 53%;
+  --sapay-700: 207 30% 42%;
+  --sapay-750: 207 30% 42%;
+  --sapay-800: 207 52% 35%;
+  --sapay-850: 209 54% 31%;
+  --sapay-900: 210 57% 25%;
+  --sapay-950: 210 62% 16%;
+  --sapay-1000: 210 64% 13%;
+  --sapay-800-solid: 207 52% 35%;
+  --sapay-850-solid: 209 54% 31%;
+  --sapay-900-solid: 210 57% 25%;
+  --sapay-950-solid: 210 62% 16%;
+}
+
+.dark {
+  --background: 30 22% 9%;
+  --foreground: 32 42% 91%;
+  --border: 30 19% 17%;
+  --muted: 30 21% 11%;
+  --muted-foreground: 28 11% 50%;
+  --primary: 150 22% 48%;
+  --accent: 150 22% 48%;
+
+  /* neutros (fondos) oscuros */
+  --sapay-50: 30 21% 7%;
+  --sapay-100: 30 22% 9%;
+  --sapay-150: 30 21% 11%;
+  --sapay-200: 28 21% 12%;
+  --sapay-250: 30 25% 6%;
+  --sapay-300: 32 21% 14%;
+  --sapay-350: 30 19% 17%;
+  --sapay-400: 30 18% 19%;
+  --sapay-450: 30 17% 23%;
+  --sapay-500: 30 17% 25%;
+  --sapay-550: 28 11% 50%;
+
+  /* acentos claros para texto/iconos sobre fondo oscuro */
+  --sapay-600: 22 25% 59%;
+  --sapay-650: 24 17% 64%;
+  --sapay-700: 27 19% 70%;
+  --sapay-750: 29 18% 73%;
+  --sapay-800: 21 37% 62%;
+  --sapay-850: 23 42% 70%;
+  --sapay-900: 27 51% 75%;
+  --sapay-950: 32 42% 91%;
+  --sapay-1000: 30 46% 95%;
+
+  --sapay-800-solid: 13 41% 30%;
+  --sapay-850-solid: 13 37% 26%;
+  --sapay-900-solid: 18 39% 35%;
+  --sapay-950-solid: 14 39% 21%;
+}
+
+.dark[data-theme='verde'] {
+  --sapay-600: 143 24% 55%;
+  --sapay-650: 145 18% 62%;
+  --sapay-700: 145 16% 68%;
+  --sapay-750: 146 15% 71%;
+  --sapay-800: 142 30% 55%;
+  --sapay-850: 142 36% 63%;
+  --sapay-900: 143 44% 72%;
+  --sapay-950: 140 48% 90%;
+  --sapay-1000: 140 50% 94%;
+  --sapay-800-solid: 141 34% 36%;
+  --sapay-850-solid: 141 34% 31%;
+  --sapay-900-solid: 142 34% 27%;
+  --sapay-950-solid: 145 30% 22%;
+}
+
+.dark[data-theme='azul'] {
+  --sapay-600: 208 22% 53%;
+  --sapay-650: 207 20% 64%;
+  --sapay-700: 207 18% 70%;
+  --sapay-750: 208 17% 73%;
+  --sapay-800: 207 36% 58%;
+  --sapay-850: 207 44% 66%;
+  --sapay-900: 208 52% 75%;
+  --sapay-950: 208 55% 92%;
+  --sapay-1000: 208 60% 95%;
+  --sapay-800-solid: 207 47% 38%;
+  --sapay-850-solid: 207 50% 34%;
+  --sapay-900-solid: 209 54% 31%;
+  --sapay-950-solid: 210 45% 25%;
 }
 
 * {
@@ -53,4 +185,148 @@ img {
 
 .table-responsive table {
   @apply min-w-[600px];
+}
+
+/* ==========================================================================
+   Modo oscuro: ajustes de bajo nivel sobre utilidades genericas.
+   La idea es que en dark los fondos claros se vuelvan superficies oscuras y
+   los textos/acentos marrones se aclaren, sin tocar cada componente.
+   ========================================================================== */
+
+/* Superficie de tarjetas/modales/inputs */
+.dark .bg-white {
+  background-color: hsl(var(--sapay-150));
+}
+
+/* Fondos sombreados claros -> superficie oscura */
+.dark [class*="bg-[#fbf8f4]"],
+.dark [class*="bg-[#fbf8f5]"],
+.dark [class*="bg-[#fbf7f2]"],
+.dark [class*="bg-[#fbf5ef]"],
+.dark [class*="bg-[#fdfaf6]"],
+.dark [class*="bg-[#fdfaf7]"],
+.dark [class*="bg-[#fdfbf8]"],
+.dark [class*="bg-[#fcfaf8]"],
+.dark [class*="bg-[#fcf8f4]"],
+.dark [class*="bg-[#fff9f5]"],
+.dark [class*="bg-[#fffaf6]"],
+.dark [class*="bg-[#fff6ef]"],
+.dark [class*="bg-[#fff7ef]"],
+.dark [class*="bg-[#fff5ee]"],
+.dark [class*="bg-[#fffafa]"],
+.dark [class*="bg-[#faf7f4]"],
+.dark [class*="bg-[#f8f2ea]"],
+.dark [class*="bg-[#f8f0e8]"] {
+  background-color: hsl(var(--sapay-150));
+}
+
+/* Fondos tintados (paneles/fondos alternos) -> superficie media */
+.dark [class*="bg-[#f9f0e6]"],
+.dark [class*="bg-[#f7efe6]"],
+.dark [class*="bg-[#f7efe7]"],
+.dark [class*="bg-[#f7efe5]"],
+.dark [class*="bg-[#f7efe4]"],
+.dark [class*="bg-[#f8efe6]"],
+.dark [class*="bg-[#f8efe4]"],
+.dark [class*="bg-[#f8f0e7]"],
+.dark [class*="bg-[#f9efe6]"],
+.dark [class*="bg-[#f9f1e8]"],
+.dark [class*="bg-[#f8f1e8]"],
+.dark [class*="bg-[#f4eadf]"],
+.dark [class*="bg-[#f4ebe5]"],
+.dark [class*="bg-[#f2e7e0]"],
+.dark [class*="bg-[#f0e6de]"],
+.dark [class*="bg-[#f0e7e0]"],
+.dark [class*="bg-[#f6ebe0]"],
+.dark [class*="bg-[#f6eee4]"],
+.dark [class*="bg-[#f5efe9]"],
+.dark [class*="bg-[#f2eae4]"],
+.dark [class*="bg-[#f4ece4]"] {
+  background-color: hsl(var(--sapay-200));
+}
+
+/* Textos marrones literales -> claros */
+.dark [class*="text-[#4e4037]"],
+.dark [class*="text-[#5a463a]"] {
+  color: hsl(var(--sapay-950));
+}
+.dark [class*="text-[#5d4d42]"],
+.dark [class*="text-[#6d5a51]"],
+.dark [class*="text-[#6d5d52]"],
+.dark [class*="text-[#6e584a]"],
+.dark [class*="text-[#6f6055]"],
+.dark [class*="text-[#85756d]"] {
+  color: hsl(var(--sapay-850));
+}
+.dark [class*="text-[#7a6a60]"],
+.dark [class*="text-[#7f7f7f]"],
+.dark [class*="text-[#8b7b70]"],
+.dark [class*="text-[#9b8e85]"],
+.dark [class*="text-[#9d8d85]"],
+.dark [class*="text-[#8f7c70]"],
+.dark [class*="text-[#474747]"],
+.dark [class*="text-[#5e5e5e]"],
+.dark [class*="text-[#7e7e7e]"],
+.dark [class*="text-[#9d9d9d]"],
+.dark [class*="text-[#bcbcbc]"],
+.dark [class*="text-[#b4a497]"] {
+  color: hsl(var(--sapay-650));
+}
+
+/* Bordes claros -> borde medio oscuro */
+.dark [class*="border-[#d7c6bb]"],
+.dark [class*="border-[#cdb9ab]"],
+.dark [class*="border-[#d8c7bb]"],
+.dark [class*="border-[#d8c7b8]"],
+.dark [class*="border-[#ddd2c8]"],
+.dark [class*="border-[#e5e5e5]"],
+.dark [class*="border-[#dcdcdc]"] {
+  border-color: hsl(var(--sapay-350));
+}
+.dark [class*="divide-[#d7c6bb]"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: hsl(var(--sapay-350));
+}
+.dark [class*="ring-[#f0e4dc]"],
+.dark [class*="ring-[#d7c6bb]"] {
+  --tw-ring-color: hsl(var(--sapay-350));
+}
+.dark .placeholder\:text-\[\#9d8d85\]::placeholder {
+  color: hsl(var(--sapay-550));
+}
+
+/* Botones solidos: se mantienen como acento solido (no claros) */
+.dark .bg-sapay-900 {
+  background-color: hsl(var(--sapay-900-solid));
+}
+.dark .hover\:bg-sapay-850:hover {
+  background-color: hsl(var(--sapay-850-solid));
+}
+.dark .hover\:bg-sapay-800:hover {
+  background-color: hsl(var(--sapay-800-solid));
+}
+.dark [class*="file:bg-sapay-900"]::file-selector-button {
+  background-color: hsl(var(--sapay-900-solid));
+}
+.dark .hover\:bg-\[\#5b3428\]:hover {
+  background-color: hsl(var(--sapay-850-solid));
+}
+.dark .hover\:bg-\[\#3a1a12\]:hover {
+  background-color: hsl(var(--sapay-950-solid));
+}
+.dark .bg-\[\#6b3a2d\] {
+  background-color: hsl(var(--sapay-800-solid));
+}
+.dark .bg-\[\#4b2b21\] {
+  background-color: hsl(var(--sapay-900-solid));
+}
+
+/* Gradientes decorativos (avatar, banners) */
+.dark .from-sapay-800,
+.dark .from-sapay-850 {
+  --tw-gradient-from: hsl(var(--sapay-800-solid));
+}
+.dark .to-sapay-950,
+.dark .to-sapay-900,
+.dark .to-sapay-1000 {
+  --tw-gradient-to: hsl(var(--sapay-900-solid));
 }
