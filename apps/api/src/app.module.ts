@@ -12,6 +12,7 @@ import { ClientesModule } from './clientes/clientes.module';
 import { SemanarioModule } from './semanario/semanario.module';
 import { SettingsModule } from './settings/settings.module';
 import { UsersModule } from './users/users.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { UsersModule } from './users/users.module';
     ClientesModule,
     SemanarioModule,
     SettingsModule,
-    UsersModule
+    UsersModule,
+    ReservationsModule
   ],
   controllers: [AppController]
 })

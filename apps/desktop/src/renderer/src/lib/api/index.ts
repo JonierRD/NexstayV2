@@ -11,3 +11,4 @@ export * from './stays';
 export * from './semanario';
 export * from './settings';
 export * from './users';
+export * from './reservations';

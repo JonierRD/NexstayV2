@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsNotEmpty, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEnum, IsNotEmpty, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 export class CheckinDto {
   // Datos del cliente (obligatorios: cc, firstName, lastName)
   @IsString()
@@ -39,4 +40,9 @@ export class CheckinDto {
   @IsString()
   @IsOptional()
   checkIn?: string;
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  reservationId?: number;
 }

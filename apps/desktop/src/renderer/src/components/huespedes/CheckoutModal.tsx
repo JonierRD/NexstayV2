@@ -18,7 +18,7 @@ function startOfDay(date: Date): Date {
 type Props = {
   stay: Stay;
   onClose: () => void;
-  onConfirm: (nights: number) => void;
+  onConfirm: (nights: number, paymentMethod: string, paymentConfirmed: boolean) => void;
   isProcessing: boolean;
 };
 
@@ -28,6 +28,8 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
   const checkoutTolerance = settings?.checkoutTolerance ?? 30;
 
   const [billableNights, setBillableNights] = useState<number>(stay.nights || 1);
+  const [paymentMethod, setPaymentMethod] = useState('Efectivo');
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const guestName = stay.client ? `${stay.client.firstName} ${stay.client.lastName}` : 'Huésped sin nombre';
   const cc = stay.client?.cc ?? 'Sin documento';
 
@@ -47,6 +49,11 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
 
   const roomPrice = Number(stay.pricePerNight);
   const roomTotal = billableNights * roomPrice;
+  const reservationPaid = stay.reservation?.payments?.reduce(
+    (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
+    0
+  ) ?? 0;
+  const roomBalance = Math.max(0, roomTotal - reservationPaid);
 
   // Ventas de tienda / mecato pendientes de pago (FIADO o sin especificar)
   const pendingSales = (stay.sales ?? []).filter((sale) => sale.saleType === 'FIADO' || !sale.saleType);
@@ -60,7 +67,7 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
   const laundryTotal = laundryItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
   const hasPendingLaundry = laundryItems.some((item) => item.status === 'PENDIENTE' || item.status === 'EN_PROCESO');
 
-  const grandTotal = roomTotal + salesTotal + laundryTotal;
+  const grandTotal = roomBalance + salesTotal + laundryTotal;
 
   return (
     <div
@@ -182,6 +189,15 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
                 </button>
               </div>
             </div>
+            {stay.reservation && (
+              <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-[11px] text-emerald-800">
+                <span>Pago de reserva aplicado:</span>
+                <span className="font-semibold">−{formatCOP(Math.min(roomTotal, reservationPaid))}</span>
+              </div>
+            )}
+            <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-sapay-900 pl-5">
+              <span>Saldo de hospedaje:</span><span>{formatCOP(roomBalance)}</span>
+            </div>
           </div>
 
           {/* Desglose 2: Tienda / Mecato */}
@@ -259,6 +275,20 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
               <p className="text-[22px] font-black text-sapay-950 leading-tight">{formatCOP(grandTotal)}</p>
             </div>
           </div>
+
+          {grandTotal > 0 && (
+            <div className="rounded-xl border border-sapay-350 bg-white p-3.5">
+              <label className="block text-[11px] font-semibold text-sapay-800">Método de pago final
+                <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} className="mt-1 w-full rounded-lg border border-sapay-350 bg-white px-3 py-2 text-xs">
+                  <option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option><option>Otro</option>
+                </select>
+              </label>
+              <label className="mt-3 flex items-start gap-2 text-[11px] text-sapay-850">
+                <input type="checkbox" checked={paymentConfirmed} onChange={(event) => setPaymentConfirmed(event.target.checked)} />
+                <span>Confirmo que recibí el pago final de <strong>{formatCOP(grandTotal)}</strong>.</span>
+              </label>
+            </div>
+          )}
         </div>
 
         {/* Acciones */}
@@ -273,8 +303,8 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(billableNights)}
-            disabled={isProcessing}
+            onClick={() => onConfirm(billableNights, paymentMethod, paymentConfirmed || grandTotal === 0)}
+            disabled={isProcessing || (grandTotal > 0 && !paymentConfirmed)}
             className="flex items-center gap-1.5 rounded-xl bg-sapay-900 px-5 py-2 text-[12px] font-bold text-white transition hover:bg-sapay-850 disabled:opacity-60 shadow-sm"
           >
             <LogOut size={14} />
