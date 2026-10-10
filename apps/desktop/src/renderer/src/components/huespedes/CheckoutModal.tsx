@@ -2,6 +2,18 @@ import { AlertTriangle, BedDouble, CheckCircle2, Clock, LogOut, Package, Shirt, 
 import { type ReactElement, useState } from 'react';
 import { type Stay } from '../../lib/api';
 import { formatCOP, formatDateTime } from '../../lib/format';
+import { useSettingsCached } from '../../lib/settingsCache';
+
+function toMinutes(hhmm: string): number {
+  const [h = 0, m = 0] = hhmm.split(':').map((part) => Number(part) || 0);
+  return h * 60 + m;
+}
+
+function startOfDay(date: Date): Date {
+  const copy = new Date(date);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
 
 type Props = {
   stay: Stay;
@@ -11,14 +23,25 @@ type Props = {
 };
 
 export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props): ReactElement {
+  const settings = useSettingsCached();
+  const checkoutLimit = (settings?.checkoutLimit ?? '13:00').slice(0, 5) || '13:00';
+  const checkoutTolerance = settings?.checkoutTolerance ?? 30;
+
   const [billableNights, setBillableNights] = useState<number>(stay.nights || 1);
   const guestName = stay.client ? `${stay.client.firstName} ${stay.client.lastName}` : 'Huésped sin nombre';
   const cc = stay.client?.cc ?? 'Sin documento';
 
-  // Días reales transcurridos desde el ingreso
+  // Días efectivos transcurridos respetando la hora límite de salida: un día
+  // cuenta como "extra" solo cuando ya se superó la hora límite (+ tolerancia).
   const checkInDate = new Date(stay.checkIn);
   const now = new Date();
-  const elapsedDays = Math.max(1, Math.ceil((now.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)));
+  const limitMinutes = toMinutes(checkoutLimit) + checkoutTolerance;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const naturalDays = Math.max(
+    1,
+    Math.floor((startOfDay(now).getTime() - startOfDay(checkInDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
+  );
+  const elapsedDays = nowMinutes >= limitMinutes ? naturalDays : Math.max(1, naturalDays - 1);
   const isOverdue = elapsedDays > stay.nights;
   const overdueDays = elapsedDays - stay.nights;
 
@@ -40,7 +63,12 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
   const grandTotal = roomTotal + salesTotal + laundryTotal;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4"
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !isProcessing) onClose();
+      }}
+    >
       <div className="flex max-h-[90vh] w-full max-w-[620px] flex-col overflow-hidden rounded-[26px] border border-sapay-350 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.25)]">
         {/* Cabecera */}
         <div className="flex items-center justify-between border-b border-sapay-350 bg-sapay-100 px-6 py-4">
@@ -97,6 +125,16 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
               </div>
             </div>
           )}
+
+          {/* Política de salida del hotel */}
+          <div className="flex items-center gap-2.5 rounded-xl border border-sapay-350 bg-sapay-100 p-3 text-[11px] text-sapay-750">
+            <Clock size={14} className="shrink-0 text-sapay-700" />
+            <span>
+              Hora límite de salida:{' '}
+              <strong className="font-semibold text-sapay-900">{checkoutLimit}</strong>
+              {' '}con {checkoutTolerance} min de tolerancia. Pasada esa hora cuenta un día adicional.
+            </span>
+          </div>
 
           {/* Alerta de Estancia Excedida si aplica */}
           {isOverdue && (

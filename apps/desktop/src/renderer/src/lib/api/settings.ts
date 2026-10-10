@@ -11,6 +11,7 @@ export type AppSettings = {
   logoDataUrl: string;
   themeColor: ThemeColor;
   darkMode: boolean;
+  checkinLimit: string;
   checkoutLimit: string;
   checkoutTolerance: number;
   cancellationPolicy: string;

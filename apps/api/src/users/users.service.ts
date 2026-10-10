@@ -140,4 +140,49 @@ export class UsersService {
 
     return toAdminUserRow(updated);
   }
+
+  async remove(id: string, actorId: string): Promise<AdminUserRow> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('El usuario no existe.');
+    }
+
+    if (user.id === actorId) {
+      throw new ForbiddenException('No puedes eliminar tu propia cuenta.');
+    }
+
+    if (user.role === Role.ADMIN && user.isActive) {
+      const otherActiveAdmins = await this.prisma.user.count({
+        where: { role: Role.ADMIN, isActive: true, NOT: { id: user.id } }
+      });
+      if (otherActiveAdmins === 0) {
+        throw new BadRequestException(
+          'El sistema debe conservar al menos un administrador activo.'
+        );
+      }
+    }
+
+    // Los turnos y el registro de recepcionista son historicos: si el usuario
+    // ya opero, no se borra fisicamente; se desactiva en su lugar.
+    const [shiftCount, recepcionista] = await Promise.all([
+      this.prisma.shift.count({
+        where: { OR: [{ startUserId: id }, { endUserId: id }] }
+      }),
+      this.prisma.recepcionista.findUnique({ where: { userId: id } })
+    ]);
+
+    if (shiftCount > 0 || recepcionista) {
+      throw new BadRequestException(
+        'Este usuario ya registró turnos o está asignado como recepcionista. Desactívalo en lugar de eliminarlo.'
+      );
+    }
+
+    // Se limpia su propia auditoría para no dejar filas huérfanas (las de otros
+    // usuarios que lo mencionaron se conservan).
+    await this.prisma.auditLog.deleteMany({ where: { userId: id } });
+    await this.prisma.user.delete({ where: { id } });
+
+    return toAdminUserRow(user);
+  }
 }

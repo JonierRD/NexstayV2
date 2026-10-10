@@ -31,3 +31,7 @@ export async function updateUserRequest(
 ): Promise<AdminUser> {
   return apiRequest<AdminUser>(`/users/${id}`, { method: 'PATCH', body: input });
 }
+
+export async function deleteUserRequest(id: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/users/${id}`, { method: 'DELETE' });
+}

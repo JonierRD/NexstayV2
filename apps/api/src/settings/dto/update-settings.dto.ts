@@ -53,6 +53,11 @@ export class UpdateSettingsDto {
   darkMode?: boolean;
 
   @IsOptional()
+  @IsString({ message: 'Ingresa la hora de check-in.' })
+  @MaxLength(5, { message: 'La hora de check-in debe tener formato HH:mm.' })
+  checkinLimit?: string;
+
+  @IsOptional()
   @IsString({ message: 'Ingresa la hora límite de salida.' })
   @MaxLength(5, { message: 'La hora límite debe tener formato HH:mm.' })
   checkoutLimit?: string;

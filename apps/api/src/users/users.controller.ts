@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuditoriaService } from '../auditoria/auditoria.service';
 import { AdminGuard } from '../auth/admin.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
@@ -62,5 +62,24 @@ export class UsersController {
     });
 
     return updated;
+  }
+
+  @Delete(':id')
+  @UseGuards(AdminGuard)
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload
+  ): Promise<{ message: string }> {
+    const removed = await this.usersService.remove(id, user.sub);
+
+    await this.auditoria.log(user, {
+      action: 'DELETE',
+      entity: 'User',
+      entityId: id,
+      oldValue: removed,
+      description: `Eliminó el usuario ${removed.fullName}.`
+    });
+
+    return { message: `El usuario ${removed.fullName} fue eliminado.` };
   }
 }

@@ -3,6 +3,7 @@ import { useAuthSession } from '../../context/AuthContext';
 import {
   ApiError,
   createUserRequest,
+  deleteUserRequest,
   listUsersRequest,
   updateUserRequest,
   type AdminUser
@@ -51,6 +52,8 @@ export function useUsuarios() {
   const [form, setForm] = useState<UserFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<UsuariosStatus>(null);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -180,6 +183,38 @@ export function useUsuarios() {
 
   const isSelf = (user: AdminUser): boolean => user.id === sessionUser?.id;
 
+  function openDelete(user: AdminUser): void {
+    setStatus(null);
+    setUserToDelete(user);
+  }
+
+  function closeDelete(): void {
+    setUserToDelete(null);
+  }
+
+  async function confirmDelete(): Promise<void> {
+    if (!userToDelete) {
+      return;
+    }
+    const target = userToDelete;
+    setDeleting(true);
+    setStatus(null);
+    try {
+      await deleteUserRequest(target.id);
+      setUsers((prev) => prev.filter((u) => u.id !== target.id));
+      setStatus({ kind: 'success', message: `El usuario ${target.fullName} fue eliminado.` });
+    } catch (deleteError) {
+      setStatus({
+        kind: 'error',
+        message:
+          deleteError instanceof ApiError ? deleteError.message : 'No se pudo conectar con la API.'
+      });
+    } finally {
+      setDeleting(false);
+      setUserToDelete(null);
+    }
+  }
+
   return {
     users,
     loading,
@@ -191,11 +226,16 @@ export function useUsuarios() {
     setForm,
     saving,
     status,
+    userToDelete,
+    deleting,
     openCreate,
     openEdit,
     closeForm,
     submit,
     toggleActive,
+    openDelete,
+    closeDelete,
+    confirmDelete,
     isSelf
   };
 }

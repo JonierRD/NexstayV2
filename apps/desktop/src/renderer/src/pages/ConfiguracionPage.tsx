@@ -32,7 +32,7 @@ type Props = {
 type TabKey = 'generales' | 'usuarios';
 
 const inputClass =
-  'w-full rounded-lg border border-sapay-400 bg-sapay-100 px-3 py-2 text-xs outline-none focus:border-sapay-600 focus:bg-white';
+  'config-input w-full rounded-lg border border-sapay-400 bg-sapay-100 px-3 py-2 text-xs outline-none focus:border-sapay-600 focus:bg-white';
 
 function Card({ title, description, children, className }: {
   title: string;
@@ -41,7 +41,7 @@ function Card({ title, description, children, className }: {
   className?: string;
 }): ReactElement {
   return (
-    <section className={cn('rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_10px_24px_rgba(67,42,27,0.06)]', className)}>
+    <section className={cn('config-card rounded-2xl border border-sapay-450 bg-white p-5 shadow-[0_12px_30px_rgba(67,42,27,0.12)]', className)}>
       <h2 className="text-[13px] font-semibold text-sapay-950">{title}</h2>
       {description && <p className="mt-0.5 text-[10px] text-sapay-750">{description}</p>}
       <div className="mt-4">{children}</div>
@@ -94,9 +94,9 @@ function Switch({
 }
 
 const THEME_SWATCH: Record<ThemeColor, string> = {
-  cafe: 'bg-[#4b2b21]',
-  verde: 'bg-[#1f4b31]',
-  azul: 'bg-[#1c4165]'
+  cafe: 'theme-swatch theme-swatch-cafe',
+  verde: 'theme-swatch theme-swatch-verde',
+  azul: 'theme-swatch theme-swatch-azul'
 };
 
 export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
@@ -124,7 +124,7 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
   }
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-y-auto p-4">
+    <div className="config-page flex h-full flex-col gap-3 overflow-y-auto p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-sm font-semibold">Configuración</h1>
@@ -132,7 +132,7 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
             Datos del hotel, apariencia, políticas y usuarios del sistema.
           </p>
         </div>
-        <div className="flex rounded-xl border border-sapay-350 bg-white p-1">
+        <div className="config-tabs flex rounded-xl border border-sapay-350 bg-white p-1">
           {(['generales', 'usuarios'] as TabKey[]).map((key) => (
             <button
               key={key}
@@ -215,18 +215,18 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
                 <div className="mt-1 flex items-center gap-3">
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleLogoChange(e.target.files?.[0])} />
                   {s.hotel.logoDataUrl ? (
-                    <img src={s.hotel.logoDataUrl} alt="Logo del hotel" className="h-12 w-12 rounded-xl border border-sapay-350 bg-white object-contain p-1" />
+                    <img src={s.hotel.logoDataUrl} alt="Logo del hotel" className="config-logo h-12 w-12 rounded-xl border border-sapay-350 bg-white object-contain p-1" />
                   ) : (
                     <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-dashed border-sapay-400 bg-sapay-100 text-sapay-500">
                       <Building2 size={18} />
                     </span>
                   )}
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="rounded-lg border border-sapay-450 bg-white px-3 py-1.5 text-[11px] text-sapay-900 hover:bg-sapay-200">
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="config-secondary-button rounded-lg border border-sapay-450 bg-white px-3 py-1.5 text-[11px] text-sapay-900 hover:bg-sapay-200">
                       {s.hotel.logoDataUrl ? 'Cambiar logo' : 'Subir logo'}
                     </button>
                     {s.hotel.logoDataUrl && (
-                      <button type="button" onClick={() => s.setHotel({ ...s.hotel, logoDataUrl: '' })} className="rounded-lg border border-danger-200 bg-danger-50 px-3 py-1.5 text-[11px] text-[#b33a3a] hover:bg-danger-100">
+                      <button type="button" onClick={() => s.setHotel({ ...s.hotel, logoDataUrl: '' })} className="config-danger-button rounded-lg border border-danger-200 bg-danger-50 px-3 py-1.5 text-[11px] text-[#b33a3a] hover:bg-danger-100">
                         Quitar
                       </button>
                     )}
@@ -263,7 +263,8 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
                     disabled={s.saving === 'apariencia'}
                     onClick={() => void s.saveAppearance({ themeColor: theme })}
                     className={cn(
-                      'flex h-9 items-center gap-1.5 rounded-xl border px-2 text-[11px] font-medium transition',
+                      'theme-choice flex h-9 items-center gap-1.5 rounded-xl border px-2 text-[11px] font-medium transition',
+                      `theme-choice-${theme}`,
                       s.settings?.themeColor === theme
                         ? 'border-sapay-900 bg-sapay-100 text-sapay-900 ring-1 ring-sapay-900/30'
                         : 'border-sapay-350 bg-white text-sapay-750 hover:border-sapay-500'
@@ -294,6 +295,14 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
             description="Reglas operativas de salida y cancelación."
           >
             <div className="grid grid-cols-2 gap-3">
+              <Field label="Hora de check-in">
+                <input
+                  type="time"
+                  value={s.checkinLimit}
+                  onChange={(e) => s.setCheckinLimit(e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
               <Field label="Hora límite de salida (check-out)">
                 <input
                   type="time"

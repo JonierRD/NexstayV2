@@ -14,6 +14,7 @@ export type AppSettingsData = {
   logoDataUrl: string;
   themeColor: string;
   darkMode: boolean;
+  checkinLimit: string;
   checkoutLimit: string;
   checkoutTolerance: number;
   cancellationPolicy: string;
@@ -30,6 +31,7 @@ export function toSettingsData(settings: AppSettings): AppSettingsData {
     logoDataUrl: settings.logoDataUrl,
     themeColor: settings.themeColor,
     darkMode: settings.darkMode,
+    checkinLimit: settings.checkinLimit,
     checkoutLimit: settings.checkoutLimit,
     checkoutTolerance: settings.checkoutTolerance,
     cancellationPolicy: settings.cancellationPolicy,

@@ -1,6 +1,7 @@
-import { Plus, Pencil, UserX, UserCheck } from 'lucide-react';
+import { Plus, Pencil, Trash2, UserCheck, UserX } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type AdminUser } from '../../lib/api';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { StatusPill } from '../ui/StatusPill';
 import { UserFormModal } from './UserFormModal';
 import {
@@ -20,16 +21,18 @@ function UsersTable({
   loading,
   onEdit,
   onToggle,
+  onDelete,
   isSelf
 }: {
   users: AdminUser[];
   loading: boolean;
   onEdit: (user: AdminUser) => void;
   onToggle: (user: AdminUser) => void;
+  onDelete: (user: AdminUser) => void;
   isSelf: (user: AdminUser) => boolean;
 }): ReactElement {
   return (
-    <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto rounded-lg border border-sapay-350 bg-white">
+    <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto rounded-lg border border-sapay-450 bg-white shadow-[0_4px_14px_rgba(67,42,27,0.06)]">
       <table className="w-full min-w-[640px] text-left text-xs">
         <thead className="sticky top-0 bg-[#fcf8f4] text-[10px] uppercase text-sapay-750">
           <tr>
@@ -93,6 +96,14 @@ function UsersTable({
                     >
                       {user.isActive ? <UserX size={14} /> : <UserCheck size={14} />}
                     </button>
+                    <button
+                      title="Eliminar"
+                      disabled={isSelf(user)}
+                      onClick={() => onDelete(user)}
+                      className="rounded p-1.5 text-[#b94646] hover:bg-[#fbecec] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -113,7 +124,7 @@ export function UsuariosSection(): ReactElement {
   const u = useUsuarios();
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
+    <div className="config-users flex h-full min-h-0 flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold">Usuarios y roles</h2>
@@ -152,6 +163,7 @@ export function UsuariosSection(): ReactElement {
         loading={u.loading}
         onEdit={u.openEdit}
         onToggle={u.toggleActive}
+        onDelete={u.openDelete}
         isSelf={u.isSelf}
       />
 
@@ -163,6 +175,17 @@ export function UsuariosSection(): ReactElement {
           saving={u.saving}
           onSubmit={u.submit}
           onClose={u.closeForm}
+        />
+      )}
+
+      {u.userToDelete && (
+        <ConfirmModal
+          title="Eliminar usuario"
+          message={`¿Seguro que deseas eliminar a "${u.userToDelete.fullName}"? Esta acción no se puede deshacer.`}
+          confirmLabel={u.deleting ? 'Eliminando...' : 'Eliminar'}
+          confirmDanger
+          onConfirm={() => void u.confirmDelete()}
+          onClose={u.closeDelete}
         />
       )}
     </div>

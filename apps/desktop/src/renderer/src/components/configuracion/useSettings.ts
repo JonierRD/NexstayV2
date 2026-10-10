@@ -7,6 +7,7 @@ import {
   type ThemeColor
 } from '../../lib/api';
 import { applyTheme } from '../../lib/theme';
+import { invalidateSettings, setSettingsCache } from '../../lib/settingsCache';
 
 export type SectionKey = 'hotel' | 'apariencia' | 'politicas' | 'ia';
 export type ConfigStatus = { kind: 'success' | 'error'; message: string } | null;
@@ -28,6 +29,7 @@ export function useSettings() {
     ...EMPTY_FIELDS,
     logoDataUrl: ''
   });
+  const [checkinLimit, setCheckinLimit] = useState('12:00');
   const [checkoutLimit, setCheckoutLimit] = useState('13:00');
   const [checkoutTolerance, setCheckoutTolerance] = useState(30);
   const [cancellationPolicy, setCancellationPolicy] = useState('');
@@ -50,6 +52,7 @@ export function useSettings() {
         hotelEmail: data.hotelEmail,
         logoDataUrl: data.logoDataUrl
       });
+      setCheckinLimit(data.checkinLimit);
       setCheckoutLimit(data.checkoutLimit);
       setCheckoutTolerance(data.checkoutTolerance);
       setCancellationPolicy(data.cancellationPolicy);
@@ -72,6 +75,8 @@ export function useSettings() {
     try {
       const updated = await updateSettingsRequest(input);
       setSettings(updated);
+      setSettingsCache(updated);
+      invalidateSettings();
       applyTheme({ themeColor: updated.themeColor, darkMode: updated.darkMode });
       setStatus({ kind: 'success', message: 'Cambios guardados correctamente.' });
       return true;
@@ -113,6 +118,7 @@ export function useSettings() {
 
   async function savePolicies(): Promise<boolean> {
     return persist('politicas', {
+      checkinLimit: checkinLimit.trim() || '12:00',
       checkoutLimit: checkoutLimit.trim() || '13:00',
       checkoutTolerance,
       cancellationPolicy: cancellationPolicy.trim()
@@ -138,6 +144,8 @@ export function useSettings() {
     loadError,
     hotel,
     setHotel,
+    checkinLimit,
+    setCheckinLimit,
     checkoutLimit,
     setCheckoutLimit,
     checkoutTolerance,

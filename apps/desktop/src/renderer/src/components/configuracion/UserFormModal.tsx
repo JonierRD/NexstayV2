@@ -4,7 +4,7 @@ import { Modal } from '../ui/Modal';
 import { ROLE_LABEL, type UserFormState, type UserRole } from './useUsuarios';
 
 const inputClass =
-  'w-full rounded-lg border border-sapay-400 bg-sapay-100 px-3 py-2 text-xs outline-none focus:border-sapay-600 focus:bg-white';
+  'config-input w-full rounded-lg border border-sapay-400 bg-sapay-100 px-3 py-2 text-xs outline-none focus:border-sapay-600';
 
 type Props = {
   editing: boolean;
@@ -22,6 +22,7 @@ export function UserFormModal({ editing, form, setForm, saving, onSubmit, onClos
       title={editing ? 'Editar usuario' : 'Nuevo usuario'}
       maxWidthClass="max-w-lg"
       zIndexClass="z-40"
+      overlayClassName="!bg-transparent"
     >
       <form onSubmit={onSubmit}>
         <div className="grid grid-cols-2 gap-3">

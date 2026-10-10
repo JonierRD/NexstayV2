@@ -256,6 +256,7 @@ model AppSettings {
   logoDataUrl        String  @default("") @map("logo")
   themeColor         String  @default("cafe") @map("tema")
   darkMode           Boolean @default(false) @map("modo_oscuro")
+  checkinLimit       String  @default("12:00") @map("hora_limite_checkin")
   checkoutLimit      String  @default("13:00") @map("hora_limite_checkout")
   checkoutTolerance  Int     @default(30) @map("tolerancia_checkout")
   cancellationPolicy String  @default("") @map("politica_cancelacion")

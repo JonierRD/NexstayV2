@@ -50,6 +50,7 @@ export class SettingsService implements OnModuleInit {
         logoDataUrl: dto.logoDataUrl,
         themeColor: dto.themeColor,
         darkMode: dto.darkMode,
+        checkinLimit: dto.checkinLimit,
         checkoutLimit: dto.checkoutLimit,
         checkoutTolerance: dto.checkoutTolerance,
         cancellationPolicy: dto.cancellationPolicy,

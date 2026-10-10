@@ -218,7 +218,7 @@ export function PerfilPage({
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-sapay-250 text-sapay-950">
       <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
         <section
-          className="relative min-h-[156px] overflow-hidden rounded-[18px] border border-sapay-350 bg-sapay-950 shadow-[0_14px_34px_rgba(67,42,27,0.12)]"
+          className="profile-banner relative min-h-[156px] overflow-hidden rounded-[18px] border border-sapay-350 bg-sapay-950 shadow-[0_14px_34px_rgba(67,42,27,0.12)]"
           style={{ backgroundImage: `linear-gradient(90deg, rgba(4,31,57,.97) 0%, rgba(4,31,57,.82) 47%, rgba(4,31,57,.2) 100%), url(${hotelLobby})`, backgroundPosition: 'center' }}
         >
           <div className="relative flex h-full min-h-[156px] items-center gap-4 px-5 py-5 sm:px-7">
@@ -234,8 +234,8 @@ export function PerfilPage({
                 <h1 className="truncate text-[21px] font-bold">{user.fullName}</h1>
                 <span className="rounded-full bg-[#f3d17e] px-2.5 py-1 text-[9px] font-bold text-sapay-950">{ROLE_LABEL[user.role]}</span>
               </div>
-              <p className="mt-2 flex items-center gap-1.5 truncate text-[11px] text-sapay-100"><Mail size={14} />{user.email}</p>
-              <p className="mt-1 text-[11px] text-sapay-100">Administración y control del sistema hotelero</p>
+              <p className="profile-banner-meta mt-2 flex items-center gap-1.5 truncate text-[11px] text-white"><Mail size={14} />{user.email}</p>
+              <p className="profile-banner-meta mt-1 text-[11px] text-white">Administración y control del sistema hotelero</p>
             </div>
             <img src={hotelLogo} alt="SAPAY Hotel" className="absolute right-5 hidden h-24 w-24 object-contain brightness-0 invert sm:block" />
           </div>
@@ -326,7 +326,13 @@ export function PerfilPage({
         </section>
       </div>
       {isRecoveryOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-sapay-950/45 px-4" role="presentation">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-4"
+          role="presentation"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeRecovery();
+          }}
+        >
           <section className="w-full max-w-[420px] rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_24px_70px_rgba(35,20,12,0.25)]" role="dialog" aria-modal="true" aria-labelledby="recovery-title">
             <div className="flex items-start justify-between gap-3">
               <div>

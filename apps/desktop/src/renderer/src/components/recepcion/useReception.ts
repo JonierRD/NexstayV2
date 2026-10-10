@@ -8,6 +8,7 @@ import {
   clientesRequest,
   checkinRequest
 } from '../../lib/api';
+import { useSettingsCached } from '../../lib/settingsCache';
 
 export type CheckinStep = 'CLIENT_DATA' | 'SELECT_ROOM' | 'CONFIRM' | 'SUCCESS';
 
@@ -39,6 +40,9 @@ function todayInputValue(): string {
 }
 
 export function useReception(_user?: PublicUser) {
+  // Hora de check-in configurada en Configuracion -> Politicas (default 12:00).
+  const settings = useSettingsCached();
+  const checkinTime = (settings?.checkinLimit ?? '12:00').slice(0, 5) || '12:00';
   // Wizard: CLIENT_DATA → SELECT_ROOM → CONFIRM → SUCCESS
   const [step, setStep] = useState<CheckinStep>('CLIENT_DATA');
   // Habitaciones disponibles traídas de la API
@@ -243,7 +247,7 @@ export function useReception(_user?: PublicUser) {
       roomNumber: selectedRoom.number,
       acType,
       nights: nights || undefined,
-      checkIn: checkInDate ? new Date(checkInDate + 'T12:00:00').toISOString() : undefined
+      checkIn: checkInDate ? new Date(`${checkInDate}T${checkinTime}:00`).toISOString() : undefined
     };
 
     checkinRequest(checkinData)
