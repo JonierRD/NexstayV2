@@ -11,7 +11,7 @@ export function SearchInput({
   placeholder: string;
 }): ReactElement {
   return (
-    <label className="flex h-8 min-w-[160px] items-center gap-1.5 rounded-xl border border-sapay-400 bg-sapay-100 px-2.5 text-sapay-650 transition focus-within:border-sapay-600 focus-within:bg-white">
+    <label className="search-input flex h-8 min-w-[160px] items-center gap-1.5 rounded-xl border border-sapay-400 bg-sapay-100 px-2.5 text-sapay-650 transition focus-within:border-sapay-600">
       <Search size={14} aria-hidden="true" />
       <input
         type="text"

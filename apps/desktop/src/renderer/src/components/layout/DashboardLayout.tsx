@@ -1,5 +1,5 @@
 import { createElement, type ReactElement, useEffect, useState } from 'react';
-import { Bell, CalendarDays, LogOut, PanelRightClose } from 'lucide-react';
+import { Bell, CalendarDays, ChevronDown, LogOut, PanelRightClose, Settings, UserRound } from 'lucide-react';
 import type { PublicUser } from '../../lib/api';
 import { formatClock, formatHeaderDate } from '../../lib/format';
 import { useBreakpoint } from '../../lib/useBreakpoint';
@@ -10,6 +10,7 @@ import { RouteGuard } from '../../routes/RouteGuard';
 import { findRoute, getAllowedRoutes } from '../../routes/routeAccess';
 import { Role } from '../../routes/roles';
 import type { ModuleKey } from '../../routes/types';
+import { useProfileAvatar } from '../perfil/profileAvatar';
 
 type DashboardLayoutProps = {
   user: PublicUser;
@@ -36,9 +37,11 @@ function getHomeModule(user: PublicUser | null): ModuleKey {
 
 export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): ReactElement {
   const { user: sessionUser } = useAuthSession();
-  const resolvedUser = user ?? sessionUser ?? null;
+  const resolvedUser = sessionUser ?? user ?? null;
   const [active, setActive] = useState<ModuleKey>(() => getHomeModule(resolvedUser));
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [avatar] = useProfileAvatar(resolvedUser?.id);
   const bp = useBreakpoint();
   const route = findRoute(active);
   const pageTitle = route?.meta.title ?? 'SAPAY';
@@ -118,24 +121,42 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
           </button>
 
           <span className="hidden h-4 w-px bg-[hsl(var(--border))] lg:block" />
-          <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setProfileMenuOpen((open) => !open)}
+              className="flex items-center gap-2 rounded-xl px-1.5 py-1 transition hover:bg-[#fff9f5]"
+              aria-expanded={profileMenuOpen}
+              aria-haspopup="menu"
+            >
             <div className="hidden text-right lg:block">
               <p className="text-[11px] font-medium leading-tight">{resolvedUser?.fullName ?? 'Usuario'}</p>
               <p className="text-[9px] text-[hsl(var(--muted-foreground))]">
                 {resolvedUser ? (ROLE_LABEL[resolvedUser.role] ?? 'Personal') : 'Personal'}
               </p>
             </div>
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-semibold text-white">
-              {(resolvedUser?.fullName ?? 'U').charAt(0)}
+            <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-[10px] font-semibold text-white">
+              {avatar ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : (resolvedUser?.fullName ?? 'U').charAt(0)}
             </div>
+            <ChevronDown size={13} className={`hidden text-sapay-700 transition-transform lg:block ${profileMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {profileMenuOpen && (
+              <div className="absolute right-0 top-10 z-50 w-44 rounded-xl border border-sapay-350 bg-white p-1.5 shadow-[0_14px_30px_rgba(67,42,27,0.15)]" role="menu">
+                <button type="button" onClick={() => { setActive('perfil'); setProfileMenuOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[11px] text-sapay-900 hover:bg-sapay-100" role="menuitem">
+                  <UserRound size={14} /> Perfil
+                </button>
+                {resolvedUser?.role === Role.ADMIN && (
+                  <button type="button" onClick={() => { setActive('config'); setProfileMenuOpen(false); }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[11px] text-sapay-900 hover:bg-sapay-100" role="menuitem">
+                    <Settings size={14} /> Configuración
+                  </button>
+                )}
+                <div className="my-1 border-t border-sapay-200" />
+                <button type="button" onClick={onLogout} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[11px] text-red-600 hover:bg-red-50" role="menuitem">
+                  <LogOut size={14} /> Cerrar sesión
+                </button>
+              </div>
+            )}
           </div>
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-1 text-[10px] text-red-500 hover:text-red-600 transition-colors"
-          >
-            <LogOut size={13} />
-            Salir
-          </button>
         </header>
         <div className="flex min-h-0 flex-1 flex-col bg-[hsl(var(--background))]">
           <RouteGuard
@@ -143,7 +164,12 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
             user={resolvedUser ?? undefined}
             onNavigateHome={() => setActive(getHomeModule(resolvedUser))}
           >
-            {route ? createElement(route.component, { user: resolvedUser ?? user }) : null}
+            {route
+              ? createElement(route.component, {
+                  user: resolvedUser ?? user,
+                  onNavigate: setActive
+                })
+              : null}
           </RouteGuard>
           <AssistantChat user={resolvedUser ?? user} pageKey={active} pageTitle={pageTitle} />
         </div>

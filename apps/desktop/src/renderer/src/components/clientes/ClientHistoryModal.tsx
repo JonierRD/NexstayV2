@@ -5,7 +5,12 @@ import { formatCOP, formatDateRange } from '../../lib/format';
 
 export function ClientHistoryModal({ client, onClose }: { client: Cliente; onClose: () => void }): ReactElement {
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/20"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <div className="relative max-h-[80vh] w-full max-w-xl overflow-auto rounded-2xl bg-white p-5">
         <button onClick={onClose} className="absolute right-3 top-3">
           <X size={18} />

@@ -6,12 +6,197 @@
   --background: 150 20% 97%;
   --foreground: 160 20% 12%;
   --border: 150 15% 85%;
-  --primary: 160 55% 32%;
+  --primary: 14 39% 30%;
   --primary-foreground: 0 0% 100%;
   --muted: 150 12% 93%;
   --muted-foreground: 160 10% 40%;
-  --accent: 160 50% 42%;
+  --accent: 14 35% 42%;
   --accent-foreground: 0 0% 100%;
+
+  /* Paleta sapay (tema cafe / modo claro). Se comparte con tailwind via hsl(var(--sapay-*)). */
+  --sapay-50: 30 100% 98%;
+  --sapay-100: 30 40% 98%;
+  --sapay-150: 33 65% 97%;
+  --sapay-200: 30 44% 96%;
+  --sapay-250: 33 38% 94%;
+  --sapay-300: 26 36% 88%;
+  --sapay-350: 27 32% 88%;
+  --sapay-400: 27 26% 84%;
+  --sapay-450: 17 20% 83%;
+  --sapay-500: 19 21% 68%;
+  --sapay-550: 28 14% 58%;
+  --sapay-600: 22 25% 59%;
+  --sapay-650: 23 11% 50%;
+  --sapay-700: 25 12% 44%;
+  --sapay-750: 26 13% 44%;
+  --sapay-800: 13 41% 30%;
+  --sapay-850: 13 37% 26%;
+  --sapay-900: 14 39% 21%;
+  --sapay-950: 18 37% 12%;
+  --sapay-1000: 14 41% 10%;
+
+  /* Tonos solidos para botones/gradientes en modo oscuro (el token 900 se usa
+     tanto para texto como para fondo; en dark solo el fondo debe volver a solid). */
+  --sapay-800-solid: 13 41% 30%;
+  --sapay-850-solid: 13 37% 26%;
+  --sapay-900-solid: 14 39% 21%;
+  --sapay-950-solid: 18 37% 12%;
+
+  /* Gradiente del menu lateral: sigue la marca elegida pero siempre en tonos oscuros. */
+  --sapay-sidebar-1: 26 33% 15%;
+  --sapay-sidebar-2: 27 74% 6%;
+}
+
+[data-theme='verde'] {
+  --primary: 143 28% 34%;
+  --accent: 143 28% 43%;
+  --sapay-600: 136 27% 43%;
+  --sapay-650: 143 22% 46%;
+  --sapay-700: 143 28% 34%;
+  --sapay-750: 143 28% 34%;
+  --sapay-800: 142 39% 30%;
+  --sapay-850: 143 39% 26%;
+  --sapay-900: 145 42% 21%;
+  --sapay-950: 145 46% 13%;
+  --sapay-1000: 148 50% 10%;
+  --sapay-800-solid: 149 38% 31%;
+  --sapay-850-solid: 151 38% 27%;
+  --sapay-900-solid: 153 41% 21%;
+  --sapay-950-solid: 145 46% 13%;
+  --sapay-sidebar-1: 148 30% 16%;
+  --sapay-sidebar-2: 152 58% 8%;
+}
+
+[data-theme='azul'] {
+  --primary: 207 30% 42%;
+  --accent: 207 35% 52%;
+  --sapay-600: 206 27% 49%;
+  --sapay-650: 208 23% 53%;
+  --sapay-700: 207 30% 42%;
+  --sapay-750: 207 30% 42%;
+  --sapay-800: 207 52% 35%;
+  --sapay-850: 209 54% 31%;
+  --sapay-900: 210 57% 25%;
+  --sapay-950: 210 62% 16%;
+  --sapay-1000: 210 64% 13%;
+  --sapay-800-solid: 207 52% 35%;
+  --sapay-850-solid: 209 54% 31%;
+  --sapay-900-solid: 210 57% 25%;
+  --sapay-950-solid: 210 62% 16%;
+  --sapay-sidebar-1: 211 30% 17%;
+  --sapay-sidebar-2: 215 65% 9%;
+}
+
+.dark {
+  --background: 220 10% 11%;
+  --foreground: 220 18% 93%;
+  --border: 220 10% 25%;
+  --muted: 220 10% 15%;
+  --muted-foreground: 220 10% 70%;
+  --primary: 14 32% 56%;
+  --accent: 14 32% 56%;
+  --sapay-sidebar-1: 220 13% 17%;
+  --sapay-sidebar-2: 220 16% 9%;
+
+  /* neutros (fondos) oscuros */
+  --sapay-50: 220 12% 9%;
+  --sapay-100: 220 12% 12%;
+  --sapay-150: 220 11% 16%;
+  --sapay-200: 220 11% 20%;
+  --sapay-250: 220 13% 14%;
+  --sapay-300: 220 11% 24%;
+  --sapay-350: 220 10% 30%;
+  --sapay-400: 220 10% 37%;
+  --sapay-450: 220 9% 43%;
+  --sapay-500: 220 8% 48%;
+  --sapay-550: 220 8% 64%;
+
+  /* acentos claros para texto/iconos sobre fondo oscuro */
+  --sapay-600: 220 12% 66%;
+  --sapay-650: 220 12% 73%;
+  --sapay-700: 220 14% 80%;
+  --sapay-750: 220 16% 84%;
+  --sapay-800: 220 16% 72%;
+  --sapay-850: 220 18% 79%;
+  --sapay-900: 220 20% 84%;
+  --sapay-950: 220 22% 95%;
+  --sapay-1000: 220 24% 98%;
+
+  --sapay-800-solid: 220 18% 36%;
+  --sapay-850-solid: 220 18% 31%;
+  --sapay-900-solid: 220 20% 27%;
+  --sapay-950-solid: 220 20% 20%;
+}
+
+.dark[data-theme='verde'] {
+  --primary: 143 36% 52%;
+  --accent: 143 36% 52%;
+  --sapay-600: 143 24% 55%;
+  --sapay-650: 145 18% 62%;
+  --sapay-700: 145 16% 68%;
+  --sapay-750: 146 15% 71%;
+  --sapay-800: 142 30% 55%;
+  --sapay-850: 142 36% 63%;
+  --sapay-900: 143 44% 72%;
+  --sapay-950: 140 48% 90%;
+  --sapay-1000: 140 50% 94%;
+  --sapay-800-solid: 141 34% 36%;
+  --sapay-850-solid: 141 34% 31%;
+  --sapay-900-solid: 142 34% 27%;
+  --sapay-950-solid: 145 30% 22%;
+}
+
+.dark[data-theme='azul'] {
+  --primary: 208 42% 60%;
+  --accent: 208 42% 60%;
+  --sapay-600: 208 22% 53%;
+  --sapay-650: 207 20% 64%;
+  --sapay-700: 207 18% 70%;
+  --sapay-750: 208 17% 73%;
+  --sapay-800: 207 36% 58%;
+  --sapay-850: 207 44% 66%;
+  --sapay-900: 208 52% 75%;
+  --sapay-950: 208 55% 92%;
+  --sapay-1000: 208 60% 95%;
+  --sapay-800-solid: 207 47% 38%;
+  --sapay-850-solid: 207 50% 34%;
+  --sapay-900-solid: 209 54% 31%;
+  --sapay-950-solid: 210 45% 25%;
+}
+
+/* El cafe es el tema por defecto: conserva su identidad aun con dark activo. */
+.dark[data-theme='cafe'] {
+  --primary: 14 42% 55%;
+  --accent: 14 42% 55%;
+  --sapay-600: 22 30% 58%;
+  --sapay-650: 24 22% 66%;
+  --sapay-700: 25 18% 72%;
+  --sapay-750: 26 18% 76%;
+  --sapay-800: 14 36% 58%;
+  --sapay-850: 14 42% 66%;
+  --sapay-900: 14 48% 76%;
+  --sapay-950: 26 35% 93%;
+  --sapay-1000: 26 38% 97%;
+  --sapay-800-solid: 14 41% 36%;
+  --sapay-850-solid: 14 42% 31%;
+  --sapay-900-solid: 14 44% 27%;
+  --sapay-950-solid: 14 38% 21%;
+}
+
+.theme-swatch {
+  display: inline-block;
+}
+
+.theme-swatch-cafe {
+  background-color: #4b2b21 !important;
+}
+
+.theme-swatch-verde {
+  background-color: #1f4b31 !important;
+}
+
+.theme-swatch-azul {
+  background-color: #1c4165 !important;
 }
 
 * {
@@ -53,4 +238,531 @@ img {
 
 .table-responsive table {
   @apply min-w-[600px];
+}
+
+/* ==========================================================================
+   Modo oscuro: ajustes de bajo nivel sobre utilidades genericas.
+   La idea es que en dark los fondos claros se vuelvan superficies oscuras y
+   los textos/acentos marrones se aclaren, sin tocar cada componente.
+   ========================================================================== */
+
+/* Superficie de tarjetas/modales/inputs */
+.dark .bg-white {
+  background-color: hsl(var(--sapay-150)) !important;
+  color: hsl(var(--sapay-950));
+}
+
+.dark .profile-banner-meta {
+  color: rgb(255 255 255) !important;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 45%);
+}
+
+/* Estados: la información semántica se conserva sin usar pastillas blancas. */
+.dark .bg-success-50 {
+  background-color: hsl(145 28% 20%) !important;
+}
+.dark .text-success {
+  color: hsl(145 55% 74%) !important;
+}
+.dark .border-success-100 {
+  border-color: hsl(145 35% 38%) !important;
+}
+.dark .bg-danger-50,
+.dark .bg-danger-100 {
+  background-color: hsl(0 28% 20%) !important;
+}
+.dark .text-danger,
+.dark .text-danger-600 {
+  color: hsl(0 70% 76%) !important;
+}
+.dark .border-danger-150,
+.dark .border-danger-200 {
+  border-color: hsl(0 38% 40%) !important;
+}
+.dark .bg-\[\#fff5df\] {
+  background-color: hsl(42 35% 22%) !important;
+}
+.dark .text-gold {
+  color: hsl(42 78% 74%) !important;
+}
+.dark .border-\[\#f2dbab\] {
+  border-color: hsl(42 45% 40%) !important;
+}
+
+/* Separadores claros de tablas y tarjetas pasan a líneas discretas. */
+.dark [class*="border-[#ebe1d8]"],
+.dark [class*="border-[#ece2d8]"],
+.dark [class*="border-[#f1e7de]"],
+.dark [class*="border-[#e9ddd3]"],
+.dark [class*="border-[#d4c8be]"],
+.dark [class*="border-[#c3b5a8]"] {
+  border-color: hsl(var(--sapay-350)) !important;
+}
+
+.dark [class*="bg-[#fbf7f2]"],
+.dark [class*="bg-[#fdfaf7]"],
+.dark [class*="bg-[#fff7ef]"],
+.dark [class*="bg-[#fff3df]"],
+.dark [class*="bg-[#fffaf6]"],
+.dark [class*="bg-[#f9f0e6]"] {
+  background-color: hsl(var(--sapay-200)) !important;
+}
+
+.dark [class*="text-[#4e4037]"],
+.dark [class*="text-[#5d4d42]"],
+.dark [class*="text-[#8f7c70]"] {
+  color: hsl(var(--sapay-750)) !important;
+}
+
+/* El logo conserva su superficie blanca de marca también en modo oscuro. */
+.dark .sidebar-logo {
+  background-color: #ffffff !important;
+  border-radius: 9999px;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background: hsl(var(--sapay-100)) !important;
+  border-color: hsl(var(--sapay-400));
+  color: hsl(var(--sapay-950));
+  color-scheme: dark;
+  box-shadow: none !important;
+}
+
+.dark input.bg-transparent,
+.dark select.bg-transparent,
+.dark textarea.bg-transparent {
+  background: transparent !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  background: hsl(var(--sapay-100)) !important;
+  border-color: hsl(var(--sapay-600)) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.dark input.bg-transparent:focus,
+.dark select.bg-transparent:focus,
+.dark textarea.bg-transparent:focus {
+  background: transparent !important;
+}
+
+.dark select {
+  appearance: none;
+  background-image: none !important;
+}
+
+.dark .search-input,
+.dark .search-input:focus-within {
+  background-color: hsl(var(--sapay-100)) !important;
+  border-color: hsl(var(--sapay-400));
+  box-shadow: none !important;
+}
+
+.dark .app-modal {
+  background-color: hsl(var(--sapay-150)) !important;
+  border-color: hsl(var(--sapay-350)) !important;
+  box-shadow: none !important;
+}
+
+.dark option {
+  background-color: hsl(var(--sapay-150));
+  color: hsl(var(--sapay-950));
+}
+
+/* Los paneles de formularios no deben iluminarse al enfocar un control. */
+.dark [class*="focus:bg-white"]:focus,
+.dark [class*="focus:bg-white"]:focus-within {
+  background-color: hsl(var(--sapay-100)) !important;
+}
+
+/* Las sombras decorativas claras pierden fuerza en el modo oscuro. */
+.dark [class*="shadow-[0_"],
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl {
+  box-shadow: none !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: hsl(var(--sapay-550));
+}
+
+.dark tr.bg-white,
+.dark [class*="bg-white"] {
+  background-color: hsl(var(--sapay-150));
+}
+
+/* Fondos sombreados claros -> superficie oscura */
+.dark [class*="bg-[#fbf8f4]"],
+.dark [class*="bg-[#fbf8f5]"],
+.dark [class*="bg-[#fbf7f2]"],
+.dark [class*="bg-[#fbf5ef]"],
+.dark [class*="bg-[#fdfaf6]"],
+.dark [class*="bg-[#fdfaf7]"],
+.dark [class*="bg-[#fdfbf8]"],
+.dark [class*="bg-[#fcfaf8]"],
+.dark [class*="bg-[#fcf8f4]"],
+.dark [class*="bg-[#fff9f5]"],
+.dark [class*="bg-[#fffaf6]"],
+.dark [class*="bg-[#fff6ef]"],
+.dark [class*="bg-[#fff7ef]"],
+.dark [class*="bg-[#fff5ee]"],
+.dark [class*="bg-[#fffafa]"],
+.dark [class*="bg-[#faf7f4]"],
+.dark [class*="bg-[#f8f2ea]"],
+.dark [class*="bg-[#f8f0e8]"] {
+  background-color: hsl(var(--sapay-150));
+}
+
+/* Fondos tintados (paneles/fondos alternos) -> superficie media */
+.dark [class*="bg-[#f9f0e6]"],
+.dark [class*="bg-[#f7efe6]"],
+.dark [class*="bg-[#f7efe7]"],
+.dark [class*="bg-[#f7efe5]"],
+.dark [class*="bg-[#f7efe4]"],
+.dark [class*="bg-[#f8efe6]"],
+.dark [class*="bg-[#f8efe4]"],
+.dark [class*="bg-[#f8f0e7]"],
+.dark [class*="bg-[#f9efe6]"],
+.dark [class*="bg-[#f9f1e8]"],
+.dark [class*="bg-[#f8f1e8]"],
+.dark [class*="bg-[#f4eadf]"],
+.dark [class*="bg-[#f4ebe5]"],
+.dark [class*="bg-[#f2e7e0]"],
+.dark [class*="bg-[#f0e6de]"],
+.dark [class*="bg-[#f0e7e0]"],
+.dark [class*="bg-[#f6ebe0]"],
+.dark [class*="bg-[#f6eee4]"],
+.dark [class*="bg-[#f5efe9]"],
+.dark [class*="bg-[#f2eae4]"],
+.dark [class*="bg-[#f4ece4]"] {
+  background-color: hsl(var(--sapay-200));
+}
+
+/* Textos marrones literales -> claros */
+.dark [class*="text-[#4e4037]"],
+.dark [class*="text-[#5a463a]"] {
+  color: hsl(var(--sapay-950));
+}
+.dark [class*="text-[#5d4d42]"],
+.dark [class*="text-[#6d5a51]"],
+.dark [class*="text-[#6d5d52]"],
+.dark [class*="text-[#6e584a]"],
+.dark [class*="text-[#6f6055]"],
+.dark [class*="text-[#85756d]"] {
+  color: hsl(var(--sapay-850));
+}
+.dark [class*="text-[#7a6a60]"],
+.dark [class*="text-[#7f7f7f]"],
+.dark [class*="text-[#8b7b70]"],
+.dark [class*="text-[#9b8e85]"],
+.dark [class*="text-[#9d8d85]"],
+.dark [class*="text-[#8f7c70]"],
+.dark [class*="text-[#474747]"],
+.dark [class*="text-[#5e5e5e]"],
+.dark [class*="text-[#7e7e7e]"],
+.dark [class*="text-[#9d9d9d]"],
+.dark [class*="text-[#bcbcbc]"],
+.dark [class*="text-[#b4a497]"] {
+  color: hsl(var(--sapay-650));
+}
+
+/* Bordes claros -> borde medio oscuro */
+.dark [class*="border-[#d7c6bb]"],
+.dark [class*="border-[#cdb9ab]"],
+.dark [class*="border-[#d8c7bb]"],
+.dark [class*="border-[#d8c7b8]"],
+.dark [class*="border-[#ddd2c8]"],
+.dark [class*="border-[#e5e5e5]"],
+.dark [class*="border-[#dcdcdc]"] {
+  border-color: hsl(var(--sapay-350));
+}
+.dark [class*="divide-[#d7c6bb]"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: hsl(var(--sapay-350));
+}
+.dark [class*="ring-[#f0e4dc]"],
+.dark [class*="ring-[#d7c6bb]"] {
+  --tw-ring-color: hsl(var(--sapay-350));
+}
+.dark .placeholder\:text-\[\#9d8d85\]::placeholder {
+  color: hsl(var(--sapay-550));
+}
+
+/* Botones solidos: se mantienen como acento solido (no claros) */
+.dark .bg-sapay-900 {
+  background-color: hsl(var(--sapay-900-solid));
+}
+.dark .hover\:bg-sapay-850:hover {
+  background-color: hsl(var(--sapay-850-solid));
+}
+.dark .hover\:bg-sapay-800:hover {
+  background-color: hsl(var(--sapay-800-solid));
+}
+.dark [class*="file:bg-sapay-900"]::file-selector-button {
+  background-color: hsl(var(--sapay-900-solid));
+}
+.dark .hover\:bg-\[\#5b3428\]:hover {
+  background-color: hsl(var(--sapay-850-solid));
+}
+.dark .hover\:bg-\[\#3a1a12\]:hover {
+  background-color: hsl(var(--sapay-950-solid));
+}
+.dark .bg-\[\#6b3a2d\] {
+  background-color: hsl(var(--sapay-800-solid));
+}
+.dark .bg-\[\#4b2b21\] {
+  background-color: hsl(var(--sapay-900-solid));
+}
+
+/* Gradientes decorativos (avatar, banners) */
+.dark .from-sapay-800,
+.dark .from-sapay-850 {
+  --tw-gradient-from: hsl(var(--sapay-800-solid));
+}
+.dark .to-sapay-950,
+.dark .to-sapay-900,
+.dark .to-sapay-1000 {
+  --tw-gradient-to: hsl(var(--sapay-900-solid));
+}
+
+/* Configuración: superficies y controles con contraste consistente en dark. */
+.dark .config-page,
+.dark .config-users {
+  color: hsl(var(--sapay-950));
+}
+
+.dark .config-card,
+.dark .config-tabs,
+.dark .config-users table,
+.dark .config-users > div {
+  background-color: hsl(var(--sapay-150));
+}
+
+.dark [class*="bg-[#f2f7f2]"],
+.dark [class*="bg-[#fdf6e6]"],
+.dark [class*="bg-[#fdfbf8]"],
+.dark [class*="bg-[#fdfaf6]"],
+.dark [class*="bg-[#fffaf6]"],
+.dark [class*="bg-[#fff3df]"] {
+  background-color: hsl(var(--sapay-200)) !important;
+  border-color: hsl(var(--sapay-350));
+}
+
+.dark .config-input {
+  background-color: hsl(var(--sapay-100));
+  border-color: hsl(var(--sapay-400));
+  color: hsl(var(--sapay-950));
+}
+
+.dark .config-input:focus {
+  background-color: hsl(var(--sapay-200));
+  border-color: hsl(var(--sapay-600));
+}
+
+.dark .config-input::placeholder {
+  color: hsl(var(--sapay-550));
+}
+
+.dark [class*="focus:bg-white"]:focus,
+.dark [class*="focus:bg-white"]:focus-within,
+.dark .focus-within\:bg-white:focus-within {
+  background-color: hsl(var(--sapay-100)) !important;
+  box-shadow: none !important;
+}
+
+/* Hover oscuro: evita que utilidades claras literales creen destellos blancos. */
+.dark [class*="hover:bg-white"]:hover,
+.dark [class*="hover:bg-[#fff"]:hover,
+.dark [class*="hover:bg-[#fdf"]:hover,
+.dark [class*="hover:bg-[#fb"]:hover,
+.dark [class*="hover:bg-[#fa"]:hover,
+.dark [class*="hover:bg-[#f8"]:hover,
+.dark [class*="hover:bg-[#f2"]:hover {
+  background-color: hsl(var(--sapay-200)) !important;
+  color: hsl(var(--sapay-950));
+}
+
+.dark [class*="hover:bg-sapay-50"]:hover,
+.dark [class*="hover:bg-sapay-100"]:hover,
+.dark [class*="hover:bg-sapay-150"]:hover,
+.dark [class*="hover:bg-sapay-250"]:hover {
+  background-color: hsl(var(--sapay-200)) !important;
+}
+
+.dark [class*="hover:bg-danger-50"]:hover,
+.dark [class*="hover:bg-danger-100"]:hover {
+  background-color: hsl(0 28% 22%) !important;
+}
+
+.dark [class*="hover:bg-success-50"]:hover {
+  background-color: hsl(145 28% 22%) !important;
+}
+
+.dark [class*="bg-[#fff"],
+.dark [class*="bg-[#fdf"],
+.dark [class*="bg-[#fb"],
+.dark [class*="bg-[#fa"],
+.dark [class*="bg-[#f8"] {
+  background-color: hsl(var(--sapay-200)) !important;
+}
+
+.dark .sidebar-logo,
+.dark .config-logo {
+  background-color: #ffffff !important;
+}
+
+.dark [class*="hover:border-[#"]:hover {
+  border-color: hsl(var(--sapay-450)) !important;
+}
+
+.dark .theme-choice-cafe[data-selected="true"],
+.dark .theme-choice-cafe:hover {
+  border-color: hsl(14 42% 55%) !important;
+}
+
+.dark .theme-choice-cafe.bg-sapay-100 {
+  background-color: hsl(14 30% 22%) !important;
+  color: hsl(26 35% 93%) !important;
+}
+
+.dark .theme-choice-verde.bg-sapay-100 {
+  background-color: hsl(143 28% 22%) !important;
+}
+
+.dark .theme-choice-azul.bg-sapay-100 {
+  background-color: hsl(207 30% 23%) !important;
+}
+
+.dark .theme-choice-cafe.bg-white,
+.dark .theme-choice-verde.bg-white,
+.dark .theme-choice-azul.bg-white {
+  background-color: hsl(var(--sapay-150)) !important;
+}
+
+.dark .semanario-grid {
+  background: hsl(var(--sapay-150)) !important;
+  border-color: hsl(var(--sapay-350)) !important;
+}
+
+.dark .semanario-grid-header {
+  background: hsl(var(--sapay-300)) !important;
+  border-color: hsl(var(--sapay-350)) !important;
+}
+
+.dark .semanario-grid-header-cell,
+.dark .semanario-week-label,
+.dark .semanario-day-cell,
+.dark .semanario-night {
+  background: hsl(var(--sapay-150)) !important;
+}
+
+.dark .semanario-week-label,
+.dark .semanario-day-cell {
+  border-color: hsl(var(--sapay-200));
+}
+
+.dark .semanario-grid-header-cell {
+  background: hsl(var(--sapay-250)) !important;
+}
+
+.dark .semanario-today {
+  background: hsl(var(--sapay-200)) !important;
+}
+
+.dark .semanario-turno:hover {
+  background: hsl(var(--sapay-200)) !important;
+}
+
+.dark .semanario-grid .border-sapay-350 {
+  border-color: hsl(var(--sapay-300)) !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark select:-webkit-autofill {
+  -webkit-text-fill-color: hsl(var(--sapay-950));
+  -webkit-box-shadow: 0 0 0 1000px hsl(var(--sapay-100)) inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+.dark .config-logo {
+  background-color: hsl(var(--sapay-100));
+}
+
+.dark .config-secondary-button {
+  background-color: hsl(var(--sapay-200));
+  border-color: hsl(var(--sapay-450));
+  color: hsl(var(--sapay-950));
+}
+
+.dark .config-secondary-button:hover {
+  background-color: hsl(var(--sapay-300));
+}
+
+.dark .config-danger-button {
+  background-color: hsl(0 28% 18%);
+  border-color: hsl(0 35% 32%);
+  color: hsl(0 75% 78%);
+}
+
+.dark .config-danger-button:hover {
+  background-color: hsl(0 32% 24%);
+}
+
+.dark .config-users thead {
+  background-color: hsl(var(--sapay-200));
+  color: hsl(var(--sapay-750));
+}
+
+.dark .config-users tbody tr {
+  border-color: hsl(var(--sapay-350));
+}
+
+.dark .config-users tbody tr:hover {
+  background-color: hsl(var(--sapay-250));
+}
+
+.dark .config-users .bg-\[\#f3e2c8\] {
+  background-color: hsl(38 35% 24%);
+  color: hsl(38 80% 78%);
+}
+
+.dark .config-users .bg-\[\#e8f5ec\] {
+  background-color: hsl(145 25% 19%);
+  color: hsl(145 55% 75%);
+}
+
+.dark .config-users .bg-\[\#eef5fc\] {
+  background-color: hsl(208 30% 20%);
+  color: hsl(208 70% 78%);
+}
+
+.dark .config-users [class*="hover:bg-[#f8eee7]"]:hover {
+  background-color: hsl(var(--sapay-300));
+}
+
+.dark .config-users [class*="hover:bg-[#fffaf6]"]:hover {
+  background-color: hsl(var(--sapay-250));
+}
+
+.dark .config-users [class*="hover:bg-[#fbecec]"]:hover {
+  background-color: hsl(0 28% 19%);
+}
+
+.dark .config-page select,
+.dark .config-page input,
+.dark .config-page textarea,
+.dark .config-users select,
+.dark .config-users input,
+.dark .config-users textarea {
+  color-scheme: dark;
 }

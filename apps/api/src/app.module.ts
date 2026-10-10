@@ -10,6 +10,8 @@ import { InventoryModule } from './inventory/inventory.module';
 import { StaysModule } from './stays/stays.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { SemanarioModule } from './semanario/semanario.module';
+import { SettingsModule } from './settings/settings.module';
+import { UsersModule } from './users/users.module';
 import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
@@ -30,6 +32,8 @@ import { ReservationsModule } from './reservations/reservations.module';
     StaysModule,
     ClientesModule,
     SemanarioModule,
+    SettingsModule,
+    UsersModule,
     ReservationsModule
   ],
   controllers: [AppController]

@@ -327,6 +327,26 @@ model ParkingPayment {
   @@map("pagos_parqueadero")
 }
 
+model AppSettings {
+  id                 Int     @id @default(1)
+  hotelName          String  @default("Hotel SAPAY") @map("nombre_hotel")
+  hotelNit           String  @default("") @map("nit")
+  hotelAddress       String  @default("") @map("direccion")
+  hotelPhone         String  @default("") @map("telefono")
+  hotelEmail         String  @default("") @map("correo")
+  logoDataUrl        String  @default("") @map("logo")
+  themeColor         String  @default("cafe") @map("tema")
+  darkMode           Boolean @default(false) @map("modo_oscuro")
+  checkinLimit       String  @default("12:00") @map("hora_limite_checkin")
+  checkoutLimit      String  @default("13:00") @map("hora_limite_checkout")
+  checkoutTolerance  Int     @default(30) @map("tolerancia_checkout")
+  cancellationPolicy String  @default("") @map("politica_cancelacion")
+  aiEnabled          Boolean @default(true) @map("asistente_ia")
+  updatedAt          DateTime @updatedAt @map("actualizado_en")
+
+  @@map("app_settings")
+}
+
 model AuditLog {
   id          Int         @id @default(autoincrement())
   userId      String      @map("usuario_id")

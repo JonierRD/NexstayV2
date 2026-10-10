@@ -10,6 +10,7 @@ export type ModalProps = {
   maxWidthClass?: string;
   zIndexClass?: string;
   className?: string;
+  overlayClassName?: string;
   closeOnEscape?: boolean;
 };
 
@@ -21,6 +22,7 @@ export function Modal({
   maxWidthClass = 'max-w-lg',
   zIndexClass = 'z-50',
   className,
+  overlayClassName,
   closeOnEscape = true
 }: ModalProps): ReactElement | null {
   useEffect(() => {
@@ -41,7 +43,8 @@ export function Modal({
   return (
     <div
       className={cn(
-        'fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px] p-4 transition-opacity',
+        'fixed inset-0 flex items-center justify-center bg-black/20 p-4 transition-opacity',
+        overlayClassName,
         zIndexClass
       )}
       onClick={(e) => {
@@ -52,7 +55,7 @@ export function Modal({
     >
       <div
         className={cn(
-          'relative w-full rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]',
+          'app-modal relative w-full rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]',
           maxWidthClass,
           className
         )}

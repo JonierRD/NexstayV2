@@ -13,10 +13,12 @@ import { randomBytes } from 'node:crypto';
 import { Role, type User } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { hashPassword, verifyPassword } from './password';
 import { assertAdminPassword } from './admin-password';
 import type { AuthenticatedUser, JwtPayload, PublicUser } from './auth.types';
@@ -34,6 +36,19 @@ export class AuthService {
     private readonly jwtCfg: ConfigType<typeof jwtConfig>
   ) {}
 
+  private toPublicUser(user: User): PublicUser {
+    return {
+      id: user.id,
+      fullName: user.fullName,
+      cc: user.cc,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      isActive: user.isActive,
+      createdAt: user.createdAt.toISOString()
+    };
+  }
+
   private buildAuthResult(user: User): AuthResult {
     const payload: JwtPayload = {
       sub: user.id,
@@ -42,19 +57,10 @@ export class AuthService {
     };
     const token = this.jwt.sign(payload);
     const expiresInSeconds = this.parseExpiresIn(this.jwtCfg.expiresIn);
-    const publicUser: PublicUser = {
-      id: user.id,
-      fullName: user.fullName,
-      cc: user.cc,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      isActive: user.isActive
-    };
     return {
       token,
       expiresIn: expiresInSeconds,
-      user: publicUser
+      user: this.toPublicUser(user)
     };
   }
 
@@ -245,14 +251,94 @@ export class AuthService {
       throw new ForbiddenException('El usuario está inactivo.');
     }
 
-    return {
-      id: user.id,
-      role: user.role,
-      email: user.email,
-      fullName: user.fullName,
-      cc: user.cc,
-      phone: user.phone,
-      isActive: user.isActive
-    };
+    return this.toPublicUser(user);
+  }
+
+  async updateProfile(payload: JwtPayload, dto: UpdateProfileDto): Promise<PublicUser> {
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+
+    if (!user) {
+      throw new UnauthorizedException('La sesión ya no es válida.');
+    }
+
+    if (!user.isActive) {
+      throw new ForbiddenException('El usuario está inactivo.');
+    }
+
+    const data: { fullName?: string; email?: string; phone?: string | null } = {};
+
+    if (dto.email !== undefined) {
+      const email = dto.email.trim().toLowerCase();
+      const emailInUse = await this.prisma.user.findFirst({
+        where: {
+          email: { equals: email, mode: 'insensitive' },
+          NOT: { id: user.id }
+        },
+        select: { id: true }
+      });
+      if (emailInUse) {
+        throw new ConflictException('Ese correo electrónico ya está registrado.');
+      }
+      data.email = email;
+    }
+
+    if (dto.fullName !== undefined) {
+      const fullName = dto.fullName.trim();
+      if (!fullName) {
+        throw new BadRequestException('El nombre completo no puede estar vacío.');
+      }
+      data.fullName = fullName;
+    }
+
+    if (dto.phone !== undefined) {
+      const phone = dto.phone.trim();
+      data.phone = phone || null;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return this.toPublicUser(user);
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data
+    });
+
+    return this.toPublicUser(updated);
+  }
+
+  async changePassword(payload: JwtPayload, dto: ChangePasswordDto): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+
+    if (!user) {
+      throw new UnauthorizedException('La sesión ya no es válida.');
+    }
+
+    if (!user.isActive) {
+      throw new ForbiddenException('El usuario está inactivo.');
+    }
+
+    if (dto.newPassword !== dto.confirmPassword) {
+      throw new BadRequestException('Las contraseñas nuevas no coinciden.');
+    }
+
+    const isCurrentPasswordValid = await verifyPassword(dto.currentPassword, user.passwordHash);
+
+    if (!isCurrentPasswordValid) {
+      throw new BadRequestException('La contraseña actual no es correcta.');
+    }
+
+    const passwordHash = await hashPassword(dto.newPassword);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetToken: null,
+        resetTokenExpiresAt: null
+      }
+    });
+
+    return { message: 'Contraseña actualizada correctamente.' };
   }
 }

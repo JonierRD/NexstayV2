@@ -9,4 +9,6 @@ export * from './inventory';
 export * from './clientes';
 export * from './stays';
 export * from './semanario';
+export * from './settings';
+export * from './users';
 export * from './reservations';
