@@ -54,6 +54,10 @@ export async function staysActiveRequest(): Promise<Stay[]> {
   return apiRequest<Stay[]>('/stays/active', { method: 'GET' });
 }
 
+export async function staysHistoryRequest(limit = 50): Promise<Stay[]> {
+  return apiRequest<Stay[]>(`/stays/history?limit=${limit}`, { method: 'GET' });
+}
+
 export async function staysByRoomRequest(roomNumber: string): Promise<Stay[]> {
   return apiRequest<Stay[]>(`/stays/room/${encodeURIComponent(roomNumber)}`, { method: 'GET' });
 }

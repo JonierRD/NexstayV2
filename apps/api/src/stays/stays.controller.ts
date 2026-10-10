@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
@@ -20,6 +20,11 @@ export class StaysController {
   @Get('active')
   async findActive() {
     return this.service.findActive();
+  }
+
+  @Get('history')
+  async findHistory(@Query('limit') limit?: string) {
+    return this.service.findHistory(limit ? Number(limit) : undefined);
   }
 
   @Get('room/:roomNumber')

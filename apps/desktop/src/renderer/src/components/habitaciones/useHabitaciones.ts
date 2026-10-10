@@ -35,8 +35,6 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
   // Modal de crear/editar habitación
   const [editingRoom, setEditingRoom] = useState<Habitacion | null>(null);
   const [showRoomForm, setShowRoomForm] = useState(false);
-  // Autorizacion de admin: unicamente eliminar una habitacion lo exige.
-  const [showAdminAuth, setShowAdminAuth] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
   const [pendingRoomNumber, setPendingRoomNumber] = useState<string | null>(null);
   // Subida de imagen
@@ -180,9 +178,7 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
 
   const pct = (n: number) => stats.total > 0 ? `${((n / stats.total) * 100).toFixed(1)}% del total` : '0% del total';
 
-  // Crear, editar y liberar son operaciones normales: no piden contrasena de admin.
-  // Solo eliminar una habitacion exige la contrasena de un administrador.
-  // El personal de limpieza es solo lectura: nunca ejecuta estas acciones.
+  // El personal no administrador no puede gestionar ni eliminar habitaciones.
   function requireAuth(action: PendingRoomAction, roomNumber?: string) {
     if (!canManage) {
       return;
@@ -192,7 +188,7 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
 
   // Pide confirmacion y, si quien borra no es ADMIN, la contrasena de un administrador.
   function requestDeleteRoom(roomNumber: string) {
-    if (!canManage) {
+    if (!isAdmin) {
       return;
     }
     setShowRoomForm(false);
@@ -201,15 +197,11 @@ export function useHabitaciones({ user }: { user: PublicUser }) {
 
 showConfirm({
         title: `¿Eliminar la habitación ${roomNumber}?`,
-        message: 'Esta acción no se puede deshacer y requiere la contraseña de un administrador.',
+        message: 'Esta acción solo puede realizarla un administrador y no se puede deshacer.',
         label: 'Sí, eliminar',
         danger: true,
 onConfirm: () => {
-          if (isAdmin) {
-            void performDelete(roomNumber, undefined);
-          } else {
-            setShowAdminAuth(true);
-          }
+          void performDelete(roomNumber);
         }
       });
   }
@@ -262,22 +254,10 @@ showConfirm({
     }
   }
 
-  function onAdminAuthorized(password: string) {
-    setShowAdminAuth(false);
-    if (roomToDelete) {
-      void performDelete(roomToDelete, password);
-    }
-  }
-
-  function closeAdminAuth() {
-    setShowAdminAuth(false);
-    setRoomToDelete(null);
-    setImageError('');
-  }
-
-  async function performDelete(roomNumber: string, adminPassword?: string) {
+  async function performDelete(roomNumber: string) {
     try {
-      await deleteHabitacionRequest(roomNumber, adminPassword);
+      if (!isAdmin) return;
+      await deleteHabitacionRequest(roomNumber);
       setShowRoomForm(false);
       setEditingRoom(null);
       loadRooms();
@@ -412,9 +392,6 @@ apiRooms,
     requireAuth,
     handleAddImage,
     handleRemoveImage,
-    showAdminAuth,
-    onAdminAuthorized,
-    closeAdminAuth,
     showRoomForm,
     editingRoom,
 requestDeleteRoom,

@@ -5,7 +5,6 @@ import { useAuth } from './components/auth/useAuth';
 import { DashboardLayout } from './components/layout';
 import { LoadingOverlay } from './components/ui/LoadingOverlay';
 import { applyAuthInterceptors } from './lib/api';
-import { ensureInitialTheme } from './lib/theme';
 import { AuthProvider } from './context/AuthContext';
 
 export function App(): ReactElement {
@@ -13,10 +12,6 @@ export function App(): ReactElement {
 
   useEffect(() => {
     applyAuthInterceptors();
-  }, []);
-
-  useEffect(() => {
-    void ensureInitialTheme();
   }, []);
 
   const content = (() => {

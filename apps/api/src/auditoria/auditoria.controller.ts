@@ -1,4 +1,4 @@
-import { Controller, ForbiddenException, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
@@ -52,5 +52,36 @@ export class AuditoriaController {
     }
 
     return this.service.findByEntity(entity, entityId);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string, @CurrentUser() user?: JwtPayload) {
+    if (user?.role !== 'ADMIN') {
+      throw new ForbiddenException('Solo los administradores pueden eliminar registros de auditoría');
+    }
+
+    const numericId = Number(id);
+    if (!Number.isInteger(numericId) || numericId <= 0) {
+      throw new BadRequestException('El identificador del registro no es válido');
+    }
+
+    return this.service.remove(numericId);
+  }
+
+  @Delete()
+  async removeMany(@Body() body: { ids?: unknown }, @CurrentUser() user?: JwtPayload) {
+    if (user?.role !== 'ADMIN') {
+      throw new ForbiddenException('Solo los administradores pueden eliminar registros de auditoría');
+    }
+
+    if (
+      !Array.isArray(body?.ids) ||
+      body.ids.length === 0 ||
+      body.ids.some((id) => typeof id !== 'number' || !Number.isInteger(id) || id <= 0)
+    ) {
+      throw new BadRequestException('Debes seleccionar registros válidos para eliminar');
+    }
+
+    return this.service.removeMany(body.ids as number[]);
   }
 }

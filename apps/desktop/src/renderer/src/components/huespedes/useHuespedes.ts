@@ -1,21 +1,30 @@
-import { useEffect, useState } from 'react';
-import { type Stay, checkoutRequest, staysActiveRequest } from '../../lib/api';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  type Stay,
+  checkoutRequest,
+  staysActiveRequest,
+  staysHistoryRequest
+} from '../../lib/api';
 
 export function useHuespedes() {
   const [stays, setStays] = useState<Stay[]>([]);
+  const [history, setHistory] = useState<Stay[]>([]);
+  const [historyQuery, setHistoryQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [checkoutStay, setCheckoutStay] = useState<Stay | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  // PROCESO: Cargar huéspedes activos desde la API (GET /stays/active con lavandería y ventas)
+  // PROCESO: Cargar huéspedes activos + historial reciente desde la API
   async function load(): Promise<void> {
     setLoading(true);
     try {
-      setStays(await staysActiveRequest());
+      const [active, past] = await Promise.all([staysActiveRequest(), staysHistoryRequest(100)]);
+      setStays(active);
+      setHistory(past);
       setError('');
     } catch {
-      setError('No se pudieron cargar los huéspedes activos.');
+      setError('No se pudieron cargar los huéspedes.');
     } finally {
       setLoading(false);
     }
@@ -44,8 +53,26 @@ export function useHuespedes() {
     }
   }
 
+  // Filtro de historial por nombre, cédula o habitación
+  const filteredHistory = useMemo(() => {
+    const value = historyQuery.trim().toLowerCase();
+    if (!value) return history;
+    return history.filter((stay) =>
+      [
+        stay.client?.firstName,
+        stay.client?.lastName,
+        stay.client?.cc,
+        stay.roomNumber
+      ].some((field) => field?.toLowerCase().includes(value))
+    );
+  }, [history, historyQuery]);
+
   return {
     stays,
+    history,
+    historyQuery,
+    setHistoryQuery,
+    filteredHistory,
     loading,
     error,
     checkoutStay,

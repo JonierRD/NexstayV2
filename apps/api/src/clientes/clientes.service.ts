@@ -1,7 +1,8 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException
+  ConflictException,
+  ForbiddenException
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -167,9 +168,8 @@ export class ClientesService {
   }
 
   async remove(id: number, adminPassword: string, user: JwtPayload) {
-    // Validar contraseña admin si no es ADMIN
     if (user.role !== Role.ADMIN) {
-      await this.requireAdminPassword(adminPassword);
+      throw new ForbiddenException('Solo un administrador puede eliminar clientes.');
     }
 
     // Buscar cliente

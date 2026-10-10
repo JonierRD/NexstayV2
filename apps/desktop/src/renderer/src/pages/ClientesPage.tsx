@@ -1,7 +1,6 @@
 import { Plus } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
-import { AdminPasswordModal } from '../components/ui/AdminPasswordModal';
 import { ClientFormModal } from '../components/clientes/ClientFormModal';
 import { ClientHistoryModal } from '../components/clientes/ClientHistoryModal';
 import { ClientsTable } from '../components/clientes/ClientsTable';
@@ -40,6 +39,7 @@ export function ClientesPage({ user }: Props): ReactElement {
         onView={c.setHistory}
         onEdit={c.openEdit}
         onDelete={c.requestDelete}
+        canDelete={user.role === 'ADMIN'}
       />
 
       {c.showForm && (
@@ -55,9 +55,6 @@ export function ClientesPage({ user }: Props): ReactElement {
 
       {c.history && <ClientHistoryModal client={c.history} onClose={() => c.setHistory(null)} />}
 
-      {c.deleting && user.role !== 'ADMIN' && (
-        <AdminPasswordModal onClose={() => c.setDeleting(null)} onSuccess={c.remove} />
-      )}
     </div>
   );
 }
