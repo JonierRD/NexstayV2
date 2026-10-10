@@ -288,6 +288,7 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
               </div>
               <Switch checked={s.settings?.darkMode ?? false} onChange={(darkMode) => void s.saveAppearance({ darkMode })} disabled={s.saving === 'apariencia'} />
             </div>
+
           </Card>
 
           <Card

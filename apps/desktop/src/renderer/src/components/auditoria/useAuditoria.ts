@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { type AuditAction, type AuditLog, auditoriaRequest } from '../../lib/api';
+import { deleteAuditLogRequest, deleteAuditLogsRequest, type AuditAction, type AuditLog, auditoriaRequest } from '../../lib/api';
 
 const PAGE_SIZE = 50;
 
@@ -15,8 +15,8 @@ export function useAuditoria() {
 
   // Los filtros se aplican en el servidor: filtrar solo la pagina cargada
   // escondia los registros mas viejos y hacia creer que no existian.
-  const loadLogs = useCallback(async () => {
-    setLoading(true);
+  const loadLogs = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const response = await auditoriaRequest({
         action: actionFilter === 'TODOS' ? undefined : actionFilter,
@@ -54,6 +54,21 @@ export function useAuditoria() {
     setEntityFilter(value);
   }, []);
 
+  const deleteLogs = useCallback(async (ids: number[]) => {
+    if (ids.length === 1) {
+      await deleteAuditLogRequest(ids[0]);
+    } else {
+      await deleteAuditLogsRequest(ids);
+    }
+    setLogs((current) => current.filter((log) => !ids.includes(log.id)));
+    setTotal((current) => Math.max(0, current - ids.length));
+    await loadLogs(false);
+  }, [loadLogs]);
+
+  const deleteLog = useCallback(async (id: number) => {
+    await deleteLogs([id]);
+  }, [deleteLogs]);
+
   // Las entidades disponibles se consultan aparte, sin filtro de entidad, para
   // que el desplegable no se vacie al filtrar.
   useEffect(() => {
@@ -84,6 +99,11 @@ export function useAuditoria() {
     return `${from}-${to} de ${total}`;
   }, [page, total]);
 
+  const todayCount = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return logs.filter((log) => new Date(log.createdAt).toISOString().slice(0, 10) === today).length;
+  }, [logs]);
+
   return {
     logs,
     loading,
@@ -97,10 +117,13 @@ export function useAuditoria() {
     uniqueEntities: entities,
     page,
     totalPages,
+    todayCount,
     rangeLabel,
     canPrev,
     canNext,
     nextPage: () => setPage((p) => Math.min(p + 1, totalPages - 1)),
-    prevPage: () => setPage((p) => Math.max(p - 1, 0))
+    prevPage: () => setPage((p) => Math.max(p - 1, 0)),
+    deleteLog,
+    deleteLogs
   };
 }

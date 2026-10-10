@@ -13,6 +13,8 @@ export function applyTheme(input: { themeColor?: ThemeColor; darkMode?: boolean 
   const root = document.documentElement;
   root.dataset.theme = input.themeColor ?? 'cafe';
   root.classList.toggle('dark', input.darkMode === true);
+  root.style.removeProperty('font-size');
+  delete root.dataset.fontScale;
 }
 
 export function isDarkModeActive(): boolean {

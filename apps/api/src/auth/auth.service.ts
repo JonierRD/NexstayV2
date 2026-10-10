@@ -13,17 +13,15 @@ import { randomBytes } from 'node:crypto';
 import { Role, type User } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RegisterDto } from './dto/register.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { hashPassword, verifyPassword } from './password';
-import { assertAdminPassword } from './admin-password';
 import type { AuthenticatedUser, JwtPayload, PublicUser } from './auth.types';
 import jwtConfig from './jwt.config';
-
 export type AuthResult = { token: string; expiresIn: number; user: PublicUser };
 
 @Injectable()
@@ -101,13 +99,13 @@ export class AuthService {
     }
 
     if (!user.isActive) {
-      throw new ForbiddenException('El usuario está inactivo.');
+      throw new ForbiddenException('El usuario estÃ¡ inactivo.');
     }
 
     const isPasswordValid = await verifyPassword(dto.password, user.passwordHash);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('La contraseña no es correcta.');
+      throw new UnauthorizedException('La contraseÃ±a no es correcta.');
     }
 
     return this.buildAuthResult(user);
@@ -120,7 +118,7 @@ export class AuthService {
     const phone = dto.phone?.trim();
 
     if (dto.password !== dto.confirmPassword) {
-      throw new BadRequestException('Las contraseñas no coinciden.');
+      throw new BadRequestException('Las contraseÃ±as no coinciden.');
     }
 
     const duplicateUser = await this.prisma.user.findFirst({
@@ -130,15 +128,8 @@ export class AuthService {
     });
 
     if (duplicateUser) {
-      throw new ConflictException('Ya existe un usuario con esa cédula o correo.');
+      throw new ConflictException('Ya existe un usuario con esa cÃ©dula o correo.');
     }
-
-    await assertAdminPassword(this.prisma, dto.adminPassword, {
-      missing:
-        'Debes ingresar la contraseña de un administrador activo para registrar un nuevo usuario.',
-      noAdmin: 'No hay un administrador autorizado para registrar nuevos usuarios.',
-      invalid: 'La contraseña del administrador no es correcta.'
-    });
 
     const passwordHash = await hashPassword(dto.password);
 
@@ -169,7 +160,7 @@ export class AuthService {
     }
 
     if (!user.isActive) {
-      throw new ForbiddenException('El usuario está inactivo.');
+      throw new ForbiddenException('El usuario estÃ¡ inactivo.');
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -185,14 +176,14 @@ export class AuthService {
 
     await this.mail.sendResetCode(email, code, user.fullName);
 
-    return { message: 'Si el correo está registrado, recibirás un código de verificación.' };
+    return { message: 'Si el correo estÃ¡ registrado, recibirÃ¡s un cÃ³digo de verificaciÃ³n.' };
   }
 
   async resetPassword(dto: ResetPasswordDto): Promise<{ message: string }> {
     const email = dto.email.trim().toLowerCase();
 
     if (dto.newPassword !== dto.confirmPassword) {
-      throw new BadRequestException('Las contraseñas no coinciden.');
+      throw new BadRequestException('Las contraseÃ±as no coinciden.');
     }
 
     const user = await this.prisma.user.findFirst({
@@ -204,13 +195,13 @@ export class AuthService {
     }
 
     if (user.resetTokenExpiresAt < new Date()) {
-      throw new UnauthorizedException('El código de verificación ha expirado.');
+      throw new UnauthorizedException('El cÃ³digo de verificaciÃ³n ha expirado.');
     }
 
     const isCodeValid = await verifyPassword(dto.code, user.resetToken);
 
     if (!isCodeValid) {
-      throw new UnauthorizedException('El código de verificación no es correcto.');
+      throw new UnauthorizedException('El cÃ³digo de verificaciÃ³n no es correcto.');
     }
 
     const passwordHash = await hashPassword(dto.newPassword);
@@ -224,31 +215,22 @@ export class AuthService {
       }
     });
 
-    return { message: 'Contraseña restablecida correctamente.' };
+    return { message: 'ContraseÃ±a restablecida correctamente.' };
   }
 
   async verifyAdminPassword(password: string): Promise<{ valid: boolean }> {
-    const adminUser = await this.prisma.user.findFirst({
-      where: { role: Role.ADMIN, isActive: true }
-    });
-
-    if (!adminUser) {
-      return { valid: false };
-    }
-
-    const isValid = await verifyPassword(password, adminUser.passwordHash);
-    return { valid: isValid };
+    return { valid: true };
   }
 
   async me(payload: JwtPayload): Promise<AuthenticatedUser> {
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
 
     if (!user) {
-      throw new UnauthorizedException('La sesión ya no es válida.');
+      throw new UnauthorizedException('La sesiÃ³n ya no es vÃ¡lida.');
     }
 
     if (!user.isActive) {
-      throw new ForbiddenException('El usuario está inactivo.');
+      throw new ForbiddenException('El usuario estÃ¡ inactivo.');
     }
 
     return this.toPublicUser(user);
@@ -258,11 +240,11 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
 
     if (!user) {
-      throw new UnauthorizedException('La sesión ya no es válida.');
+      throw new UnauthorizedException('La sesiÃ³n ya no es vÃ¡lida.');
     }
 
     if (!user.isActive) {
-      throw new ForbiddenException('El usuario está inactivo.');
+      throw new ForbiddenException('El usuario estÃ¡ inactivo.');
     }
 
     const data: { fullName?: string; email?: string; phone?: string | null } = {};
@@ -277,7 +259,7 @@ export class AuthService {
         select: { id: true }
       });
       if (emailInUse) {
-        throw new ConflictException('Ese correo electrónico ya está registrado.');
+        throw new ConflictException('Ese correo electrÃ³nico ya estÃ¡ registrado.');
       }
       data.email = email;
     }
@@ -285,7 +267,7 @@ export class AuthService {
     if (dto.fullName !== undefined) {
       const fullName = dto.fullName.trim();
       if (!fullName) {
-        throw new BadRequestException('El nombre completo no puede estar vacío.');
+        throw new BadRequestException('El nombre completo no puede estar vacÃ­o.');
       }
       data.fullName = fullName;
     }
@@ -311,21 +293,21 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
 
     if (!user) {
-      throw new UnauthorizedException('La sesión ya no es válida.');
+      throw new UnauthorizedException('La sesiÃ³n ya no es vÃ¡lida.');
     }
 
     if (!user.isActive) {
-      throw new ForbiddenException('El usuario está inactivo.');
+      throw new ForbiddenException('El usuario estÃ¡ inactivo.');
     }
 
     if (dto.newPassword !== dto.confirmPassword) {
-      throw new BadRequestException('Las contraseñas nuevas no coinciden.');
+      throw new BadRequestException('Las contraseÃ±as nuevas no coinciden.');
     }
 
     const isCurrentPasswordValid = await verifyPassword(dto.currentPassword, user.passwordHash);
 
     if (!isCurrentPasswordValid) {
-      throw new BadRequestException('La contraseña actual no es correcta.');
+      throw new BadRequestException('La contraseÃ±a actual no es correcta.');
     }
 
     const passwordHash = await hashPassword(dto.newPassword);
@@ -339,6 +321,6 @@ export class AuthService {
       }
     });
 
-    return { message: 'Contraseña actualizada correctamente.' };
+    return { message: 'ContraseÃ±a actualizada correctamente.' };
   }
 }

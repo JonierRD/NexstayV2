@@ -62,6 +62,18 @@ export class StaysService {
     return staysWithLaundry;
   }
 
+  async findHistory(limit = 50) {
+    return this.prisma.stay.findMany({
+      where: { status: { in: ['FINALIZADA', 'CANCELADA'] } },
+      include: {
+        client: true,
+        room: true
+      },
+      orderBy: { checkOut: 'desc' },
+      take: Math.min(Math.max(limit, 1), 200)
+    });
+  }
+
   async findOne(id: number) {
     const stay = await this.prisma.stay.findUnique({
       where: { id },

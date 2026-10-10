@@ -99,11 +99,12 @@ export function useClientes(user: PublicUser) {
     }
   }
 
-  // PROCESO: Eliminar cliente (con contraseña de admin si aplica)
-  async function remove(password?: string, client = deleting): Promise<void> {
+  // Solo un administrador puede iniciar eliminaciones.
+  async function remove(client = deleting): Promise<void> {
     if (!client) return;
     try {
-      await deleteClienteRequest(client.id, password);
+      if (user.role !== 'ADMIN') return;
+      await deleteClienteRequest(client.id);
       setDeleting(null);
       await load();
     } catch (reason) {
@@ -112,9 +113,10 @@ export function useClientes(user: PublicUser) {
   }
 
   function requestDelete(client: Cliente): void {
+    if (user.role !== 'ADMIN') return;
     setError('');
     setDeleting(client);
-    if (user.role === 'ADMIN') void remove(undefined, client);
+    void remove(client);
   }
 
   return {

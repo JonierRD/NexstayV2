@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { Role } from '@prisma/client';
 import { AuthService, type AuthResult } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -7,12 +8,12 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { VerifyAdminDto } from './dto/verify-admin.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import type { AuthenticatedUser, JwtPayload, PublicUser } from './auth.types';
 import type { SeededAdmin } from './seed.service';
 import { SeedService } from './seed.service';
+import { AdminGuard } from './admin.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +28,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @UseGuards(JwtAuthGuard, AdminGuard)
   register(@Body() registerDto: RegisterDto): Promise<AuthResult> {
     return this.authService.register(registerDto);
   }
@@ -69,8 +71,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('verify-admin')
-  verifyAdmin(@Body() dto: VerifyAdminDto): Promise<{ valid: boolean }> {
-    return this.authService.verifyAdminPassword(dto.password);
+  verifyAdmin(): Promise<{ valid: boolean }> {
+    return Promise.resolve({ valid: true });
   }
 
   @Get('first-run')

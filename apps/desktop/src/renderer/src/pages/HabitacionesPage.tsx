@@ -2,7 +2,6 @@ import { BedDouble, CheckCircle, Clock3, Gavel, Plus } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { Role } from '../routes/roles';
-import { AdminPasswordModal } from '../components/ui/AdminPasswordModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { RoomFormModal } from '../components/habitaciones/RoomFormModal';
 import { RoomDetailCard } from '../components/habitaciones/RoomDetailCard';
@@ -115,19 +114,12 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
         </div>
       </div>
 
-      {h.showAdminAuth && (
-        <AdminPasswordModal
-          onSuccess={h.onAdminAuthorized}
-          onClose={h.closeAdminAuth}
-        />
-      )}
-
       {h.showRoomForm && (
         <RoomFormModal
           room={h.editingRoom ?? undefined}
           existingRooms={h.apiRooms}
           onSubmit={h.submitRoom}
-          onRequestDelete={h.requestDeleteRoom}
+          onRequestDelete={user.role === 'ADMIN' ? h.requestDeleteRoom : undefined}
           onClose={h.closeRoomForm}
         />
       )}
