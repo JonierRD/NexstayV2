@@ -8,7 +8,6 @@ import {
   clientesRequest,
   checkinRequest
 } from '../../lib/api';
-import { useSettingsCached } from '../../lib/settingsCache';
 
 export type CheckinStep = 'CLIENT_DATA' | 'SELECT_ROOM' | 'CONFIRM' | 'SUCCESS';
 
@@ -39,10 +38,30 @@ function todayInputValue(): string {
   return `${today.getFullYear()}-${month}-${day}`;
 }
 
+/**
+ * Construye el instante del check-in usando la fecha elegida y la hora real
+ * del momento (no la hora limite configurada). Asi "Ingreso" y el tiempo
+ * transcurrido reflejan cuando llego el huesped.
+ */
+function checkinTimestamp(dateInput: string): string {
+  const now = new Date();
+  const [year, month, day] = dateInput.split('-').map(Number);
+  if (!year || !month || !day) {
+    return now.toISOString();
+  }
+  const local = new Date(
+    year,
+    month - 1,
+    day,
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds()
+  );
+  return local.toISOString();
+}
+
 export function useReception(_user?: PublicUser) {
-  // Hora de check-in configurada en Configuracion -> Politicas (default 12:00).
-  const settings = useSettingsCached();
-  const checkinTime = (settings?.checkinLimit ?? '12:00').slice(0, 5) || '12:00';
   // Wizard: CLIENT_DATA → SELECT_ROOM → CONFIRM → SUCCESS
   const [step, setStep] = useState<CheckinStep>('CLIENT_DATA');
   // Habitaciones disponibles traídas de la API
@@ -247,7 +266,7 @@ export function useReception(_user?: PublicUser) {
       roomNumber: selectedRoom.number,
       acType,
       nights: nights || undefined,
-      checkIn: checkInDate ? new Date(`${checkInDate}T${checkinTime}:00`).toISOString() : undefined
+      checkIn: checkInDate ? checkinTimestamp(checkInDate) : undefined
     };
 
     checkinRequest(checkinData)

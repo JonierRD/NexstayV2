@@ -14,6 +14,14 @@ export type StaySaleLine = {
   product?: { id: number; name: string; price: number } | null;
 };
 
+export type StayPaymentLine = {
+  id: number;
+  amount: number;
+  method: string;
+  reference?: string | null;
+  createdAt: string;
+};
+
 export type Stay = {
   id: number;
   clientId: number;
@@ -33,6 +41,7 @@ export type Stay = {
   room?: Habitacion;
   sales?: StaySaleLine[];
   laundry?: Laundry[];
+  payments?: StayPaymentLine[];
 };
 
 export type CheckinInput = {
@@ -70,6 +79,15 @@ export async function checkoutRequest(id: number, input: {
   nights?: number; paymentConfirmed?: boolean; paymentMethod?: string; paymentReference?: string;
 } = {}): Promise<Stay> {
   return apiRequest<Stay>(`/stays/${id}/checkout`, {
+    method: 'POST',
+    body: input
+  });
+}
+
+export async function registerStayPaymentRequest(id: number, input: {
+  amount: number; method: string; reference?: string;
+}): Promise<StayPaymentLine> {
+  return apiRequest<StayPaymentLine>(`/stays/${id}/payments`, {
     method: 'POST',
     body: input
   });

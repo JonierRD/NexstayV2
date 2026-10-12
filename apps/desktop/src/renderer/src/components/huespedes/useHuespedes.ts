@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   type Stay,
   checkoutRequest,
+  registerStayPaymentRequest,
   staysActiveRequest,
   staysHistoryRequest
 } from '../../lib/api';
@@ -14,6 +15,8 @@ export function useHuespedes() {
   const [error, setError] = useState('');
   const [checkoutStay, setCheckoutStay] = useState<Stay | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [paymentStay, setPaymentStay] = useState<Stay | null>(null);
+  const [isRegisteringPayment, setIsRegisteringPayment] = useState(false);
 
   // PROCESO: Cargar huéspedes activos + historial reciente desde la API
   async function load(): Promise<void> {
@@ -36,6 +39,25 @@ export function useHuespedes() {
 
   function handleCheckoutClick(stay: Stay): void {
     setCheckoutStay(stay);
+  }
+
+  function handlePaymentClick(stay: Stay): void {
+    setPaymentStay(stay);
+  }
+
+  // PROCESO: Registrar pago parcial (POST /stays/:id/payments)
+  async function confirmPayment(amount: number, method: string, reference?: string): Promise<void> {
+    if (!paymentStay) return;
+    setIsRegisteringPayment(true);
+    try {
+      await registerStayPaymentRequest(paymentStay.id, { amount, method, reference });
+      setPaymentStay(null);
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'No se pudo registrar el pago.');
+    } finally {
+      setIsRegisteringPayment(false);
+    }
   }
 
   // PROCESO: Confirmar check-out (POST /stays/:id/checkout)
@@ -80,6 +102,11 @@ export function useHuespedes() {
     isCheckingOut,
     handleCheckoutClick,
     confirmCheckout,
+    paymentStay,
+    setPaymentStay,
+    isRegisteringPayment,
+    handlePaymentClick,
+    confirmPayment,
     load
   };
 }
