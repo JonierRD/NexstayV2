@@ -67,7 +67,10 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
   const laundryTotal = laundryItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
   const hasPendingLaundry = laundryItems.some((item) => item.status === 'PENDIENTE' || item.status === 'EN_PROCESO');
 
+  // Pagos parciales registrados durante la estadía (se descuentan del total).
+  const priorPayments = (stay.payments ?? []).reduce((sum, payment) => sum + Number(payment.amount), 0);
   const grandTotal = roomBalance + salesTotal + laundryTotal;
+  const outstanding = Math.max(0, grandTotal - priorPayments);
 
   return (
     <div
@@ -266,17 +269,31 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           </div>
 
           {/* Total Gran Final */}
-          <div className="flex items-center justify-between rounded-2xl border border-sapay-400 bg-[#f9f1e8] p-4 text-sapay-950">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-sapay-750">Total General a Cobrar</p>
-              <p className="text-[10px] text-sapay-650">Hospedaje + Tienda + Lavandería</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[22px] font-black text-sapay-950 leading-tight">{formatCOP(grandTotal)}</p>
+          <div className="rounded-2xl border border-sapay-400 bg-[#f9f1e8] p-4 text-sapay-950">
+            {priorPayments > 0 && (
+              <div className="mb-2 space-y-1 border-b border-sapay-300 pb-2 text-[11px] text-sapay-750">
+                <div className="flex items-center justify-between">
+                  <span>Total de la cuenta:</span>
+                  <span className="font-semibold text-sapay-900">{formatCOP(grandTotal)}</span>
+                </div>
+                <div className="flex items-center justify-between text-emerald-700">
+                  <span>Pagos previos ({stay.payments?.length ?? 0}):</span>
+                  <span className="font-semibold">−{formatCOP(priorPayments)}</span>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-sapay-750">Saldo a cobrar</p>
+                <p className="text-[10px] text-sapay-650">Hospedaje + Tienda + Lavandería − pagos previos</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[22px] font-black text-sapay-950 leading-tight">{formatCOP(outstanding)}</p>
+              </div>
             </div>
           </div>
 
-          {grandTotal > 0 && (
+          {outstanding > 0 && (
             <div className="rounded-xl border border-sapay-350 bg-white p-3.5">
               <label className="block text-[11px] font-semibold text-sapay-800">Método de pago final
                 <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} className="mt-1 w-full rounded-lg border border-sapay-350 bg-white px-3 py-2 text-xs">
@@ -285,7 +302,7 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
               </label>
               <label className="mt-3 flex items-start gap-2 text-[11px] text-sapay-850">
                 <input type="checkbox" checked={paymentConfirmed} onChange={(event) => setPaymentConfirmed(event.target.checked)} />
-                <span>Confirmo que recibí el pago final de <strong>{formatCOP(grandTotal)}</strong>.</span>
+                <span>Confirmo que recibí el pago final de <strong>{formatCOP(outstanding)}</strong>.</span>
               </label>
             </div>
           )}
@@ -303,8 +320,8 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(billableNights, paymentMethod, paymentConfirmed || grandTotal === 0)}
-            disabled={isProcessing || (grandTotal > 0 && !paymentConfirmed)}
+            onClick={() => onConfirm(billableNights, paymentMethod, paymentConfirmed || outstanding === 0)}
+            disabled={isProcessing || (outstanding > 0 && !paymentConfirmed)}
             className="flex items-center gap-1.5 rounded-xl bg-sapay-900 px-5 py-2 text-[12px] font-bold text-white transition hover:bg-sapay-850 disabled:opacity-60 shadow-sm"
           >
             <LogOut size={14} />

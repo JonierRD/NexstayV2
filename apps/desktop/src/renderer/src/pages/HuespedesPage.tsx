@@ -3,6 +3,7 @@ import { type ReactElement, useState } from 'react';
 import { type PublicUser } from '../lib/api';
 import { CheckoutModal } from '../components/huespedes/CheckoutModal';
 import { GuestCard } from '../components/huespedes/GuestCard';
+import { PaymentModal } from '../components/huespedes/PaymentModal';
 import { StayHistoryList } from '../components/huespedes/StayHistoryList';
 import { useHuespedes } from '../components/huespedes/useHuespedes';
 import { Button } from '../components/ui/Button';
@@ -95,6 +96,7 @@ export function HuespedesPage({ user }: Props): ReactElement {
                 key={stay.id}
                 stay={stay}
                 onCheckout={g.handleCheckoutClick}
+                onPay={g.handlePaymentClick}
               />
             ))}
           </div>
@@ -116,6 +118,15 @@ export function HuespedesPage({ user }: Props): ReactElement {
           onClose={() => g.setCheckoutStay(null)}
           onConfirm={(nights, method, confirmed) => void g.confirmCheckout(nights, method, confirmed)}
           isProcessing={g.isCheckingOut}
+        />
+      )}
+
+      {g.paymentStay && (
+        <PaymentModal
+          stay={g.paymentStay}
+          onClose={() => g.setPaymentStay(null)}
+          onConfirm={(amount, method, reference) => void g.confirmPayment(amount, method, reference)}
+          isProcessing={g.isRegisteringPayment}
         />
       )}
     </div>

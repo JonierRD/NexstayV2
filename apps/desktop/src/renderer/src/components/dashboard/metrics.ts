@@ -46,7 +46,8 @@ export function computeTodaySalesRevenue(sales: StaySale[]): number {
     .reduce((sum, s) => sum + (Number(s.unitPrice) || 0) * s.quantity, 0);
 }
 
-// PROCESO: Total a liquidar en check-out = habitación + ventas fiado + lavandería.
+// PROCESO: Total a liquidar en check-out = habitación + ventas fiado + lavandería,
+// menos el anticipo de la reserva y los pagos parciales ya registrados.
 export function computePendingReceivable(stays: Stay[]): number {
   return stays.reduce((sum, stay) => {
     const roomCost = Number(stay.total) || 0;
@@ -57,7 +58,17 @@ export function computePendingReceivable(stays: Stay[]): number {
       (lSum, l) => lSum + (Number(l.totalPrice) || 0),
       0
     );
-    return sum + roomCost + fiadoSales + laundryCost;
+    const reservationPaid = (stay.reservation?.payments ?? []).reduce(
+      (pSum, p) => pSum + (p.type === 'PAGO' ? Number(p.amount) : -Number(p.amount)),
+      0
+    );
+    const reservationCredit = Math.min(roomCost, Math.max(0, reservationPaid));
+    const priorPayments = (stay.payments ?? []).reduce(
+      (pSum, p) => pSum + Number(p.amount),
+      0
+    );
+    const balance = Math.max(0, roomCost + fiadoSales + laundryCost - reservationCredit - priorPayments);
+    return sum + balance;
   }, 0);
 }
 

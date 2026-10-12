@@ -11,6 +11,61 @@ import type { CheckinDto } from './dto/checkin.dto';
 import type { UpdateStayDto } from './dto/update-stay.dto';
 import type { CheckoutDto } from './dto/checkout.dto';
 import { AuditoriaService, AuditAction } from '../auditoria/auditoria.service';
+import type { RegisterStayPaymentDto } from './dto/register-payment.dto';
+
+type PendingSale = { unitPrice: Prisma.Decimal | number; quantity: number; saleType?: string | null };
+
+export type StayAccount = {
+  roomTotal: number;
+  salesTotal: number;
+  laundryTotal: number;
+  reservationCredit: number;
+  priorPayments: number;
+  chargesTotal: number;
+  paidTotal: number;
+  balance: number;
+};
+
+/**
+ * Cuenta de un hospedaje: cargos (hospedaje + tienda fiada + lavanderia) menos
+ * lo ya pagado (credito de la reserva + pagos parciales registrados).
+ */
+function computeStayAccount(
+  stay: {
+    pricePerNight: Prisma.Decimal | number;
+    nights: number;
+    sales?: PendingSale[];
+    reservation?: { payments?: Array<{ type: string; amount: Prisma.Decimal | number }> } | null;
+    payments?: Array<{ amount: Prisma.Decimal | number }>;
+  },
+  laundryOrders: Array<{ totalPrice: Prisma.Decimal | number }>
+): StayAccount {
+  const roomTotal = Number(stay.pricePerNight) * stay.nights;
+  const salesTotal = (stay.sales ?? [])
+    .filter((sale) => sale.saleType === 'FIADO' || !sale.saleType)
+    .reduce((sum, sale) => sum + Number(sale.unitPrice) * sale.quantity, 0);
+  const laundryTotal = laundryOrders.reduce((sum, item) => sum + Number(item.totalPrice), 0);
+  const reservationPaid = (stay.reservation?.payments ?? []).reduce(
+    (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
+    0
+  );
+  const reservationCredit = Math.min(roomTotal, Math.max(0, reservationPaid));
+  const priorPayments = (stay.payments ?? []).reduce((sum, payment) => sum + Number(payment.amount), 0);
+  const chargesTotal = roomTotal + salesTotal + laundryTotal;
+  const paidTotal = reservationCredit + priorPayments;
+  const balance = Math.max(0, chargesTotal - paidTotal);
+
+  return {
+    roomTotal,
+    salesTotal,
+    laundryTotal,
+    reservationCredit,
+    priorPayments,
+    chargesTotal,
+    paidTotal,
+    balance
+  };
+}
 
 @Injectable()
 export class StaysService {
@@ -38,7 +93,8 @@ export class StaysService {
         room: true,
         reservation: { include: { payments: true } },
         // Sin esto el huesped aparece siempre sin consumos.
-        sales: { include: { product: true }, orderBy: { date: 'asc' } }
+        sales: { include: { product: true }, orderBy: { date: 'asc' } },
+        payments: { orderBy: { createdAt: 'asc' } }
       },
       orderBy: { checkIn: 'desc' }
     });
@@ -85,7 +141,8 @@ export class StaysService {
           include: {
             product: true
           }
-        }
+        },
+        payments: { orderBy: { createdAt: 'asc' } }
       }
     });
 
@@ -103,7 +160,8 @@ export class StaysService {
         client: true,
         room: true,
         // Necesario para calcular la deuda de tienda de la habitacion.
-        sales: { include: { product: true }, orderBy: { date: 'asc' } }
+        sales: { include: { product: true }, orderBy: { date: 'asc' } },
+        payments: { orderBy: { createdAt: 'asc' } }
       },
       orderBy: { checkIn: 'desc' }
     });
@@ -336,7 +394,8 @@ export class StaysService {
           include: {
             product: true
           }
-        }
+        },
+        payments: { orderBy: { createdAt: 'asc' } }
       }
     });
 
@@ -376,23 +435,28 @@ export class StaysService {
       (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
       0
     ) ?? 0;
-    const roomBalance = Math.max(0, totalRoom - reservationPaid);
-    const grandTotal = roomBalance + totalSales + totalLaundry;
+    const reservationCredit = Math.min(totalRoom, Math.max(0, reservationPaid));
+    const roomBalance = Math.max(0, totalRoom - reservationCredit);
 
-    if (grandTotal > 0 && (!dto.paymentConfirmed || !dto.paymentMethod?.trim())) {
-      throw new BadRequestException(`Registra y confirma el pago final de ${Math.round(grandTotal)} antes de completar el check-out.`);
+    // Pagos parciales ya registrados durante la estadía (pagar sin salir).
+    const priorPayments = stay.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
+    const accountTotal = roomBalance + totalSales + totalLaundry;
+    const balanceDue = Math.max(0, accountTotal - priorPayments);
+
+    if (balanceDue > 0 && (!dto.paymentConfirmed || !dto.paymentMethod?.trim())) {
+      throw new BadRequestException(`Registra y confirma el pago final de ${Math.round(balanceDue)} antes de completar el check-out.`);
     }
 
     const updatedStay = await this.prisma.$transaction(async (tx) => {
       const transitioned = await tx.stay.updateMany({
         where: { id, status: 'ACTIVA' },
-        data: { checkOut, nights: nightsToBill, total: grandTotal, status: 'FINALIZADA' }
+        data: { checkOut, nights: nightsToBill, total: accountTotal, status: 'FINALIZADA' }
       });
       if (transitioned.count !== 1) throw new ConflictException('El hospedaje ya fue cerrado por otra operación. Actualiza la pantalla.');
 
-      if (grandTotal > 0) {
+      if (balanceDue > 0) {
         await tx.stayPayment.create({ data: {
-          stayId: id, userId: user.sub, amount: new Prisma.Decimal(grandTotal),
+          stayId: id, userId: user.sub, amount: new Prisma.Decimal(balanceDue),
           method: dto.paymentMethod!.trim(), reference: dto.paymentReference?.trim() || null
         } });
       }
@@ -407,12 +471,74 @@ export class StaysService {
       action: 'CHECK_OUT',
       entity: 'STAY',
       entityId: stay.id.toString(),
-      description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsToBill} noches: $${Math.round(totalRoom).toLocaleString('es-CO')}, anticipo aplicado: $${Math.round(Math.min(totalRoom, reservationPaid)).toLocaleString('es-CO')}, saldo de hospedaje: $${Math.round(roomBalance).toLocaleString('es-CO')}, tienda pendiente: $${Math.round(totalSales).toLocaleString('es-CO')}, lavandería: $${Math.round(totalLaundry).toLocaleString('es-CO')}, pago final registrado: $${Math.round(grandTotal).toLocaleString('es-CO')})`,
+      description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsToBill} noches: $${Math.round(totalRoom).toLocaleString('es-CO')}, anticipo aplicado: $${Math.round(reservationCredit).toLocaleString('es-CO')}, pagos previos: $${Math.round(priorPayments).toLocaleString('es-CO')}, saldo de hospedaje: $${Math.round(roomBalance).toLocaleString('es-CO')}, tienda pendiente: $${Math.round(totalSales).toLocaleString('es-CO')}, lavandería: $${Math.round(totalLaundry).toLocaleString('es-CO')}, pago final registrado: $${Math.round(balanceDue).toLocaleString('es-CO')})`,
       oldValue: stay,
       newValue: updatedStay
     });
 
     return updatedStay;
+  }
+
+  /**
+   * Registra un pago parcial ("pagar" sin hacer check-out). Sirve para abonar
+   * parte de la cuenta (una noche, los mecatos, la lavandería) y que el huesped
+   * siga alojado; el saldo se descuenta automáticamente en el check-out final.
+   */
+  async registerPayment(id: number, dto: RegisterStayPaymentDto, user: JwtPayload) {
+    const stay = await this.prisma.stay.findUnique({
+      where: { id },
+      include: {
+        client: true,
+        room: true,
+        reservation: { include: { payments: true } },
+        sales: { include: { product: true }, orderBy: { date: 'asc' } },
+        payments: { orderBy: { createdAt: 'asc' } }
+      }
+    });
+
+    if (!stay) {
+      throw new NotFoundException('Hospedaje no encontrado');
+    }
+
+    if (stay.status !== 'ACTIVA') {
+      throw new BadRequestException('Solo se pueden registrar pagos en hospedajes activos.');
+    }
+
+    const laundryOrders = await this.prisma.laundry.findMany({
+      where: { roomNumber: stay.roomNumber, createdAt: { gte: stay.checkIn } }
+    });
+    const account = computeStayAccount(stay, laundryOrders);
+
+    const amount = Number(dto.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new BadRequestException('El monto del pago debe ser mayor que cero.');
+    }
+    // Tolerancia de 1 peso por redondeos al teclear el total.
+    if (amount > account.balance + 1) {
+      throw new BadRequestException(
+        `El monto supera el saldo pendiente ($${Math.round(account.balance).toLocaleString('es-CO')}).`
+      );
+    }
+
+    const payment = await this.prisma.stayPayment.create({
+      data: {
+        stayId: id,
+        userId: user.sub,
+        amount: new Prisma.Decimal(Math.min(amount, account.balance)),
+        method: dto.method.trim(),
+        reference: dto.reference?.trim() || null
+      }
+    });
+
+    await this.auditoria.log(user, {
+      action: 'UPDATE',
+      entity: 'STAY',
+      entityId: stay.id.toString(),
+      description: `Registró pago de $${Math.round(Number(payment.amount)).toLocaleString('es-CO')} (${payment.method}) a ${stay.client.firstName} ${stay.client.lastName}, habitación ${stay.roomNumber}. Saldo restante: $${Math.round(Math.max(0, account.balance - Number(payment.amount))).toLocaleString('es-CO')}.`,
+      newValue: payment
+    });
+
+    return payment;
   }
 
   async update(id: number, dto: UpdateStayDto, user: JwtPayload) {
