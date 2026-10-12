@@ -87,6 +87,14 @@ export function ClientHistoryModal({ client, onClose }: { client: Cliente; onClo
             <p className="text-xs text-sapay-650">Este cliente aún no tiene hospedajes.</p>
           )}
         </div>
+        <div className="mt-4 space-y-2">
+          <h3 className="text-xs font-semibold">Historial de parqueadero</h3>
+          {client.parkingSessions?.length ? client.parkingSessions.map((session) => (
+            <div key={session.id} className="rounded-lg border border-sapay-350 p-3 text-xs">
+              <span className="font-medium">{session.licensePlate}</span> · {session.status === 'ACTIVO' ? 'Activo' : 'Salida registrada'} · {formatDateTime(session.entryAt)}
+            </div>
+          )) : <p className="text-xs text-sapay-650">Este cliente aún no tiene registros de parqueadero.</p>}
+        </div>
       </div>
     </div>
   );

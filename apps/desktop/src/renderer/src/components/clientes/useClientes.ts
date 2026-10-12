@@ -5,6 +5,7 @@ import {
   clientesRequest,
   createClienteRequest,
   deleteClienteRequest,
+  deleteClientesRequest,
   updateClienteRequest
 } from '../../lib/api';
 import { emptyForm, type FormState } from './types';
@@ -100,15 +101,27 @@ export function useClientes(user: PublicUser) {
   }
 
   // Solo un administrador puede iniciar eliminaciones.
-  async function remove(client = deleting): Promise<void> {
+  async function remove(client = deleting, adminPassword = ''): Promise<void> {
     if (!client) return;
     try {
       if (user.role !== 'ADMIN') return;
-      await deleteClienteRequest(client.id);
+      await deleteClienteRequest(client.id, adminPassword);
       setDeleting(null);
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'No se pudo eliminar el cliente.');
+    }
+  }
+
+  async function removeMany(ids: number[], adminPassword: string): Promise<void> {
+    if (user.role !== 'ADMIN' || ids.length === 0) return;
+    try {
+      await deleteClientesRequest(ids, adminPassword);
+      setDeleting(null);
+      await load();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'No se pudieron eliminar los clientes.');
+      throw reason;
     }
   }
 
@@ -141,6 +154,7 @@ export function useClientes(user: PublicUser) {
     closeForm,
     submit,
     remove,
+    removeMany,
     requestDelete
   };
 }

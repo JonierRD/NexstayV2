@@ -40,6 +40,7 @@ import { RecepcionPage } from '../pages/RecepcionPage';
 import { ReservasPage } from '../pages/ReservasPage';
 import { SemanarioPage } from '../pages/SemanarioPage';
 import { VentasPage } from '../pages/VentasPage';
+import { ParqueaderoPage } from '../pages/ParqueaderoPage';
 import { Role } from './roles';
 import { type AppRoute } from './types';
 
@@ -166,7 +167,7 @@ export const moduleRoutes: AppRoute[] = [
       assistantSummary:
         'Parqueadero: control de parqueadero mensual y gestión asociada al huésped o cliente.'
     },
-    component: ModulePlaceholder
+    component: ParqueaderoPage
   },
   {
     key: 'lavanderia',

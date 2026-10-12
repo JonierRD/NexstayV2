@@ -23,15 +23,7 @@ export function GuestCard({ stay, onCheckout, onPay }: Props): ReactElement {
     return () => clearInterval(id);
   }, []);
 
-  // Noches pactadas originalmente al ingresar
   const nights = stay.nights || 1;
-
-  // Comprobar si la estancia superó el tiempo pactado
-  const checkInDate = new Date(stay.checkIn);
-  const now = new Date();
-  const elapsedDays = Math.max(1, Math.ceil((now.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)));
-  const isOverdue = elapsedDays > nights;
-  const overdueDays = elapsedDays - nights;
 
   // Cuenta por pagar: cargos menos anticipo de reserva y pagos parciales.
   const account = computeStayAccount(stay);
@@ -55,18 +47,9 @@ export function GuestCard({ stay, onCheckout, onPay }: Props): ReactElement {
             <p className="text-[10px] text-sapay-650 mt-0.5">CC: {stay.client?.cc ?? 'No disponible'}</p>
           </div>
         </div>
-        {isOverdue ? (
-          <span
-            className="rounded-full bg-amber-50 border border-amber-300 px-2.5 py-0.5 text-[10px] font-bold text-amber-900"
-            title={`Superó las ${nights} noches pactadas por ${overdueDays} día(s)`}
-          >
-            ⚠️ Vencido (+{overdueDays}d)
-          </span>
-        ) : (
-          <span className="rounded-full bg-[#e8f5ec] px-2.5 py-0.5 text-[10px] font-semibold text-[#287344]">
-            Activo
-          </span>
-        )}
+        <span className="rounded-full bg-[#e8f5ec] px-2.5 py-0.5 text-[10px] font-semibold text-[#287344]">
+          Activo
+        </span>
       </div>
 
       {/* Datos clave: Habitación, Ingreso y Noches transcurridas */}

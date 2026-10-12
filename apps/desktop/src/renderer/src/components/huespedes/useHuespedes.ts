@@ -16,6 +16,8 @@ export function useHuespedes() {
   const [checkoutStay, setCheckoutStay] = useState<Stay | null>(null);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [paymentStay, setPaymentStay] = useState<Stay | null>(null);
+  const [detailStay, setDetailStay] = useState<Stay | null>(null);
+  const [selectedHistoryIds, setSelectedHistoryIds] = useState<Set<number>>(new Set());
   const [isRegisteringPayment, setIsRegisteringPayment] = useState(false);
 
   // PROCESO: Cargar huéspedes activos + historial reciente desde la API
@@ -37,12 +39,26 @@ export function useHuespedes() {
     void load();
   }, []);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      void staysActiveRequest().then(setStays).catch(() => undefined);
+    }, 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
   function handleCheckoutClick(stay: Stay): void {
     setCheckoutStay(stay);
   }
 
   function handlePaymentClick(stay: Stay): void {
     setPaymentStay(stay);
+  }
+
+  async function removeHistory(ids: number[], password: string): Promise<void> {
+    const { deleteStayRequest } = await import('../../lib/api');
+    for (const id of ids) await deleteStayRequest(id, password);
+    setSelectedHistoryIds(new Set());
+    await load();
   }
 
   // PROCESO: Registrar pago parcial (POST /stays/:id/payments)
@@ -97,6 +113,7 @@ export function useHuespedes() {
     filteredHistory,
     loading,
     error,
+    setError,
     checkoutStay,
     setCheckoutStay,
     isCheckingOut,
@@ -104,6 +121,11 @@ export function useHuespedes() {
     confirmCheckout,
     paymentStay,
     setPaymentStay,
+    detailStay,
+    setDetailStay,
+    selectedHistoryIds,
+    setSelectedHistoryIds,
+    removeHistory,
     isRegisteringPayment,
     handlePaymentClick,
     confirmPayment,

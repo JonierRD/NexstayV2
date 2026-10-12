@@ -1,4 +1,4 @@
-import { CalendarDays, Check, CircleAlert, Pencil, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { CalendarDays, Check, CircleAlert, Pencil, Plus, RefreshCw, Search, ShieldCheck, Users, X } from 'lucide-react';
 import { type FormEvent, type ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiError, clienteByCcRequest, habitacionesRequest, type Cliente, type Habitacion } from '../lib/api';
 import {
@@ -14,6 +14,7 @@ import {
 import { formatCOP } from '../lib/format';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { ModuleHeader } from '../components/ui/ModuleHeader';
 
 type ReservationForm = {
   cc: string; firstName: string; lastName: string; phone: string;
@@ -122,6 +123,8 @@ export function ReservasPage(): ReactElement {
       `${reservation.client.firstName} ${reservation.client.lastName}`.toLowerCase().includes(term) ||
       reservation.client.cc.toLowerCase().includes(term) || reservation.roomNumber.toLowerCase().includes(term)));
   }, [query, reservations, showCancelled]);
+  const activeReservations = reservations.filter((reservation) => reservation.status !== 'CANCELADA').length;
+  const arrivalsToday = reservations.filter((reservation) => reservation.checkIn.slice(0, 10) === todayColombia() && reservation.status !== 'CANCELADA').length;
 
   function resetForm() {
     setForm(EMPTY_FORM); setEditing(null); setClientFound(false); setFormOpen(false); setError(''); setSettlementDraft(null);
@@ -270,13 +273,27 @@ export function ReservasPage(): ReactElement {
   const cancellationRefund = cancellationDraft ? Math.max(0, cancellationPaid - cancellationPenalty) : 0;
 
   return (
-    <div className="flex h-full flex-col gap-3 overflow-auto p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h1 className="text-sm font-semibold text-sapay-950">Reservas</h1><p className="text-[10px] text-sapay-750">Confirma llegadas, anticipos y disponibilidad por fechas.</p></div>
-        <div className="flex gap-2">
-          <Button onClick={() => void load()} className="h-9 rounded-lg border border-sapay-350 bg-white px-3 text-xs text-sapay-900"><RefreshCw size={13} /> Actualizar</Button>
-          <Button onClick={() => { resetForm(); setFormOpen(true); setSuccess(''); }} className="h-9 rounded-lg bg-sapay-900 px-3 text-xs text-white"><Plus size={14} /> Nueva reserva</Button>
+    <div className="module-page flex h-full flex-col overflow-auto">
+      <ModuleHeader
+        icon={CalendarDays}
+        title="Reservas"
+        subtitle="Confirma llegadas, anticipos y disponibilidad por fechas."
+        metrics={[
+          { label: 'Total de reservas', value: reservations.length, icon: Users },
+          { label: 'Activas', value: activeReservations, icon: ShieldCheck },
+          { label: 'Llegadas hoy', value: arrivalsToday, icon: CalendarDays }
+        ]}
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 rounded-xl border border-sapay-350 bg-white px-3 py-2">
+            <Search size={14} className="text-sapay-600" />
+            <input className="min-w-0 flex-1 text-xs outline-none" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por cliente, cédula o habitación" />
+            <label className="flex shrink-0 items-center gap-1.5 text-[10px] text-sapay-800"><input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} />Mostrar canceladas ({reservations.filter((item) => item.status === 'CANCELADA').length})</label>
+          </div>
         </div>
+        <Button onClick={() => void load()} className="h-9 shrink-0 rounded-lg border border-sapay-350 bg-white px-3 text-xs text-sapay-900"><RefreshCw size={13} /> Actualizar</Button>
+        <Button onClick={() => { resetForm(); setFormOpen(true); setSuccess(''); }} className="h-9 shrink-0 rounded-lg bg-sapay-900 px-3 text-xs text-white"><Plus size={14} /> Nueva reserva</Button>
       </div>
 
       {(error || success) && <div className={`rounded-lg border px-3 py-2 text-xs ${error ? 'border-danger-200 bg-danger-100 text-[#a23b3b]' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>{error || success}</div>}
@@ -318,7 +335,6 @@ export function ReservasPage(): ReactElement {
         </form>
       )}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-sapay-350 bg-white px-3 py-2"><Search size={14} className="text-sapay-600" /><input className="min-w-40 flex-1 text-xs outline-none" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por cliente, cédula o habitación" /><label className="flex items-center gap-1.5 text-[10px] text-sapay-800"><input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} />Mostrar canceladas ({reservations.filter((item) => item.status === 'CANCELADA').length})</label></div>
 
       <section className="min-h-0 flex-1 overflow-auto rounded-2xl border border-sapay-350 bg-white">
         {loading ? <p className="p-8 text-center text-xs text-sapay-650">Cargando reservas…</p> : filteredReservations.length === 0 ? <div className="p-10 text-center text-xs text-sapay-650"><CalendarDays size={18} className="mx-auto mb-2" />No hay reservas registradas.</div> :

@@ -84,6 +84,10 @@ export async function checkoutRequest(id: number, input: {
   });
 }
 
+export async function deleteStayRequest(id: number, adminPassword: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/stays/${id}`, { method: 'DELETE', body: { adminPassword } });
+}
+
 export async function registerStayPaymentRequest(id: number, input: {
   amount: number; method: string; reference?: string;
 }): Promise<StayPaymentLine> {

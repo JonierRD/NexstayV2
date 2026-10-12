@@ -2,18 +2,6 @@ import { AlertTriangle, BedDouble, CheckCircle2, Clock, LogOut, Package, Shirt, 
 import { type ReactElement, useState } from 'react';
 import { type Stay } from '../../lib/api';
 import { formatCOP, formatDateTime } from '../../lib/format';
-import { useSettingsCached } from '../../lib/settingsCache';
-
-function toMinutes(hhmm: string): number {
-  const [h = 0, m = 0] = hhmm.split(':').map((part) => Number(part) || 0);
-  return h * 60 + m;
-}
-
-function startOfDay(date: Date): Date {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
 
 type Props = {
   stay: Stay;
@@ -23,32 +11,13 @@ type Props = {
 };
 
 export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props): ReactElement {
-  const settings = useSettingsCached();
-  const checkoutLimit = (settings?.checkoutLimit ?? '13:00').slice(0, 5) || '13:00';
-  const checkoutTolerance = settings?.checkoutTolerance ?? 30;
-
-  const [billableNights, setBillableNights] = useState<number>(stay.nights || 1);
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const guestName = stay.client ? `${stay.client.firstName} ${stay.client.lastName}` : 'Huésped sin nombre';
   const cc = stay.client?.cc ?? 'Sin documento';
 
-  // Días efectivos transcurridos respetando la hora límite de salida: un día
-  // cuenta como "extra" solo cuando ya se superó la hora límite (+ tolerancia).
-  const checkInDate = new Date(stay.checkIn);
-  const now = new Date();
-  const limitMinutes = toMinutes(checkoutLimit) + checkoutTolerance;
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const naturalDays = Math.max(
-    1,
-    Math.floor((startOfDay(now).getTime() - startOfDay(checkInDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
-  );
-  const elapsedDays = nowMinutes >= limitMinutes ? naturalDays : Math.max(1, naturalDays - 1);
-  const isOverdue = elapsedDays > stay.nights;
-  const overdueDays = elapsedDays - stay.nights;
-
   const roomPrice = Number(stay.pricePerNight);
-  const roomTotal = billableNights * roomPrice;
+  const roomTotal = (stay.nights || 1) * roomPrice;
   const reservationPaid = stay.reservation?.payments?.reduce(
     (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
     0
@@ -140,24 +109,10 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           <div className="flex items-center gap-2.5 rounded-xl border border-sapay-350 bg-sapay-100 p-3 text-[11px] text-sapay-750">
             <Clock size={14} className="shrink-0 text-sapay-700" />
             <span>
-              Hora límite de salida:{' '}
-              <strong className="font-semibold text-sapay-900">{checkoutLimit}</strong>
-              {' '}con {checkoutTolerance} min de tolerancia. Pasada esa hora cuenta un día adicional.
+              Hora límite de salida: <strong className="font-semibold text-sapay-900">13:00</strong>.
+              A las 13:00 exactas se cobra la noche anterior; después de esa hora cuenta una noche adicional.
             </span>
           </div>
-
-          {/* Alerta de Estancia Excedida si aplica */}
-          {isOverdue && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-[11px] text-amber-950">
-              <AlertTriangle size={15} className="text-amber-700 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold">⚠️ Estancia excedida (+{overdueDays} días transcurridos)</p>
-                <p className="text-[10px] text-amber-800 mt-0.5">
-                  El huésped pactó {stay.nights} noches al ingresar. Se liquidan las {stay.nights} noches por defecto. Puedes ajustar las noches a liquidar si el huésped autorizó días adicionales.
-                </p>
-              </div>
-            </div>
-          )}
 
           {/* Desglose 1: Hospedaje */}
           <div className="rounded-2xl border border-sapay-350 bg-white p-3.5">
@@ -173,24 +128,7 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
               <span className="font-semibold text-sapay-900">{formatCOP(roomPrice)} / noche</span>
             </div>
             <div className="flex items-center justify-between text-[11px] text-sapay-700 pl-5 mt-1.5">
-              <span>Noches a liquidar:</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setBillableNights((prev) => Math.max(1, prev - 1))}
-                  className="flex h-5 w-5 items-center justify-center rounded border border-sapay-350 bg-sapay-50 text-[11px] font-bold text-sapay-900 hover:bg-sapay-200"
-                >
-                  −
-                </button>
-                <span className="font-bold text-sapay-950 min-w-5 text-center">{billableNights}</span>
-                <button
-                  type="button"
-                  onClick={() => setBillableNights((prev) => prev + 1)}
-                  className="flex h-5 w-5 items-center justify-center rounded border border-sapay-350 bg-sapay-50 text-[11px] font-bold text-sapay-900 hover:bg-sapay-200"
-                >
-                  +
-                </button>
-              </div>
+              <span>Noches a liquidar:</span><span className="font-bold text-sapay-950">{stay.nights || 1}</span>
             </div>
             {stay.reservation && (
               <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-[11px] text-emerald-800">
@@ -320,7 +258,7 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(billableNights, paymentMethod, paymentConfirmed || outstanding === 0)}
+            onClick={() => onConfirm(stay.nights || 1, paymentMethod, paymentConfirmed || outstanding === 0)}
             disabled={isProcessing || (outstanding > 0 && !paymentConfirmed)}
             className="flex items-center gap-1.5 rounded-xl bg-sapay-900 px-5 py-2 text-[12px] font-bold text-white transition hover:bg-sapay-850 disabled:opacity-60 shadow-sm"
           >

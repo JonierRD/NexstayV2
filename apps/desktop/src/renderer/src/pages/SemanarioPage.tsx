@@ -41,14 +41,6 @@ export function SemanarioPage({ user }: { user: PublicUser }): ReactElement {
       .filter((semana) => semana.celdas.length > 0);
   }, [s.semanas, busqueda]);
 
-  if (s.loading) {
-    return (
-      <div className="flex min-h-0 flex-1 items-center justify-center bg-sapay-250">
-        <div className="text-[11px] text-sapay-750">Cargando semanario...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-sapay-250 text-sapay-950">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 sm:px-4">

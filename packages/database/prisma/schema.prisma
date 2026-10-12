@@ -91,6 +91,16 @@ enum VehicleType {
   PESADO
 }
 
+enum ParkingBillingType {
+  DIARIO
+  MENSUAL
+}
+
+enum ParkingStatus {
+  ACTIVO
+  CERRADO
+}
+
 enum SaleType {
   CONTADO
   FIADO
@@ -115,6 +125,7 @@ model Client {
 
   stays Stay[]
   reservations Reservation[]
+  parkingSessions ParkingSession[]
   @@map("clientes")
 }
 
@@ -154,6 +165,7 @@ model Stay {
   client Client @relation(fields: [clientId], references: [id])
   room   Room   @relation(fields: [roomNumber], references: [number])
   sales  Sale[]
+  parkingSessions ParkingSession[]
   reservation Reservation? @relation(fields: [reservationId], references: [id])
   payments StayPayment[]
   @@map("hospedajes")
@@ -325,6 +337,51 @@ model ParkingPayment {
 
   parking MonthlyParking @relation(fields: [parkingId], references: [id])
   @@map("pagos_parqueadero")
+}
+
+// Configuración editable por el administrador. Se usa String para permitir
+// nuevos tipos sin tener que cambiar el enum y desplegar una migración.
+model ParkingVehicleType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @map("nombre")
+  dailyRate   Decimal  @map("tarifa_diaria")
+  monthlyRate Decimal  @map("tarifa_mensual")
+  isActive    Boolean  @default(true) @map("activo")
+  createdAt   DateTime @default(now()) @map("creado_en")
+  updatedAt   DateTime @updatedAt @map("actualizado_en")
+
+  sessions ParkingSession[]
+  @@map("tipos_vehiculo_parqueadero")
+}
+
+model ParkingSession {
+  id              Int               @id @default(autoincrement())
+  clientId        Int?              @map("cliente_id")
+  licensePlate    String            @map("placa")
+  vehicleBrand    String            @map("marca")
+  vehicleTypeId   Int               @map("tipo_vehiculo_id")
+  billingType     ParkingBillingType @map("tipo_cobro")
+  status          ParkingStatus     @default(ACTIVO) @map("estado")
+  entryAt         DateTime          @default(now()) @map("ingreso")
+  exitAt          DateTime?         @map("salida")
+  ownerName       String            @map("cliente")
+  phone           String            @map("telefono")
+  isGuest         Boolean           @default(false) @map("es_huesped")
+  stayId          Int?              @map("hospedaje_id")
+  rateApplied     Decimal           @map("tarifa_aplicada")
+  amount          Decimal           @default(0) @map("valor")
+  paid            Boolean           @default(false) @map("pagado")
+  notes           String?           @map("notas")
+  createdAt       DateTime          @default(now()) @map("creado_en")
+  updatedAt       DateTime          @updatedAt @map("actualizado_en")
+
+  vehicleType ParkingVehicleType @relation(fields: [vehicleTypeId], references: [id])
+  client     Client?             @relation(fields: [clientId], references: [id])
+  stay       Stay?              @relation(fields: [stayId], references: [id])
+  @@index([status, entryAt])
+  @@index([licensePlate, status])
+  @@index([clientId])
+  @@map("movimientos_parqueadero")
 }
 
 model AppSettings {

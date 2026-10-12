@@ -27,7 +27,8 @@ export class ClientesService {
             room: true
           },
           orderBy: { checkIn: 'desc' }
-        }
+        },
+        parkingSessions: { where: { isGuest: false }, orderBy: { entryAt: 'desc' } }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -42,7 +43,8 @@ export class ClientesService {
             room: true
           },
           orderBy: { checkIn: 'desc' }
-        }
+        },
+        parkingSessions: { where: { isGuest: false }, orderBy: { entryAt: 'desc' } }
       }
     });
 
@@ -62,7 +64,8 @@ export class ClientesService {
             room: true
           },
           orderBy: { checkIn: 'desc' }
-        }
+        },
+        parkingSessions: { where: { isGuest: false }, orderBy: { entryAt: 'desc' } }
       }
     });
 
@@ -171,6 +174,7 @@ export class ClientesService {
     if (user.role !== Role.ADMIN) {
       throw new ForbiddenException('Solo un administrador puede eliminar clientes.');
     }
+    await this.requireAdminPassword(adminPassword);
 
     // Buscar cliente
     const client = await this.prisma.client.findUnique({
@@ -184,17 +188,8 @@ export class ClientesService {
       throw new NotFoundException('Cliente no encontrado');
     }
 
-    // No se puede eliminar un cliente que tenga algún hospedaje,
-    // activo o histórico (la FK de Stay.clientId no lo permite)
-    if (client.stays.length > 0) {
-      throw new ConflictException(
-        'No se puede eliminar un cliente con historial de hospedajes'
-      );
-    }
-
-    // Eliminar
     try {
-      await this.prisma.client.delete({ where: { id } });
+      await this.deleteClientData(id);
     } catch {
       throw new ConflictException(
         'No se pudo eliminar el cliente porque tiene registros relacionados.'
@@ -211,6 +206,81 @@ export class ClientesService {
     });
 
     return { message: 'Cliente eliminado' };
+  }
+
+  async removeManyWithPassword(ids: number[], adminPassword: string, user: JwtPayload) {
+    if (user.role !== Role.ADMIN) {
+      throw new ForbiddenException('Solo un administrador puede eliminar clientes.');
+    }
+    await this.requireAdminPassword(adminPassword);
+
+    const uniqueIds = [...new Set(ids)];
+    const clients = await this.prisma.client.findMany({
+      where: { id: { in: uniqueIds } },
+      include: { stays: true }
+    });
+
+    if (clients.length !== uniqueIds.length) {
+      throw new NotFoundException('Uno o más clientes no existen.');
+    }
+
+    try {
+      for (const client of clients) {
+        await this.deleteClientData(client.id);
+      }
+    } catch {
+      throw new ConflictException('No se pudo eliminar uno de los clientes y sus registros relacionados.');
+    }
+    for (const client of clients) {
+      await this.auditoria.log(user, {
+        action: 'DELETE',
+        entity: 'CLIENTE',
+        entityId: String(client.id),
+        description: `Eliminó cliente: ${client.firstName} ${client.lastName} (CC: ${client.cc})`,
+        oldValue: client
+      });
+    }
+
+    return { message: `${clients.length} cliente(s) eliminado(s).` };
+  }
+
+  private async deleteClientData(clientId: number): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const stays = await tx.stay.findMany({ where: { clientId }, select: { id: true } });
+      const stayIds = stays.map((stay) => stay.id);
+      const reservations = await tx.reservation.findMany({ where: { clientId }, select: { id: true } });
+      const reservationIds = reservations.map((reservation) => reservation.id);
+
+      if (stayIds.length > 0) {
+        const sales = await tx.sale.findMany({
+          where: { stayId: { in: stayIds } },
+          select: { id: true, productId: true, quantity: true }
+        });
+        const saleIds = sales.map((sale) => sale.id);
+        if (saleIds.length > 0) {
+          for (const sale of sales) {
+            await tx.stock.updateMany({
+              where: { productId: sale.productId },
+              data: { quantity: { increment: sale.quantity } }
+            });
+          }
+          await tx.payment.deleteMany({ where: { saleId: { in: saleIds } } });
+          await tx.sale.deleteMany({ where: { id: { in: saleIds } } });
+        }
+        await tx.stayPayment.deleteMany({ where: { stayId: { in: stayIds } } });
+        await tx.parkingSession.deleteMany({ where: { stayId: { in: stayIds } } });
+        await tx.stay.deleteMany({ where: { id: { in: stayIds } } });
+      }
+
+      await tx.parkingSession.deleteMany({ where: { clientId } });
+
+      if (reservationIds.length > 0) {
+        await tx.reservationPayment.deleteMany({ where: { reservationId: { in: reservationIds } } });
+        await tx.reservation.deleteMany({ where: { id: { in: reservationIds } } });
+      }
+
+      await tx.client.delete({ where: { id: clientId } });
+    });
   }
 
   private async requireAdminPassword(password?: string): Promise<void> {

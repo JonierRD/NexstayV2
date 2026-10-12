@@ -21,17 +21,9 @@ export function AuditoriaPage({ user: _user }: { user?: PublicUser } = {}): Reac
     setSelectedIds((current) => new Set([...current].filter((id) => visibleIds.has(id))));
   }, [a.logs]);
 
-  if (a.loading) {
-    return (
-      <div className="flex min-h-0 flex-1 items-center justify-center bg-sapay-250">
-        <div className="text-[11px] text-sapay-750">Cargando historial...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="audit-page flex min-h-0 flex-1 flex-col overflow-hidden text-sapay-950">
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-4 py-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden p-4">
         <div className="audit-banner relative overflow-hidden rounded-xl px-5 py-4 text-white shadow-sm">
           <div className="relative z-10 flex flex-wrap items-center gap-4">
             <div className="audit-banner-icon flex h-12 w-12 items-center justify-center rounded-2xl"><ShieldCheck size={25} /></div>
@@ -44,15 +36,18 @@ export function AuditoriaPage({ user: _user }: { user?: PublicUser } = {}): Reac
           </div>
         </div>
 
-        <AuditFilters
-          search={a.search}
-          onSearchChange={a.setSearch}
-          actionFilter={a.actionFilter}
-          onActionChange={a.setActionFilter}
-          entityFilter={a.entityFilter}
-          onEntityChange={a.setEntityFilter}
-          entities={a.uniqueEntities}
-        />
+        <div className="relative">
+          <AuditFilters
+            search={a.search}
+            onSearchChange={a.setSearch}
+            actionFilter={a.actionFilter}
+            onActionChange={a.setActionFilter}
+            entityFilter={a.entityFilter}
+            onEntityChange={a.setEntityFilter}
+            entities={a.uniqueEntities}
+          />
+          {a.loading && a.logs.length > 0 && <div className="pointer-events-none absolute inset-0 rounded-xl bg-white/35" />}
+        </div>
 
         <div className="audit-surface flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 shadow-sm">
           <div className="flex items-center gap-2">
@@ -96,7 +91,9 @@ export function AuditoriaPage({ user: _user }: { user?: PublicUser } = {}): Reac
 
         <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
           <div className="audit-surface flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-xl border p-3 shadow-sm">
-            {a.logs.length === 0 ? (
+            {a.loading && a.logs.length === 0 ? (
+              <div className="flex h-full items-center justify-center text-[11px] text-sapay-750">Cargando historial...</div>
+            ) : a.logs.length === 0 ? (
               <div className="flex h-full items-center justify-center text-center">
                 <div>
                   <Search className="mx-auto mb-2 text-sapay-650" size={24} />

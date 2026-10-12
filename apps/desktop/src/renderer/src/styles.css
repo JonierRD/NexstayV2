@@ -226,11 +226,37 @@ body {
 }
 
 .audit-banner {
-  background: linear-gradient(110deg, hsl(var(--sapay-sidebar-2)), hsl(var(--sapay-sidebar-1)));
+  background: linear-gradient(110deg, hsl(var(--sapay-sidebar-1)), hsl(var(--sapay-sidebar-1) / 0.92));
+}
+
+.module-header {
+  border-color: rgb(255 255 255 / 10%);
+  background: linear-gradient(110deg, hsl(var(--sapay-sidebar-1)), hsl(var(--sapay-sidebar-1) / 0.92));
+  color: white;
+}
+
+.module-page {
+  box-sizing: border-box;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.module-header-icon {
+  background: rgb(255 255 255 / 16%);
+  color: white;
+}
+
+.module-header-metric {
+  border-color: rgb(255 255 255 / 15%);
+  background: rgb(255 255 255 / 5%);
+}
+
+.module-header-metric svg {
+  color: rgb(255 255 255 / 75%);
 }
 
 .audit-banner-icon {
-  background: hsl(var(--primary));
+  background: rgb(255 255 255 / 16%);
 }
 
 .audit-banner-subtitle {
@@ -243,7 +269,7 @@ body {
 }
 
 .audit-metric svg {
-  color: hsl(var(--primary));
+  color: rgb(255 255 255 / 75%);
 }
 
 .audit-surface,

@@ -13,6 +13,7 @@ import { SemanarioModule } from './semanario/semanario.module';
 import { SettingsModule } from './settings/settings.module';
 import { UsersModule } from './users/users.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { ParkingModule } from './parking/parking.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { ReservationsModule } from './reservations/reservations.module';
     SemanarioModule,
     SettingsModule,
     UsersModule,
-    ReservationsModule
+    ReservationsModule,
+    ParkingModule
   ],
   controllers: [AppController]
 })

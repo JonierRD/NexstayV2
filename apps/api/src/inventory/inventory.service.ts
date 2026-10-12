@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 import { AuditoriaService } from '../auditoria/auditoria.service';
@@ -286,6 +286,28 @@ export class InventoryService {
     });
 
     return { message: 'Producto eliminado' };
+  }
+
+  async removeSale(id: number, user: JwtPayload) {
+    if (user.role !== 'ADMIN') {
+      throw new ForbiddenException('Solo un administrador puede eliminar ventas.');
+    }
+    const sale = await this.prisma.sale.findUnique({ where: { id }, include: { product: true } });
+    if (!sale) throw new NotFoundException('Venta no encontrada.');
+    await this.prisma.$transaction(async (tx) => {
+      const stock = await tx.stock.findFirst({ where: { productId: sale.productId } });
+      if (!stock) throw new ConflictException('No se encontró el inventario del producto.');
+      await tx.stock.update({ where: { id: stock.id }, data: { quantity: { increment: sale.quantity } } });
+      await tx.sale.delete({ where: { id } });
+    });
+    await this.auditoria.log(user, {
+      action: 'DELETE',
+      entity: 'VENTA',
+      entityId: String(id),
+      oldValue: sale,
+      description: `Eliminó venta de ${sale.product.name} y devolvió ${sale.quantity} unidad(es) al inventario.`
+    });
+    return { message: 'Venta eliminada.' };
   }
 
   async adjustQuantity(id: number, quantity: number, operation: 'ADD' | 'SUBTRACT', user: JwtPayload) {

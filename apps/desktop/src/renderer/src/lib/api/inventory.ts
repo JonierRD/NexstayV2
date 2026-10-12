@@ -125,3 +125,7 @@ export async function salesRequest(): Promise<StaySale[]> {
 export async function createSalesRequest(input: BatchSaleInput): Promise<StaySale[]> {
   return apiRequest<StaySale[]>('/inventory/sales', { method: 'POST', body: input });
 }
+
+export async function deleteSaleRequest(id: number): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/inventory/sale/${id}`, { method: 'DELETE' });
+}

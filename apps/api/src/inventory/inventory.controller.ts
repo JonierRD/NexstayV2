@@ -72,6 +72,11 @@ export class InventoryController {
     return this.service.adjustQuantity(parseInt(id), body.quantity, body.operation, user);
   }
 
+  @Delete('sale/:id')
+  async removeSale(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.service.removeSale(parseInt(id), user);
+  }
+
   @Delete(':id')
   async remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.service.remove(parseInt(id), user);

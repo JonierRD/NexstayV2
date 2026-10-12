@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
@@ -78,5 +78,10 @@ export class StaysController {
   @Post(':id/cancel')
   async cancel(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.service.cancel(Number(id), user);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Body('adminPassword') adminPassword: string, @CurrentUser() user: JwtPayload) {
+    return this.service.remove(Number(id), adminPassword, user);
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Delete, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, Put, Delete, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
@@ -47,5 +47,22 @@ export class ClientesController {
     @CurrentUser() user: JwtPayload
   ) {
     return this.service.remove(Number(id), adminPassword, user);
+  }
+
+  @Delete()
+  async removeMany(@Body() body: { ids?: unknown; adminPassword?: unknown }, @CurrentUser() user: JwtPayload) {
+    if (
+      !Array.isArray(body?.ids) ||
+      body.ids.length === 0 ||
+      body.ids.some((id) => typeof id !== 'number' || !Number.isInteger(id) || id <= 0)
+    ) {
+      throw new BadRequestException('Debes seleccionar clientes válidos para eliminar.');
+    }
+
+    return this.service.removeManyWithPassword(
+      body.ids as number[],
+      typeof body.adminPassword === 'string' ? body.adminPassword : '',
+      user
+    );
   }
 }
