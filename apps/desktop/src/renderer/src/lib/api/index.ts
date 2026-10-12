@@ -10,3 +10,4 @@ export * from './clientes';
 export * from './stays';
 export * from './semanario';
 export * from './parking';
+export * from './reservations';

@@ -5,6 +5,7 @@ import type { JwtPayload } from '../auth/auth.types';
 import { StaysService } from './stays.service';
 import { CheckinDto } from './dto/checkin.dto';
 import { UpdateStayDto } from './dto/update-stay.dto';
+import { CheckoutDto } from './dto/checkout.dto';
 
 @Controller('stays')
 @UseGuards(JwtAuthGuard)
@@ -45,7 +46,7 @@ export class StaysController {
   async checkout(
     @Param('id') id: string,
     @CurrentUser() user: JwtPayload,
-    @Body() dto?: { nights?: number }
+    @Body() dto: CheckoutDto
   ) {
     return this.service.checkout(Number(id), user, dto);
   }
