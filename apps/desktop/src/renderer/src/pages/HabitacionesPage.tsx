@@ -2,7 +2,6 @@ import { BedDouble, CheckCircle, Clock3, Gavel, Plus } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { Role } from '../routes/roles';
-import { AdminPasswordModal } from '../components/ui/AdminPasswordModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { RoomFormModal } from '../components/habitaciones/RoomFormModal';
 import { RoomDetailCard } from '../components/habitaciones/RoomDetailCard';
@@ -26,19 +25,11 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
   // El personal de limpieza solo consulta: no crea, edita, libera ni elimina.
   const readOnly = user.role === Role.CLEANING;
 
-  if (h.loading) {
-    return (
-      <div className="flex min-h-0 flex-1 items-center justify-center bg-sapay-250">
-        <div className="text-[11px] text-sapay-750">Cargando habitaciones...</div>
-      </div>
-    );
-  }
-
   const statDetail = (key: 'total' | 'ocupadas' | 'disponibles' | 'reservadas' | 'mantenimiento') =>
     key === 'total' ? 'Habitaciones registradas' : h.pct(h.stats[key]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-sapay-250 text-sapay-950">
+    <div className="module-page flex min-h-0 flex-1 flex-col overflow-hidden bg-sapay-250 text-sapay-950">
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden px-3 sm:px-4 pb-3">
         <div className="grid grid-cols-2 gap-1.5 py-1.5 sm:grid-cols-3 lg:grid-cols-5 shrink-0">
           {statsConfig.map((cfg) => (
@@ -115,19 +106,12 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
         </div>
       </div>
 
-      {h.showAdminAuth && (
-        <AdminPasswordModal
-          onSuccess={h.onAdminAuthorized}
-          onClose={h.closeAdminAuth}
-        />
-      )}
-
       {h.showRoomForm && (
         <RoomFormModal
           room={h.editingRoom ?? undefined}
           existingRooms={h.apiRooms}
           onSubmit={h.submitRoom}
-          onRequestDelete={h.requestDeleteRoom}
+          onRequestDelete={user.role === 'ADMIN' ? h.requestDeleteRoom : undefined}
           onClose={h.closeRoomForm}
         />
       )}

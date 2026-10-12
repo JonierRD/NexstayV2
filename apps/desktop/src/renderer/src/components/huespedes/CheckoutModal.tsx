@@ -11,21 +11,13 @@ type Props = {
 };
 
 export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props): ReactElement {
-  const [billableNights, setBillableNights] = useState<number>(stay.nights || 1);
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const guestName = stay.client ? `${stay.client.firstName} ${stay.client.lastName}` : 'Huésped sin nombre';
   const cc = stay.client?.cc ?? 'Sin documento';
 
-  // Días reales transcurridos desde el ingreso
-  const checkInDate = new Date(stay.checkIn);
-  const now = new Date();
-  const elapsedDays = Math.max(1, Math.ceil((now.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)));
-  const isOverdue = elapsedDays > stay.nights;
-  const overdueDays = elapsedDays - stay.nights;
-
   const roomPrice = Number(stay.pricePerNight);
-  const roomTotal = billableNights * roomPrice;
+  const roomTotal = (stay.nights || 1) * roomPrice;
   const reservationPaid = stay.reservation?.payments?.reduce(
     (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
     0
@@ -44,10 +36,18 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
   const laundryTotal = laundryItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
   const hasPendingLaundry = laundryItems.some((item) => item.status === 'PENDIENTE' || item.status === 'EN_PROCESO');
 
+  // Pagos parciales registrados durante la estadía (se descuentan del total).
+  const priorPayments = (stay.payments ?? []).reduce((sum, payment) => sum + Number(payment.amount), 0);
   const grandTotal = roomBalance + salesTotal + laundryTotal;
+  const outstanding = Math.max(0, grandTotal - priorPayments);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4"
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !isProcessing) onClose();
+      }}
+    >
       <div className="flex max-h-[90vh] w-full max-w-[620px] flex-col overflow-hidden rounded-[26px] border border-sapay-350 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.25)]">
         {/* Cabecera */}
         <div className="flex items-center justify-between border-b border-sapay-350 bg-sapay-100 px-6 py-4">
@@ -105,18 +105,14 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
             </div>
           )}
 
-          {/* Alerta de Estancia Excedida si aplica */}
-          {isOverdue && (
-            <div className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-[11px] text-amber-950">
-              <AlertTriangle size={15} className="text-amber-700 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold">⚠️ Estancia excedida (+{overdueDays} días transcurridos)</p>
-                <p className="text-[10px] text-amber-800 mt-0.5">
-                  El huésped pactó {stay.nights} noches al ingresar. Se liquidan las {stay.nights} noches por defecto. Puedes ajustar las noches a liquidar si el huésped autorizó días adicionales.
-                </p>
-              </div>
-            </div>
-          )}
+          {/* Política de salida del hotel */}
+          <div className="flex items-center gap-2.5 rounded-xl border border-sapay-350 bg-sapay-100 p-3 text-[11px] text-sapay-750">
+            <Clock size={14} className="shrink-0 text-sapay-700" />
+            <span>
+              Hora límite de salida: <strong className="font-semibold text-sapay-900">13:00</strong>.
+              A las 13:00 exactas se cobra la noche anterior; después de esa hora cuenta una noche adicional.
+            </span>
+          </div>
 
           {/* Desglose 1: Hospedaje */}
           <div className="rounded-2xl border border-sapay-350 bg-white p-3.5">
@@ -132,24 +128,7 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
               <span className="font-semibold text-sapay-900">{formatCOP(roomPrice)} / noche</span>
             </div>
             <div className="flex items-center justify-between text-[11px] text-sapay-700 pl-5 mt-1.5">
-              <span>Noches a liquidar:</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setBillableNights((prev) => Math.max(1, prev - 1))}
-                  className="flex h-5 w-5 items-center justify-center rounded border border-sapay-350 bg-sapay-50 text-[11px] font-bold text-sapay-900 hover:bg-sapay-200"
-                >
-                  −
-                </button>
-                <span className="font-bold text-sapay-950 min-w-5 text-center">{billableNights}</span>
-                <button
-                  type="button"
-                  onClick={() => setBillableNights((prev) => prev + 1)}
-                  className="flex h-5 w-5 items-center justify-center rounded border border-sapay-350 bg-sapay-50 text-[11px] font-bold text-sapay-900 hover:bg-sapay-200"
-                >
-                  +
-                </button>
-              </div>
+              <span>Noches a liquidar:</span><span className="font-bold text-sapay-950">{stay.nights || 1}</span>
             </div>
             {stay.reservation && (
               <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-[11px] text-emerald-800">
@@ -228,17 +207,31 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           </div>
 
           {/* Total Gran Final */}
-          <div className="flex items-center justify-between rounded-2xl border border-sapay-400 bg-[#f9f1e8] p-4 text-sapay-950">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-sapay-750">Total General a Cobrar</p>
-              <p className="text-[10px] text-sapay-650">Hospedaje + Tienda + Lavandería</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[22px] font-black text-sapay-950 leading-tight">{formatCOP(grandTotal)}</p>
+          <div className="rounded-2xl border border-sapay-400 bg-[#f9f1e8] p-4 text-sapay-950">
+            {priorPayments > 0 && (
+              <div className="mb-2 space-y-1 border-b border-sapay-300 pb-2 text-[11px] text-sapay-750">
+                <div className="flex items-center justify-between">
+                  <span>Total de la cuenta:</span>
+                  <span className="font-semibold text-sapay-900">{formatCOP(grandTotal)}</span>
+                </div>
+                <div className="flex items-center justify-between text-emerald-700">
+                  <span>Pagos previos ({stay.payments?.length ?? 0}):</span>
+                  <span className="font-semibold">−{formatCOP(priorPayments)}</span>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-sapay-750">Saldo a cobrar</p>
+                <p className="text-[10px] text-sapay-650">Hospedaje + Tienda + Lavandería − pagos previos</p>
+              </div>
+              <div className="text-right">
+                <p className="text-[22px] font-black text-sapay-950 leading-tight">{formatCOP(outstanding)}</p>
+              </div>
             </div>
           </div>
 
-          {grandTotal > 0 && (
+          {outstanding > 0 && (
             <div className="rounded-xl border border-sapay-350 bg-white p-3.5">
               <label className="block text-[11px] font-semibold text-sapay-800">Método de pago final
                 <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} className="mt-1 w-full rounded-lg border border-sapay-350 bg-white px-3 py-2 text-xs">
@@ -247,7 +240,7 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
               </label>
               <label className="mt-3 flex items-start gap-2 text-[11px] text-sapay-850">
                 <input type="checkbox" checked={paymentConfirmed} onChange={(event) => setPaymentConfirmed(event.target.checked)} />
-                <span>Confirmo que recibí el pago final de <strong>{formatCOP(grandTotal)}</strong>.</span>
+                <span>Confirmo que recibí el pago final de <strong>{formatCOP(outstanding)}</strong>.</span>
               </label>
             </div>
           )}
@@ -265,8 +258,8 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(billableNights, paymentMethod, paymentConfirmed || grandTotal === 0)}
-            disabled={isProcessing || (grandTotal > 0 && !paymentConfirmed)}
+            onClick={() => onConfirm(stay.nights || 1, paymentMethod, paymentConfirmed || outstanding === 0)}
+            disabled={isProcessing || (outstanding > 0 && !paymentConfirmed)}
             className="flex items-center gap-1.5 rounded-xl bg-sapay-900 px-5 py-2 text-[12px] font-bold text-white transition hover:bg-sapay-850 disabled:opacity-60 shadow-sm"
           >
             <LogOut size={14} />

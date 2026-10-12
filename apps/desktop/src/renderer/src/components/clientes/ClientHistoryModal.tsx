@@ -1,11 +1,16 @@
 import { X } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type Cliente } from '../../lib/api';
-import { formatCOP, formatDateRange } from '../../lib/format';
+import { formatCOP, formatDateTime } from '../../lib/format';
 
 export function ClientHistoryModal({ client, onClose }: { client: Cliente; onClose: () => void }): ReactElement {
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center bg-black/20"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <div className="relative max-h-[80vh] w-full max-w-xl overflow-auto rounded-2xl bg-white p-5">
         <button onClick={onClose} className="absolute right-3 top-3">
           <X size={18} />
@@ -52,14 +57,25 @@ export function ClientHistoryModal({ client, onClose }: { client: Cliente; onClo
             client.stays.map((stay) => (
               <div key={stay.id} className="rounded-lg border border-sapay-350 p-3 text-xs">
                 <div className="flex justify-between font-medium">
-                  <span>Habitación {stay.roomNumber}</span>
+                  <span>Habitación {stay.roomNumber} · {stay.nights} {stay.nights === 1 ? 'noche' : 'noches'}</span>
                   <span className={stay.status === 'ACTIVA' ? 'text-success' : 'text-sapay-750'}>
                     {stay.status === 'ACTIVA' ? 'ACTIVA' : stay.checkOut ? 'FINALIZADA' : stay.status}
                   </span>
                 </div>
-                <p className="mt-1 font-medium text-sapay-950">{formatDateRange(stay.checkIn, stay.checkOut)}</p>
+                <div className="mt-1.5 grid grid-cols-1 gap-0.5 text-sapay-750">
+                  <p>
+                    <span className="text-sapay-650">Ingreso: </span>
+                    <span className="font-medium text-sapay-950">{formatDateTime(stay.checkIn)}</span>
+                  </p>
+                  <p>
+                    <span className="text-sapay-650">Salida: </span>
+                    <span className="font-medium text-sapay-950">
+                      {stay.checkOut ? formatDateTime(stay.checkOut) : 'En curso'}
+                    </span>
+                  </p>
+                </div>
                 <p className="mt-1 text-sapay-750">
-                  {stay.nights} noche(s) · {stay.acTypeUsed === 'AIRE' ? 'Aire' : 'Ventilador'} · $
+                  {stay.acTypeUsed === 'AIRE' ? 'Aire' : 'Ventilador'} · $
                   {formatCOP(Number(stay.pricePerNight))}/noche
                 </p>
                 <p className="text-sapay-750">
@@ -70,6 +86,14 @@ export function ClientHistoryModal({ client, onClose }: { client: Cliente; onClo
           ) : (
             <p className="text-xs text-sapay-650">Este cliente aún no tiene hospedajes.</p>
           )}
+        </div>
+        <div className="mt-4 space-y-2">
+          <h3 className="text-xs font-semibold">Historial de parqueadero</h3>
+          {client.parkingSessions?.length ? client.parkingSessions.map((session) => (
+            <div key={session.id} className="rounded-lg border border-sapay-350 p-3 text-xs">
+              <span className="font-medium">{session.licensePlate}</span> · {session.status === 'ACTIVO' ? 'Activo' : 'Salida registrada'} · {formatDateTime(session.entryAt)}
+            </div>
+          )) : <p className="text-xs text-sapay-650">Este cliente aún no tiene registros de parqueadero.</p>}
         </div>
       </div>
     </div>

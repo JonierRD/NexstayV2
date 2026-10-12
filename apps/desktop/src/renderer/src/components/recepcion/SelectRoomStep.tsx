@@ -14,8 +14,6 @@ type Props = {
   setAcType: Dispatch<SetStateAction<'AIRE' | 'VENTILADOR'>>;
   checkInDate: string;
   setCheckInDate: Dispatch<SetStateAction<string>>;
-  nights: number;
-  setNights: Dispatch<SetStateAction<number>>;
   setStep: Dispatch<SetStateAction<CheckinStep>>;
 };
 
@@ -28,8 +26,6 @@ export function SelectRoomStep({
   setAcType,
   checkInDate,
   setCheckInDate,
-  nights,
-  setNights,
   setStep
 }: Props) {
   return (
@@ -141,18 +137,9 @@ export function SelectRoomStep({
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-xs font-medium text-sapay-700">
-              Noches Estimadas
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={nights}
-              onChange={(e) => setNights(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full rounded-lg border border-sapay-450 px-4 py-3 text-sm focus:border-sapay-500 focus:outline-none"
-            />
-          </div>
+          <p className="rounded-lg bg-sapay-100 px-4 py-3 text-xs text-sapay-700">
+            El hospedaje inicia con una noche. Las noches adicionales se calculan automáticamente después de la 1:00 p. m.
+          </p>
         </div>
 
         <div className="flex gap-3 pt-2">

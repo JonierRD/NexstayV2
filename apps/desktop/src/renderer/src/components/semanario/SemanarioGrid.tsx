@@ -51,10 +51,10 @@ function TurnoCelda({
   const contenido = (
     <span
       className={cn(
-        'flex min-h-[22px] items-center gap-1 px-1.5 py-0.5 text-[10px] leading-tight',
+        'semanario-turno flex min-h-[22px] items-center gap-1 px-1.5 py-0.5 text-[10px] leading-tight',
         turno === 'DIA' ? 'font-semibold text-sapay-950' : 'text-[#7a6a60]',
         destacado && 'rounded-md bg-danger-50 ring-1 ring-inset ring-danger-150',
-        interactivo && 'cursor-pointer hover:bg-[#fff6ef]'
+        interactivo && 'cursor-pointer'
       )}
     >
       {nombre ? (
@@ -92,14 +92,14 @@ export function SemanarioGrid({
   onSelectSemana
 }: Props): ReactElement {
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-auto rounded-[18px] border border-sapay-350 bg-white">
+    <div className="semanario-grid flex min-h-0 flex-1 flex-col overflow-auto rounded-[18px] border border-sapay-350 bg-white">
       <div className="min-w-[960px]">
-        <div className={cn('sticky top-0 z-10 grid gap-px border-b border-sapay-300 bg-sapay-350 shadow-sm', GRID)}>
-          <div className="bg-[#fbf7f2] px-2 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-sapay-700">
+        <div className={cn('semanario-grid-header sticky top-0 z-10 grid gap-px border-b border-sapay-300 bg-sapay-350 shadow-sm', GRID)}>
+          <div className="semanario-grid-header-cell px-2 py-2 text-[9px] font-bold uppercase tracking-[0.14em] text-sapay-700">
             Semana
           </div>
           {DIAS_SEMANA.map((dia) => (
-            <div key={dia} className="bg-[#fbf7f2] px-2 py-1.5 text-center">
+            <div key={dia} className="semanario-grid-header-cell px-2 py-1.5 text-center">
               <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-sapay-700">{dia}</p>
               <div className="mt-1 flex items-center justify-center gap-1.5 text-[8px] text-sapay-550">
                 <span>{TURNO_HORAS.DIA}</span>
@@ -137,8 +137,9 @@ export function SemanarioGrid({
                     disabled={!puedeEditar}
                     className={cn(
                       'flex flex-col items-start justify-center gap-0.5 px-2 py-2 text-left',
-                      contieneHoy ? fondoHoy : 'bg-[#fdfbf8]',
-                      puedeEditar && 'cursor-pointer hover:bg-[#fff3df]'
+                      'semanario-week-label',
+                      contieneHoy && 'semanario-today',
+                      puedeEditar && 'cursor-pointer'
                     )}
                     title={puedeEditar ? 'Editar la semana completa' : undefined}
                   >
@@ -169,8 +170,8 @@ export function SemanarioGrid({
                       <div
                         key={fecha}
                         className={cn(
-                          'flex flex-col justify-stretch py-0',
-                          esHoy ? fondoHoy : 'bg-white'
+                          'semanario-day-cell flex flex-col justify-stretch py-0',
+                          esHoy && 'semanario-today'
                         )}
                       >
                         <div className="flex flex-1 flex-col justify-center px-0.5 py-1">
@@ -191,8 +192,8 @@ export function SemanarioGrid({
 
                         <div
                           className={cn(
-                            'flex flex-1 flex-col justify-center px-0.5 py-1',
-                            !esHoy && 'bg-[#fbf8f5]'
+                            'semanario-night flex flex-1 flex-col justify-center px-0.5 py-1',
+                            esHoy && 'semanario-today'
                           )}
                         >
                           <TurnoCelda

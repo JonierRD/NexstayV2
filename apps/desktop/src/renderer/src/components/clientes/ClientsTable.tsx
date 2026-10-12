@@ -8,14 +8,20 @@ type Props = {
   onView: (client: Cliente) => void;
   onEdit: (client: Cliente) => void;
   onDelete: (client: Cliente) => void;
+  canDelete: boolean;
+  selectedIds: Set<number>;
+  onToggleSelect: (id: number) => void;
+  onToggleAll: () => void;
 };
 
-export function ClientsTable({ clients, loading, onView, onEdit, onDelete }: Props): ReactElement {
+export function ClientsTable({ clients, loading, onView, onEdit, onDelete, canDelete, selectedIds, onToggleSelect, onToggleAll }: Props): ReactElement {
+  const allSelected = clients.length > 0 && clients.every((client) => selectedIds.has(client.id));
   return (
     <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto rounded-lg border border-sapay-350 bg-white">
       <table className="w-full min-w-[640px] text-left text-xs">
         <thead className="sticky top-0 bg-[#fcf8f4] text-[10px] uppercase text-sapay-750">
           <tr>
+            {canDelete && <th className="w-8 px-3 py-2"><input type="checkbox" checked={allSelected} onChange={onToggleAll} aria-label="Seleccionar todos los clientes visibles" className="h-4 w-4 accent-sapay-900" /></th>}
             <th className="px-3 py-2">Cliente</th>
             <th className="px-3 py-2">Cédula</th>
             <th className="px-3 py-2">Teléfono</th>
@@ -27,11 +33,12 @@ export function ClientsTable({ clients, loading, onView, onEdit, onDelete }: Pro
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={6} className="p-8 text-center text-sapay-650">Cargando clientes...</td>
+              <td colSpan={canDelete ? 7 : 6} className="p-8 text-center text-sapay-650">Cargando clientes...</td>
             </tr>
           ) : (
             clients.map((client) => (
               <tr key={client.id} className="border-t border-[#f0e7e0] hover:bg-[#fffaf6]">
+                {canDelete && <td className="px-3 py-2"><input type="checkbox" checked={selectedIds.has(client.id)} onChange={() => onToggleSelect(client.id)} aria-label={`Seleccionar a ${client.firstName} ${client.lastName}`} className="h-4 w-4 accent-sapay-900" /></td>}
                 <td className="px-3 py-2 font-medium">
                   {client.firstName} {client.lastName}
                 </td>
@@ -47,9 +54,11 @@ export function ClientsTable({ clients, loading, onView, onEdit, onDelete }: Pro
                     <button title="Editar" onClick={() => onEdit(client)} className="rounded p-1.5 text-[#7a4a34] hover:bg-[#f8eee7]">
                       <Pencil size={14} />
                     </button>
-                    <button title="Eliminar" onClick={() => onDelete(client)} className="rounded p-1.5 text-red-500 hover:bg-red-50">
-                      <Trash2 size={14} />
-                    </button>
+                    {canDelete && (
+                      <button title="Eliminar" onClick={() => onDelete(client)} className="rounded p-1.5 text-red-500 hover:bg-red-50">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -57,7 +66,7 @@ export function ClientsTable({ clients, loading, onView, onEdit, onDelete }: Pro
           )}
           {!loading && clients.length === 0 && (
             <tr>
-              <td colSpan={6} className="p-8 text-center text-sapay-650">No hay clientes que coincidan.</td>
+              <td colSpan={canDelete ? 7 : 6} className="p-8 text-center text-sapay-650">No hay clientes que coincidan.</td>
             </tr>
           )}
         </tbody>

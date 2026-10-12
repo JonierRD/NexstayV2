@@ -1,3 +1,4 @@
+import { CalendarDays, CheckCircle, Clock3, PackageCheck } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { useReception } from '../components/recepcion/useReception';
@@ -6,6 +7,7 @@ import { SelectRoomStep } from '../components/recepcion/SelectRoomStep';
 import { ConfirmStep } from '../components/recepcion/ConfirmStep';
 import { AvailableRoomsPanel } from '../components/recepcion/AvailableRoomsPanel';
 import { SuccessScreen } from '../components/recepcion/SuccessScreen';
+import { ModuleHeader } from '../components/ui/ModuleHeader';
 
 export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   const {
@@ -19,8 +21,6 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     selectedRoom,
     acType,
     setAcType,
-    nights,
-    setNights,
     checkInDate,
     setCheckInDate,
     error,
@@ -40,11 +40,11 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   } = useReception(user);
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col p-3 sm:p-4 overflow-hidden">
-      <div className="mb-3 shrink-0">
-        <h1 className="text-base sm:text-lg font-semibold text-sapay-950">Recepción - Check-In</h1>
-        <p className="text-xs text-sapay-700">Registro de huéspedes y asignación de habitaciones</p>
-      </div>
+    <div className="module-page flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <ModuleHeader icon={CalendarDays} title="Recepción - Check-In" subtitle="Registro de huéspedes y asignación de habitaciones." metrics={[
+        { label: 'Habitaciones', value: rooms.length, icon: PackageCheck },
+        { label: 'Disponibles', value: rooms.filter((room) => room.status === 'DISPONIBLE').length, icon: CheckCircle }
+      ]} />
 
       {error && (
         <div className="mb-3 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -93,8 +93,6 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                 setAcType={setAcType}
                 checkInDate={checkInDate}
                 setCheckInDate={setCheckInDate}
-                nights={nights}
-                setNights={setNights}
                 setStep={setStep}
               />
             )}
@@ -108,8 +106,6 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                 setAcType={setAcType}
                 checkInDate={checkInDate}
                 setCheckInDate={setCheckInDate}
-                nights={nights}
-                setNights={setNights}
                 calculateEstimatedTotal={calculateEstimatedTotal}
                 loading={loading}
                 handleConfirmCheckin={handleConfirmCheckin}

@@ -38,6 +38,29 @@ function todayInputValue(): string {
   return `${today.getFullYear()}-${month}-${day}`;
 }
 
+/**
+ * Construye el instante del check-in usando la fecha elegida y la hora real
+ * del momento (no la hora limite configurada). Asi "Ingreso" y el tiempo
+ * transcurrido reflejan cuando llego el huesped.
+ */
+function checkinTimestamp(dateInput: string): string {
+  const now = new Date();
+  const [year, month, day] = dateInput.split('-').map(Number);
+  if (!year || !month || !day) {
+    return now.toISOString();
+  }
+  const local = new Date(
+    year,
+    month - 1,
+    day,
+    now.getHours(),
+    now.getMinutes(),
+    now.getSeconds(),
+    now.getMilliseconds()
+  );
+  return local.toISOString();
+}
+
 export function useReception(_user?: PublicUser) {
   // Wizard: CLIENT_DATA → SELECT_ROOM → CONFIRM → SUCCESS
   const [step, setStep] = useState<CheckinStep>('CLIENT_DATA');
@@ -53,7 +76,6 @@ export function useReception(_user?: PublicUser) {
   // Tipo de aire: AIRE o VENTILADOR (se auto-selecciona según la habitación)
   const [acType, setAcType] = useState<'AIRE' | 'VENTILADOR'>('AIRE');
   // Noches estimadas del hospedaje
-  const [nights, setNights] = useState<number>(1);
   // Fecha de ingreso (por defecto hoy, editable)
   const [checkInDate, setCheckInDate] = useState<string>(todayInputValue);
   const [error, setError] = useState('');
@@ -74,8 +96,7 @@ export function useReception(_user?: PublicUser) {
     setLoading(true);
     habitacionesRequest()
       .then((data) => {
-        const available = data.filter(r => r.status === 'DISPONIBLE');
-        setRooms(available);
+        setRooms(data);
       })
       .catch((err) => {
         console.error('Error loading rooms:', err);
@@ -208,7 +229,7 @@ export function useReception(_user?: PublicUser) {
   const calculateEstimatedTotal = () => {
     if (!selectedRoom) return 0;
     const price = acType === 'AIRE' ? selectedRoom.priceWithAir : selectedRoom.priceWithFan;
-    return (price || 0) * nights;
+    return price || 0;
   };
 
   // El check-in es una operacion normal de recepcion: no pide contrasena de admin.
@@ -242,8 +263,7 @@ export function useReception(_user?: PublicUser) {
       notes: clientData.notes || undefined,
       roomNumber: selectedRoom.number,
       acType,
-      nights: nights || undefined,
-      checkIn: checkInDate ? new Date(checkInDate + 'T12:00:00').toISOString() : undefined
+      checkIn: checkInDate ? checkinTimestamp(checkInDate) : undefined
     };
 
     checkinRequest(checkinData)
@@ -265,7 +285,6 @@ export function useReception(_user?: PublicUser) {
     setFoundClient(null);
     setSelectedRoom(null);
     setAcType('AIRE');
-    setNights(1);
     setCheckInDate(todayInputValue());
     setClientData(EMPTY_CLIENT_FORM);
     setHasSearched(false);
@@ -287,8 +306,6 @@ export function useReception(_user?: PublicUser) {
     selectedRoom,
     acType,
     setAcType,
-    nights,
-    setNights,
     checkInDate,
     setCheckInDate,
     error,

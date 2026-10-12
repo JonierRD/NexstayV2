@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ApiError,
   createSalesRequest,
+  deleteSaleRequest,
   inventoryRequest,
   salesRequest,
   staysActiveRequest,
@@ -99,6 +100,7 @@ export function useVentas() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deletingSale, setDeletingSale] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -166,6 +168,21 @@ export function useVentas() {
       return matchesSearch && matchesType && matchesDate;
     });
   }, [historyDate, historySearch, historyType, sales]);
+
+  const removeSale = useCallback(async (id: number) => {
+    try {
+      setDeletingSale(id);
+      await deleteSaleRequest(id);
+      const data = await loadAllData();
+      setProducts(data.products);
+      setActiveStays(data.stays);
+      setSales(data.sales);
+    } catch (err) {
+      setError(buildErrorMessage(err));
+    } finally {
+      setDeletingSale(null);
+    }
+  }, []);
 
   const openSaleModal = useCallback((product: Product, mode: SaleMode) => {
     setModalMode(mode);
@@ -250,6 +267,8 @@ export function useVentas() {
     filteredSales,
     openSaleModal,
     closeSaleModal,
-    handleConfirmSale
+    handleConfirmSale,
+    removeSale,
+    deletingSale
   };
 }

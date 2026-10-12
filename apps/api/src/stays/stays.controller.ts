@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
@@ -6,6 +6,7 @@ import { StaysService } from './stays.service';
 import { CheckinDto } from './dto/checkin.dto';
 import { UpdateStayDto } from './dto/update-stay.dto';
 import { CheckoutDto } from './dto/checkout.dto';
+import { RegisterStayPaymentDto } from './dto/register-payment.dto';
 
 @Controller('stays')
 @UseGuards(JwtAuthGuard)
@@ -20,6 +21,11 @@ export class StaysController {
   @Get('active')
   async findActive() {
     return this.service.findActive();
+  }
+
+  @Get('history')
+  async findHistory(@Query('limit') limit?: string) {
+    return this.service.findHistory(limit ? Number(limit) : undefined);
   }
 
   @Get('room/:roomNumber')
@@ -51,6 +57,15 @@ export class StaysController {
     return this.service.checkout(Number(id), user, dto);
   }
 
+  @Post(':id/payments')
+  async registerPayment(
+    @Param('id') id: string,
+    @Body() dto: RegisterStayPaymentDto,
+    @CurrentUser() user: JwtPayload
+  ) {
+    return this.service.registerPayment(Number(id), dto, user);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -63,5 +78,10 @@ export class StaysController {
   @Post(':id/cancel')
   async cancel(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.service.cancel(Number(id), user);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Body('adminPassword') adminPassword: string, @CurrentUser() user: JwtPayload) {
+    return this.service.remove(Number(id), adminPassword, user);
   }
 }

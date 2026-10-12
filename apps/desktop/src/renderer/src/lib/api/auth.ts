@@ -7,6 +7,8 @@ export type PublicUser = {
   cc: string;
   email: string;
   phone: string | null | undefined;
+  isActive?: boolean;
+  createdAt?: string;
 };
 
 export type AuthResult = {
@@ -67,6 +69,25 @@ export async function resetPasswordRequest(input: {
 
 export async function meRequest(): Promise<PublicUser> {
   return apiRequest<PublicUser>('/auth/me', { method: 'GET' });
+}
+
+export async function updateProfileRequest(input: {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+}): Promise<PublicUser> {
+  return apiRequest<PublicUser>('/auth/me', { method: 'PATCH', body: input });
+}
+
+export async function changePasswordRequest(input: {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/auth/change-password', {
+    method: 'POST',
+    body: input
+  });
 }
 
 export type FirstRunInfo = {

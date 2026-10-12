@@ -135,6 +135,10 @@ export class ReservationsService {
         throw new BadRequestException('La habitación no tiene una tarifa válida para esa opción.');
       }
       const total = new Prisma.Decimal(nightly).mul(nights).toDecimalPlaces(0);
+      await tx.room.update({
+        where: { number: room.number },
+        data: { status: 'RESERVADA' }
+      });
       const client = await tx.client.upsert({
         where: { cc: dto.cc.trim() },
         create: {

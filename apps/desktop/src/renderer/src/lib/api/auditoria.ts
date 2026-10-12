@@ -50,3 +50,11 @@ export async function auditoriaRequest(filters?: {
 
   return apiRequest<AuditLogsResponse>(`/auditoria?${params.toString()}`);
 }
+
+export async function deleteAuditLogRequest(id: number): Promise<void> {
+  await apiRequest(`/auditoria/${id}`, { method: 'DELETE' });
+}
+
+export async function deleteAuditLogsRequest(ids: number[]): Promise<void> {
+  await apiRequest('/auditoria', { method: 'DELETE', body: { ids } });
+}

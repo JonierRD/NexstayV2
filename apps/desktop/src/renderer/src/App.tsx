@@ -31,7 +31,10 @@ export function App(): ReactElement {
       return (
         <>
           {auth.isLoggingOut && <LoadingOverlay message="Cerrando sesión..." />}
-          <DashboardLayout user={auth.loggedUser} onLogout={() => auth.handleLogout()} />
+          <DashboardLayout
+            user={auth.loggedUser}
+            onLogout={() => auth.handleLogout()}
+          />
         </>
       );
     }

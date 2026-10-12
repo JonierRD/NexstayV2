@@ -134,4 +134,16 @@ startDate?: Date;
       orderBy: { createdAt: 'desc' }
     });
   }
+
+  async remove(id: number) {
+    return this.prisma.auditLog.delete({
+      where: { id }
+    });
+  }
+
+  async removeMany(ids: number[]) {
+    return this.prisma.auditLog.deleteMany({
+      where: { id: { in: ids } }
+    });
+  }
 }

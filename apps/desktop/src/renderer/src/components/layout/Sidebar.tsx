@@ -1,6 +1,7 @@
 import { LogOut, PanelLeftClose, type LucideIcon } from 'lucide-react';
 import Logo from '../../assets/login/Logo.png';
 import { cn } from '../../lib/utils';
+import { useHotelBrand } from '../../lib/settingsCache';
 import type { PublicUser } from '../../lib/api';
 import { usePermissions } from '../../security';
 import { moduleRoutes } from '../../routes/moduleRoutes';
@@ -65,6 +66,7 @@ function NavButton({
 
 export function Sidebar({ active, onNavigate, onLogout, open, onToggle, user }: SidebarProps) {
   const { canAccess } = usePermissions({ user });
+  const brand = useHotelBrand();
 
   if (!open) return null;
 
@@ -74,10 +76,21 @@ export function Sidebar({ active, onNavigate, onLogout, open, onToggle, user }: 
   const visibleBottomItems = bottomItems.filter((item) => canAccess(item.key));
 
   return (
-    <aside className="flex h-full w-52 flex-col bg-gradient-to-b from-[#30221a] to-[#190b00] text-[#f7efe8] shadow-[4px_0_20px_rgba(0,0,0,0.3)]">
+    <aside
+      className="flex h-full w-52 flex-col text-[#f7efe8] shadow-[4px_0_20px_rgba(0,0,0,0.3)]"
+      style={{
+        background:
+          'linear-gradient(to bottom, hsl(var(--sapay-sidebar-1)), hsl(var(--sapay-sidebar-2)))'
+      }}
+    >
       <div className="border-b border-white/10 px-3 py-2">
         <div className="relative">
-          <img src={Logo} alt="SAPAY" className="mx-auto h-20 w-20 rounded-full bg-white object-contain p-1.5 shadow-sm" />
+          <img
+            src={brand?.logoDataUrl || Logo}
+            alt={brand?.hotelName || 'SAPAY'}
+            title={brand?.hotelName || 'SAPAY'}
+            className="sidebar-logo mx-auto h-20 w-20 rounded-full bg-white object-contain p-1.5 shadow-sm"
+          />
           <button
             onClick={onToggle}
             className="absolute -right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition-colors"

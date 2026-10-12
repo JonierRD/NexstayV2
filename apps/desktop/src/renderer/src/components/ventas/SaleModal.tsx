@@ -79,7 +79,12 @@ export function SaleModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-3 sm:p-4"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <div className="flex max-h-[88vh] w-full max-w-[650px] flex-col overflow-hidden rounded-[26px] border border-sapay-350 bg-white shadow-[0_25px_60px_rgba(0,0,0,0.28)]">
         {/* Cabecera Fija */}
         <div className="flex shrink-0 items-center justify-between border-b border-sapay-350 bg-sapay-50 px-5 py-3.5">

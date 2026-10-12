@@ -143,7 +143,12 @@ export function LaundryFormModal({ laundry, prices, onSubmit, onClose }: Props):
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-4"
+            onClick={(event) => {
+                if (event.target === event.currentTarget) onClose();
+            }}
+        >
             <div className="flex max-h-[calc(100vh-32px)] w-full max-w-lg flex-col rounded-[22px] border border-sapay-350 bg-white p-5 shadow-[0_24px_60px_rgba(67,42,27,0.18)]">
                 <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-[15px] font-semibold text-sapay-950">

@@ -13,8 +13,6 @@ type Props = {
   setAcType: Dispatch<SetStateAction<'AIRE' | 'VENTILADOR'>>;
   checkInDate: string;
   setCheckInDate: Dispatch<SetStateAction<string>>;
-  nights: number;
-  setNights: Dispatch<SetStateAction<number>>;
   calculateEstimatedTotal: () => number;
   loading: boolean;
   handleConfirmCheckin: () => void;
@@ -29,8 +27,6 @@ export function ConfirmStep({
   setAcType,
   checkInDate,
   setCheckInDate,
-  nights,
-  setNights,
   calculateEstimatedTotal,
   loading,
   handleConfirmCheckin,
@@ -131,18 +127,9 @@ export function ConfirmStep({
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-xs font-medium text-sapay-700">
-                Noches Estimadas
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={nights}
-                onChange={(e) => setNights(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full rounded-lg border border-sapay-450 px-4 py-2 text-sm focus:border-sapay-500 focus:outline-none"
-              />
-            </div>
+            <p className="rounded-lg bg-sapay-100 px-4 py-3 text-xs text-sapay-700">
+              Total inicial de una noche. El sistema actualizará las noches automáticamente mientras el huésped permanezca alojado.
+            </p>
 
             <div className="flex justify-between items-center py-2 border-b border-sapay-450">
               <span className="text-sapay-700">Precio/noche:</span>

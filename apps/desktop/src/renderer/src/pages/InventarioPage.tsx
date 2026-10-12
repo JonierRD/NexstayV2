@@ -13,10 +13,10 @@ import { Button } from '../components/ui/Button';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 import { InventoryFilters } from '../components/inventario/InventoryFilters';
-import { InventoryStats } from '../components/inventario/InventoryStats';
 import { InventoryTable } from '../components/inventario/InventoryTable';
 import { ProductModal } from '../components/inventario/ProductModal';
 import { useInventario } from '../components/inventario/useInventario';
+import { ModuleHeader } from '../components/ui/ModuleHeader';
 
 export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
   const inv = useInventario();
@@ -25,24 +25,25 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
     inv.search !== '' || inv.selectedCategory !== 'TODAS' || inv.stockFilter !== 'ALL';
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#fbf8f4] p-3 sm:p-4 md:p-5">
+    <div className="module-page flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-[#fbf8f4]">
       {inv.actionLoading && <LoadingOverlay message={inv.actionLoading} />}
 
-      {/* Header Principal */}
-      <div className="mb-3 shrink-0 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-sapay-950">Inventario</h1>
-            <span className="rounded-full bg-sapay-350 px-2.5 py-0.5 text-[11px] font-semibold text-sapay-900">
-              {inv.items.length} {inv.items.length === 1 ? 'artículo' : 'artículos'}
-            </span>
-          </div>
-          <p className="text-[11px] sm:text-[12px] text-sapay-750">
-            Control de existencias, suministros, mecato y bebidas para huéspedes y recepción.
-          </p>
+      <ModuleHeader icon={Package} title="Inventario" subtitle="Control de existencias, suministros, mecato y bebidas para huéspedes y recepción." metrics={[
+        { label: 'Total productos', value: inv.metrics.totalItems, icon: Package },
+        { label: 'Stock normal', value: inv.metrics.normalCount, icon: CheckCircle2 },
+        { label: 'Stock crítico', value: inv.metrics.lowStockCount, icon: AlertTriangle },
+        { label: 'Agotados', value: inv.metrics.outOfStockCount, icon: AlertTriangle }
+      ]} />
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="min-w-[260px] flex-1">
+          <InventoryFilters
+            search={inv.search}
+            onSearchChange={inv.setSearch}
+            selectedCategory={inv.selectedCategory}
+            onCategoryChange={inv.setSelectedCategory}
+          />
         </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 gap-2">
           <Button
             onClick={inv.fetchInventory}
             disabled={inv.loading}
@@ -86,23 +87,6 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
           </button>
         </div>
       )}
-
-      {/* Tarjetas de Métricas Ejecutivas Compactas */}
-      <InventoryStats
-        metrics={inv.metrics}
-        stockFilter={inv.stockFilter}
-        onToggleFilter={(filter) =>
-          inv.setStockFilter(inv.stockFilter === filter ? 'ALL' : filter)
-        }
-      />
-
-      {/* Barra de Filtros y Búsqueda */}
-      <InventoryFilters
-        search={inv.search}
-        onSearchChange={inv.setSearch}
-        selectedCategory={inv.selectedCategory}
-        onCategoryChange={inv.setSelectedCategory}
-      />
 
       {/* Lista / Tabla de Productos estilo Excel */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">

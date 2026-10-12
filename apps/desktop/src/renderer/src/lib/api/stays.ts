@@ -14,6 +14,14 @@ export type StaySaleLine = {
   product?: { id: number; name: string; price: number } | null;
 };
 
+export type StayPaymentLine = {
+  id: number;
+  amount: number;
+  method: string;
+  reference?: string | null;
+  createdAt: string;
+};
+
 export type Stay = {
   id: number;
   clientId: number;
@@ -33,6 +41,7 @@ export type Stay = {
   room?: Habitacion;
   sales?: StaySaleLine[];
   laundry?: Laundry[];
+  payments?: StayPaymentLine[];
 };
 
 export type CheckinInput = {
@@ -54,6 +63,10 @@ export async function staysActiveRequest(): Promise<Stay[]> {
   return apiRequest<Stay[]>('/stays/active', { method: 'GET' });
 }
 
+export async function staysHistoryRequest(limit = 50): Promise<Stay[]> {
+  return apiRequest<Stay[]>(`/stays/history?limit=${limit}`, { method: 'GET' });
+}
+
 export async function staysByRoomRequest(roomNumber: string): Promise<Stay[]> {
   return apiRequest<Stay[]>(`/stays/room/${encodeURIComponent(roomNumber)}`, { method: 'GET' });
 }
@@ -66,6 +79,19 @@ export async function checkoutRequest(id: number, input: {
   nights?: number; paymentConfirmed?: boolean; paymentMethod?: string; paymentReference?: string;
 } = {}): Promise<Stay> {
   return apiRequest<Stay>(`/stays/${id}/checkout`, {
+    method: 'POST',
+    body: input
+  });
+}
+
+export async function deleteStayRequest(id: number, adminPassword: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/stays/${id}`, { method: 'DELETE', body: { adminPassword } });
+}
+
+export async function registerStayPaymentRequest(id: number, input: {
+  amount: number; method: string; reference?: string;
+}): Promise<StayPaymentLine> {
+  return apiRequest<StayPaymentLine>(`/stays/${id}/payments`, {
     method: 'POST',
     body: input
   });

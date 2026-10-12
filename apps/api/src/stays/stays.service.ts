@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException
 } from '@nestjs/common';
@@ -11,6 +12,64 @@ import type { CheckinDto } from './dto/checkin.dto';
 import type { UpdateStayDto } from './dto/update-stay.dto';
 import type { CheckoutDto } from './dto/checkout.dto';
 import { AuditoriaService, AuditAction } from '../auditoria/auditoria.service';
+import type { RegisterStayPaymentDto } from './dto/register-payment.dto';
+import { calculateBillableNights } from './stay-nights';
+import { assertAdminPassword } from '../auth/admin-password';
+
+type PendingSale = { unitPrice: Prisma.Decimal | number; quantity: number; saleType?: string | null };
+
+export type StayAccount = {
+  roomTotal: number;
+  salesTotal: number;
+  laundryTotal: number;
+  reservationCredit: number;
+  priorPayments: number;
+  chargesTotal: number;
+  paidTotal: number;
+  balance: number;
+};
+
+/**
+ * Cuenta de un hospedaje: cargos (hospedaje + tienda fiada + lavanderia) menos
+ * lo ya pagado (credito de la reserva + pagos parciales registrados).
+ */
+function computeStayAccount(
+  stay: {
+    pricePerNight: Prisma.Decimal | number;
+    nights: number;
+    sales?: PendingSale[];
+    reservation?: { payments?: Array<{ type: string; amount: Prisma.Decimal | number }> } | null;
+    payments?: Array<{ amount: Prisma.Decimal | number }>;
+  },
+  laundryOrders: Array<{ totalPrice: Prisma.Decimal | number }>,
+  nightsOverride?: number
+): StayAccount {
+  const roomTotal = Number(stay.pricePerNight) * (nightsOverride ?? stay.nights);
+  const salesTotal = (stay.sales ?? [])
+    .filter((sale) => sale.saleType === 'FIADO' || !sale.saleType)
+    .reduce((sum, sale) => sum + Number(sale.unitPrice) * sale.quantity, 0);
+  const laundryTotal = laundryOrders.reduce((sum, item) => sum + Number(item.totalPrice), 0);
+  const reservationPaid = (stay.reservation?.payments ?? []).reduce(
+    (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
+    0
+  );
+  const reservationCredit = Math.min(roomTotal, Math.max(0, reservationPaid));
+  const priorPayments = (stay.payments ?? []).reduce((sum, payment) => sum + Number(payment.amount), 0);
+  const chargesTotal = roomTotal + salesTotal + laundryTotal;
+  const paidTotal = reservationCredit + priorPayments;
+  const balance = Math.max(0, chargesTotal - paidTotal);
+
+  return {
+    roomTotal,
+    salesTotal,
+    laundryTotal,
+    reservationCredit,
+    priorPayments,
+    chargesTotal,
+    paidTotal,
+    balance
+  };
+}
 
 @Injectable()
 export class StaysService {
@@ -38,7 +97,8 @@ export class StaysService {
         room: true,
         reservation: { include: { payments: true } },
         // Sin esto el huesped aparece siempre sin consumos.
-        sales: { include: { product: true }, orderBy: { date: 'asc' } }
+        sales: { include: { product: true }, orderBy: { date: 'asc' } },
+        payments: { orderBy: { createdAt: 'asc' } }
       },
       orderBy: { checkIn: 'desc' }
     });
@@ -59,7 +119,33 @@ export class StaysService {
       })
     );
 
-    return staysWithLaundry;
+    return staysWithLaundry.map((stay) => {
+      const nights = calculateBillableNights(stay.checkIn, new Date());
+      return { ...stay, nights, total: Number(stay.pricePerNight) * nights };
+    });
+  }
+
+  async findHistory(limit = 50) {
+    const stays = await this.prisma.stay.findMany({
+      where: { status: { in: ['FINALIZADA', 'CANCELADA'] } },
+      include: {
+        client: true,
+        room: true,
+        reservation: { include: { payments: true } },
+        sales: { include: { product: true }, orderBy: { date: 'asc' } },
+        payments: { orderBy: { createdAt: 'asc' } }
+      },
+      orderBy: { checkOut: 'desc' },
+      take: Math.min(Math.max(limit, 1), 200)
+    });
+
+    return Promise.all(stays.map(async (stay) => ({
+      ...stay,
+      laundry: await this.prisma.laundry.findMany({
+        where: { roomNumber: stay.roomNumber, createdAt: { gte: stay.checkIn, ...(stay.checkOut ? { lte: stay.checkOut } : {}) } },
+        orderBy: { createdAt: 'asc' }
+      })
+    })));
   }
 
   async findOne(id: number) {
@@ -73,7 +159,8 @@ export class StaysService {
           include: {
             product: true
           }
-        }
+        },
+        payments: { orderBy: { createdAt: 'asc' } }
       }
     });
 
@@ -81,7 +168,9 @@ export class StaysService {
       throw new NotFoundException('Hospedaje no encontrado');
     }
 
-    return stay;
+    if (stay.status !== 'ACTIVA') return stay;
+    const nights = calculateBillableNights(stay.checkIn, new Date());
+    return { ...stay, nights, total: Number(stay.pricePerNight) * nights };
   }
 
   async findByRoom(roomNumber: string) {
@@ -91,7 +180,8 @@ export class StaysService {
         client: true,
         room: true,
         // Necesario para calcular la deuda de tienda de la habitacion.
-        sales: { include: { product: true }, orderBy: { date: 'asc' } }
+        sales: { include: { product: true }, orderBy: { date: 'asc' } },
+        payments: { orderBy: { createdAt: 'asc' } }
       },
       orderBy: { checkIn: 'desc' }
     });
@@ -148,7 +238,7 @@ export class StaysService {
   }
 
   async checkin(dto: CheckinDto, user: JwtPayload) {
-    const nights = dto.nights || 1;
+    const nights = 1;
 
     // Todo el registro del hospedaje ocurre en una única transacción para que dos
     // check-ins simultaneos sobre la misma habitacion no puedan aceptarse ambos.
@@ -204,7 +294,7 @@ export class StaysService {
         }
         if (linkedReservation && (linkedReservation.clientId !== client.id ||
           linkedReservation.roomNumber !== dto.roomNumber ||
-          linkedReservation.acTypeUsed !== dto.acType || linkedReservation.nights !== nights)) {
+          linkedReservation.acTypeUsed !== dto.acType)) {
           throw new BadRequestException('Los datos del check-in no coinciden con la reserva confirmada.');
         }
 
@@ -226,9 +316,10 @@ export class StaysService {
           );
         }
 
-        const total = linkedReservation?.total ?? Number(pricePerNight) * nights;
+        const total = Number(pricePerNight);
         const requestedCheckIn = dto.checkIn ? new Date(dto.checkIn) : new Date();
-        const requestedCheckOut = new Date(requestedCheckIn.getTime() + nights * 24 * 60 * 60 * 1000);
+        const reservationNights = linkedReservation?.nights ?? nights;
+        const requestedCheckOut = new Date(requestedCheckIn.getTime() + reservationNights * 24 * 60 * 60 * 1000);
         const conflictingReservation = await tx.reservation.findFirst({
           where: {
             roomNumber: dto.roomNumber,
@@ -324,7 +415,8 @@ export class StaysService {
           include: {
             product: true
           }
-        }
+        },
+        payments: { orderBy: { createdAt: 'asc' } }
       }
     });
 
@@ -338,11 +430,9 @@ export class StaysService {
       );
     }
 
-    // 3. Calcular noches a cobrar y totales
-    // Por defecto se liquidan las noches pactadas al ingresar (stay.nights).
-    // Si recepción autorizó una extensión explícita, se usa dto.nights.
+    // 3. Calcular noches a cobrar y totales según la hora de salida del hotel.
     const checkOut = new Date();
-    const nightsToBill = dto?.nights && dto.nights > 0 ? dto.nights : stay.nights;
+    const nightsToBill = calculateBillableNights(stay.checkIn, checkOut);
     const totalRoom = Number(stay.pricePerNight) * nightsToBill;
     
     // Calcular total de ventas (tienda) - Solo las que quedaron a la cuenta (FIADO o sin tipo)
@@ -364,27 +454,36 @@ export class StaysService {
       (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
       0
     ) ?? 0;
-    const roomBalance = Math.max(0, totalRoom - reservationPaid);
-    const grandTotal = roomBalance + totalSales + totalLaundry;
+    const reservationCredit = Math.min(totalRoom, Math.max(0, reservationPaid));
+    const roomBalance = Math.max(0, totalRoom - reservationCredit);
 
-    if (grandTotal > 0 && (!dto.paymentConfirmed || !dto.paymentMethod?.trim())) {
-      throw new BadRequestException(`Registra y confirma el pago final de ${Math.round(grandTotal)} antes de completar el check-out.`);
+    // Pagos parciales ya registrados durante la estadía (pagar sin salir).
+    const priorPayments = stay.payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
+    const accountTotal = roomBalance + totalSales + totalLaundry;
+    const balanceDue = Math.max(0, accountTotal - priorPayments);
+
+    if (balanceDue > 0 && (!dto.paymentConfirmed || !dto.paymentMethod?.trim())) {
+      throw new BadRequestException(`Registra y confirma el pago final de ${Math.round(balanceDue)} antes de completar el check-out.`);
     }
 
     const updatedStay = await this.prisma.$transaction(async (tx) => {
       const transitioned = await tx.stay.updateMany({
         where: { id, status: 'ACTIVA' },
-        data: { checkOut, nights: nightsToBill, total: grandTotal, status: 'FINALIZADA' }
+        data: { checkOut, nights: nightsToBill, total: accountTotal, status: 'FINALIZADA' }
       });
       if (transitioned.count !== 1) throw new ConflictException('El hospedaje ya fue cerrado por otra operación. Actualiza la pantalla.');
 
-      if (grandTotal > 0) {
+      if (balanceDue > 0) {
         await tx.stayPayment.create({ data: {
-          stayId: id, userId: user.sub, amount: new Prisma.Decimal(grandTotal),
+          stayId: id, userId: user.sub, amount: new Prisma.Decimal(balanceDue),
           method: dto.paymentMethod!.trim(), reference: dto.paymentReference?.trim() || null
         } });
       }
       await tx.room.update({ where: { number: stay.roomNumber }, data: { status: 'DISPONIBLE' } });
+      await tx.parkingSession.updateMany({
+        where: { stayId: id, status: 'ACTIVO' },
+        data: { status: 'CERRADO', exitAt: checkOut }
+      });
       return tx.stay.findUniqueOrThrow({
         where: { id }, include: { client: true, room: true, payments: true, reservation: true }
       });
@@ -395,12 +494,74 @@ export class StaysService {
       action: 'CHECK_OUT',
       entity: 'STAY',
       entityId: stay.id.toString(),
-      description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsToBill} noches: $${Math.round(totalRoom).toLocaleString('es-CO')}, anticipo aplicado: $${Math.round(Math.min(totalRoom, reservationPaid)).toLocaleString('es-CO')}, saldo de hospedaje: $${Math.round(roomBalance).toLocaleString('es-CO')}, tienda pendiente: $${Math.round(totalSales).toLocaleString('es-CO')}, lavandería: $${Math.round(totalLaundry).toLocaleString('es-CO')}, pago final registrado: $${Math.round(grandTotal).toLocaleString('es-CO')})`,
+      description: `Check-out: ${stay.client.firstName} ${stay.client.lastName} de habitación ${stay.roomNumber} (${nightsToBill} noches: $${Math.round(totalRoom).toLocaleString('es-CO')}, anticipo aplicado: $${Math.round(reservationCredit).toLocaleString('es-CO')}, pagos previos: $${Math.round(priorPayments).toLocaleString('es-CO')}, saldo de hospedaje: $${Math.round(roomBalance).toLocaleString('es-CO')}, tienda pendiente: $${Math.round(totalSales).toLocaleString('es-CO')}, lavandería: $${Math.round(totalLaundry).toLocaleString('es-CO')}, pago final registrado: $${Math.round(balanceDue).toLocaleString('es-CO')})`,
       oldValue: stay,
       newValue: updatedStay
     });
 
     return updatedStay;
+  }
+
+  /**
+   * Registra un pago parcial ("pagar" sin hacer check-out). Sirve para abonar
+   * parte de la cuenta (una noche, los mecatos, la lavandería) y que el huesped
+   * siga alojado; el saldo se descuenta automáticamente en el check-out final.
+   */
+  async registerPayment(id: number, dto: RegisterStayPaymentDto, user: JwtPayload) {
+    const stay = await this.prisma.stay.findUnique({
+      where: { id },
+      include: {
+        client: true,
+        room: true,
+        reservation: { include: { payments: true } },
+        sales: { include: { product: true }, orderBy: { date: 'asc' } },
+        payments: { orderBy: { createdAt: 'asc' } }
+      }
+    });
+
+    if (!stay) {
+      throw new NotFoundException('Hospedaje no encontrado');
+    }
+
+    if (stay.status !== 'ACTIVA') {
+      throw new BadRequestException('Solo se pueden registrar pagos en hospedajes activos.');
+    }
+
+    const laundryOrders = await this.prisma.laundry.findMany({
+      where: { roomNumber: stay.roomNumber, createdAt: { gte: stay.checkIn } }
+    });
+    const account = computeStayAccount(stay, laundryOrders, calculateBillableNights(stay.checkIn, new Date()));
+
+    const amount = Number(dto.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new BadRequestException('El monto del pago debe ser mayor que cero.');
+    }
+    // Tolerancia de 1 peso por redondeos al teclear el total.
+    if (amount > account.balance + 1) {
+      throw new BadRequestException(
+        `El monto supera el saldo pendiente ($${Math.round(account.balance).toLocaleString('es-CO')}).`
+      );
+    }
+
+    const payment = await this.prisma.stayPayment.create({
+      data: {
+        stayId: id,
+        userId: user.sub,
+        amount: new Prisma.Decimal(Math.min(amount, account.balance)),
+        method: dto.method.trim(),
+        reference: dto.reference?.trim() || null
+      }
+    });
+
+    await this.auditoria.log(user, {
+      action: 'UPDATE',
+      entity: 'STAY',
+      entityId: stay.id.toString(),
+      description: `Registró pago de $${Math.round(Number(payment.amount)).toLocaleString('es-CO')} (${payment.method}) a ${stay.client.firstName} ${stay.client.lastName}, habitación ${stay.roomNumber}. Saldo restante: $${Math.round(Math.max(0, account.balance - Number(payment.amount))).toLocaleString('es-CO')}.`,
+      newValue: payment
+    });
+
+    return payment;
   }
 
   async update(id: number, dto: UpdateStayDto, user: JwtPayload) {
@@ -426,11 +587,6 @@ export class StaysService {
     // 3. Preparar datos de actualización
     const updateData: Prisma.StayUncheckedUpdateInput = {};
 
-    if (dto.nights !== undefined) {
-      updateData.nights = dto.nights;
-      updateData.total = Number(stay.pricePerNight) * dto.nights;
-    }
-
     if (dto.acTypeUsed !== undefined) {
       // Validar que la habitación tenga el A/C solicitado
       if (dto.acTypeUsed === 'AIRE' && !stay.room.hasAir) {
@@ -453,7 +609,7 @@ export class StaysService {
 
       updateData.acTypeUsed = dto.acTypeUsed;
       updateData.pricePerNight = newPricePerNight;
-      updateData.total = Number(newPricePerNight) * (dto.nights || stay.nights);
+      updateData.total = Number(newPricePerNight) * calculateBillableNights(stay.checkIn, new Date());
     }
 
     // 4. Actualizar
@@ -468,9 +624,6 @@ export class StaysService {
 
     // 5. Auditoría
     const changes: string[] = [];
-    if (dto.nights !== undefined && dto.nights !== stay.nights) {
-      changes.push(`noches de ${stay.nights} a ${dto.nights}`);
-    }
     if (dto.acTypeUsed !== undefined && dto.acTypeUsed !== stay.acTypeUsed) {
       changes.push(`A/C de ${stay.acTypeUsed} a ${dto.acTypeUsed}`);
     }
@@ -536,5 +689,26 @@ export class StaysService {
     });
 
     return updatedStay;
+  }
+
+  async remove(id: number, adminPassword: string, user: JwtPayload) {
+    if (user.role !== 'ADMIN') throw new ForbiddenException('Solo un administrador puede eliminar hospedajes.');
+    await assertAdminPassword(this.prisma, adminPassword);
+    const stay = await this.prisma.stay.findUnique({ where: { id }, include: { client: true } });
+    if (!stay) throw new NotFoundException('Hospedaje no encontrado.');
+    if (stay.status === 'ACTIVA') throw new ConflictException('No se puede eliminar un hospedaje activo.');
+    await this.prisma.$transaction(async (tx) => {
+      const sales = await tx.sale.findMany({ where: { stayId: id }, select: { id: true, productId: true, quantity: true } });
+      for (const sale of sales) {
+        await tx.stock.updateMany({ where: { productId: sale.productId }, data: { quantity: { increment: sale.quantity } } });
+      }
+      await tx.payment.deleteMany({ where: { saleId: { in: sales.map((sale) => sale.id) } } });
+      await tx.sale.deleteMany({ where: { stayId: id } });
+      await tx.stayPayment.deleteMany({ where: { stayId: id } });
+      await tx.parkingSession.deleteMany({ where: { stayId: id } });
+      await tx.stay.delete({ where: { id } });
+    });
+    await this.auditoria.log(user, { action: 'DELETE', entity: 'STAY', entityId: String(id), oldValue: stay, description: `Eliminó hospedaje de ${stay.client.firstName} ${stay.client.lastName}.` });
+    return { message: 'Hospedaje eliminado.' };
   }
 }

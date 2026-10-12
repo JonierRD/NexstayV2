@@ -15,6 +15,7 @@ export type PublicUser = {
   phone: string | null;
   role: Role;
   isActive: boolean;
+  createdAt: string;
 };
 
 export type AuthenticatedUser = PublicUser;

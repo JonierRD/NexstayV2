@@ -1,34 +1,43 @@
+import { Type } from 'class-transformer';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 import { $Enums } from '@prisma/client';
-import { IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateParkingSessionDto {
   @IsString()
-  @MinLength(1)
-  @MaxLength(120)
-  ownerName!: string;
-
-  @IsString()
-  @MinLength(1)
-  @MaxLength(30)
-  ownerCc!: string;
-
-  @IsString()
-  @MinLength(1)
-  @MaxLength(10)
+  @MaxLength(12)
   licensePlate!: string;
 
   @IsString()
-  @MinLength(1)
-  @MaxLength(80)
-  phone!: string;
+  @MaxLength(60)
+  vehicleBrand!: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  vehicleTypeId!: number;
+
+  @IsEnum($Enums.ParkingBillingType)
+  billingType!: $Enums.ParkingBillingType;
 
   @IsString()
-  @MinLength(1)
-  @MaxLength(80)
-  vehicleLine!: string;
+  @IsNotEmpty()
+  @MaxLength(60)
+  clientFirstName!: string;
 
-  @IsEnum($Enums.VehicleType)
-  vehicleType!: $Enums.VehicleType;
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(60)
+  clientLastName!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(30)
+  clientCc!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(30)
+  phone!: string;
 
   @IsOptional()
   @IsString()

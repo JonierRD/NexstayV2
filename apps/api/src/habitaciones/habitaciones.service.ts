@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException
 } from '@nestjs/common';
@@ -115,7 +116,7 @@ export class HabitacionesService {
 
   async remove(number: string, dto: RemoveHabitacionDto, user: JwtPayload) {
     if (user.role !== Role.ADMIN) {
-      await this.requireAdminPassword(dto.adminPassword);
+      throw new ForbiddenException('Solo un administrador puede eliminar habitaciones.');
     }
 
     const room = await this.prisma.room.findUnique({ where: { number } });

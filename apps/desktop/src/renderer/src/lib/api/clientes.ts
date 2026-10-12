@@ -14,6 +14,14 @@ export type Cliente = {
   notes: string | null;
   createdAt: string;
   stays?: Stay[];
+  parkingSessions?: Array<{
+    id: number;
+    licensePlate: string;
+    entryAt: string;
+    exitAt: string | null;
+    status: 'ACTIVO' | 'CERRADO';
+    amount: number;
+  }>;
 };
 
 export type CreateClienteInput = {
@@ -59,5 +67,12 @@ export async function deleteClienteRequest(id: number, adminPassword?: string): 
   return apiRequest<{ message: string }>(`/clientes/${id}`, {
     method: 'DELETE',
     body: { ...(adminPassword ? { adminPassword } : {}) }
+  });
+}
+
+export async function deleteClientesRequest(ids: number[], adminPassword: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/clientes', {
+    method: 'DELETE',
+    body: { ids, adminPassword }
   });
 }

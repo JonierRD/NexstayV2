@@ -26,6 +26,7 @@ export function ConfirmModal({
       onClose={onClose}
       maxWidthClass="max-w-[360px]"
       zIndexClass="z-[60]"
+      overlayClassName="!bg-transparent"
     >
       <div className="flex flex-col items-center text-center">
         <div

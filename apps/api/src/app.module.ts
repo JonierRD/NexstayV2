@@ -10,8 +10,10 @@ import { InventoryModule } from './inventory/inventory.module';
 import { StaysModule } from './stays/stays.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { SemanarioModule } from './semanario/semanario.module';
-import { ParkingModule } from './parking/parking.module';
+import { SettingsModule } from './settings/settings.module';
+import { UsersModule } from './users/users.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { ParkingModule } from './parking/parking.module';
 
 @Module({
   imports: [
@@ -31,8 +33,10 @@ import { ReservationsModule } from './reservations/reservations.module';
     StaysModule,
     ClientesModule,
     SemanarioModule,
-    ParkingModule,
+    SettingsModule,
+    UsersModule,
     ReservationsModule,
+    ParkingModule
   ],
   controllers: [AppController]
 })

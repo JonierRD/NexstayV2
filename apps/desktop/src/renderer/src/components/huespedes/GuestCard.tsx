@@ -1,40 +1,38 @@
-import { BedDouble, Clock3, DollarSign, LogOut, Moon, UserRound } from 'lucide-react';
-import { type ReactElement } from 'react';
+import { BedDouble, Clock3, DollarSign, LogOut, Moon, UserRound, Wallet } from 'lucide-react';
+import { type ReactElement, useEffect, useState } from 'react';
 import { type Stay } from '../../lib/api';
 import { formatCOP, formatDateTime } from '../../lib/format';
 import { Button } from '../ui/Button';
+import { computeStayAccount } from './account';
 import { elapsed } from './types';
 
 type Props = {
   stay: Stay;
   onCheckout: (stay: Stay) => void;
+  onPay: (stay: Stay) => void;
 };
 
-export function GuestCard({ stay, onCheckout }: Props): ReactElement {
+export function GuestCard({ stay, onCheckout, onPay }: Props): ReactElement {
   const guest = stay.client ? `${stay.client.firstName} ${stay.client.lastName}` : 'Huésped sin nombre';
 
-  // Noches pactadas originalmente al ingresar
-  const nights = stay.nights || 1;
-  const roomPrice = Number(stay.pricePerNight);
-  const roomTotal = nights * roomPrice;
+  // Fuerza un re-render cada minuto para que "Transcurrido" siga avanzando
+  // mientras la tarjeta permanece en pantalla.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((value) => value + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
-  // Comprobar si la estancia superó el tiempo pactado
-  const checkInDate = new Date(stay.checkIn);
-  const now = new Date();
-  const elapsedDays = Math.max(1, Math.ceil((now.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24)));
-  const isOverdue = elapsedDays > nights;
-  const overdueDays = elapsedDays - nights;
+  const nights = stay.nights || 1;
+
+  // Cuenta por pagar: cargos menos anticipo de reserva y pagos parciales.
+  const account = computeStayAccount(stay);
 
   // Consumos de tienda / mecato pendientes (solo los que quedaron cargados a la cuenta: FIADO o sin tipo)
   const pendingSales = (stay.sales ?? []).filter((sale) => sale.saleType === 'FIADO' || !sale.saleType);
-  const salesTotal = pendingSales.reduce((sum, sale) => sum + Number(sale.unitPrice) * sale.quantity, 0);
 
   // Lavandería asociada a la habitación
   const laundryItems = stay.laundry ?? [];
-  const laundryTotal = laundryItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
-
-  // Total acumulado por pagar
-  const grandTotal = roomTotal + salesTotal + laundryTotal;
 
   return (
     <article className="flex flex-col justify-between rounded-2xl border border-sapay-350 bg-white p-4 shadow-[0_8px_20px_rgba(67,42,27,0.05)] transition hover:border-[#cdb9ab]">
@@ -49,18 +47,9 @@ export function GuestCard({ stay, onCheckout }: Props): ReactElement {
             <p className="text-[10px] text-sapay-650 mt-0.5">CC: {stay.client?.cc ?? 'No disponible'}</p>
           </div>
         </div>
-        {isOverdue ? (
-          <span
-            className="rounded-full bg-amber-50 border border-amber-300 px-2.5 py-0.5 text-[10px] font-bold text-amber-900"
-            title={`Superó las ${nights} noches pactadas por ${overdueDays} día(s)`}
-          >
-            ⚠️ Vencido (+{overdueDays}d)
-          </span>
-        ) : (
-          <span className="rounded-full bg-[#e8f5ec] px-2.5 py-0.5 text-[10px] font-semibold text-[#287344]">
-            Activo
-          </span>
-        )}
+        <span className="rounded-full bg-[#e8f5ec] px-2.5 py-0.5 text-[10px] font-semibold text-[#287344]">
+          Activo
+        </span>
       </div>
 
       {/* Datos clave: Habitación, Ingreso y Noches transcurridas */}
@@ -101,31 +90,52 @@ export function GuestCard({ stay, onCheckout }: Props): ReactElement {
         <div className="space-y-1 text-sapay-750">
           <div className="flex justify-between">
             <span>Hospedaje ({nights} {nights === 1 ? 'noche' : 'noches'}):</span>
-            <span className="font-semibold text-sapay-900">{formatCOP(roomTotal)}</span>
+            <span className="font-semibold text-sapay-900">{formatCOP(account.roomTotal)}</span>
           </div>
 
           <div className="flex justify-between">
             <span>Tienda / Mecato ({pendingSales.length} {pendingSales.length === 1 ? 'item' : 'items'} pend.):</span>
-            <span className="font-semibold text-sapay-900">{formatCOP(salesTotal)}</span>
+            <span className="font-semibold text-sapay-900">{formatCOP(account.salesTotal)}</span>
           </div>
 
           <div className="flex justify-between">
             <span>Lavandería ({laundryItems.length} {laundryItems.length === 1 ? 'orden' : 'órdenes'}):</span>
-            <span className="font-semibold text-sapay-900">{formatCOP(laundryTotal)}</span>
+            <span className="font-semibold text-sapay-900">{formatCOP(account.laundryTotal)}</span>
           </div>
+
+          {account.reservationCredit > 0 && (
+            <div className="flex justify-between text-emerald-700">
+              <span>Anticipo de reserva:</span>
+              <span className="font-semibold">−{formatCOP(account.reservationCredit)}</span>
+            </div>
+          )}
+
+          {account.priorPayments > 0 && (
+            <div className="flex justify-between text-emerald-700">
+              <span>Pagado a cuenta:</span>
+              <span className="font-semibold">−{formatCOP(account.priorPayments)}</span>
+            </div>
+          )}
         </div>
 
         <div className="mt-2 border-t border-sapay-350 pt-1.5 flex items-center justify-between text-sapay-950">
-          <span className="font-bold text-[11px] uppercase tracking-wide">Total a cobrar:</span>
-          <span className="font-black text-[14px] text-sapay-950">{formatCOP(grandTotal)}</span>
+          <span className="font-bold text-[11px] uppercase tracking-wide">Saldo por pagar:</span>
+          <span className="font-black text-[14px] text-sapay-950">{formatCOP(account.balance)}</span>
         </div>
       </div>
 
-      {/* Botón único de Check-out */}
-      <div className="mt-3">
+      {/* Acciones: pagar sin salir o hacer check-out */}
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <Button
+          onClick={() => onPay(stay)}
+          disabled={account.balance <= 0}
+          className="h-8.5 rounded-xl border border-sapay-350 bg-white text-[11px] font-bold text-sapay-900 hover:bg-sapay-100 disabled:opacity-50 flex items-center justify-center gap-1.5"
+        >
+          <Wallet size={13} /> Pagar
+        </Button>
         <Button
           onClick={() => onCheckout(stay)}
-          className="w-full h-8.5 rounded-xl bg-sapay-900 text-[11px] font-bold text-white hover:bg-sapay-850 shadow-sm flex items-center justify-center gap-1.5"
+          className="h-8.5 rounded-xl bg-sapay-900 text-[11px] font-bold text-white hover:bg-sapay-850 shadow-sm flex items-center justify-center gap-1.5"
         >
           <LogOut size={13} /> Check-out
         </Button>

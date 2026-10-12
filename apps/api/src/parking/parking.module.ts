@@ -7,7 +7,6 @@ import { ParkingService } from './parking.service';
 @Module({
   imports: [PrismaModule, AuditoriaModule],
   controllers: [ParkingController],
-  providers: [ParkingService],
-  exports: [ParkingService]
+  providers: [ParkingService]
 })
 export class ParkingModule {}
