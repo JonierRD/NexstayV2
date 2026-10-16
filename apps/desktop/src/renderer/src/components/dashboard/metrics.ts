@@ -72,21 +72,14 @@ export function computePendingReceivable(stays: Stay[]): number {
   }, 0);
 }
 
-const ACTIVE_LAUNDRY_STATUSES = ['PENDIENTE', 'EN_PROCESO', 'LISTO'];
-
 export function selectActiveLaundry(orders: Laundry[]): Laundry[] {
-  return orders.filter((l) => ACTIVE_LAUNDRY_STATUSES.includes(l.status));
+  return orders.filter((l) => l.status !== 'ENTREGADO');
 }
 
 export type LaundryBadge = { bg: string; label: string };
 
 export function getLaundryBadge(status: string): LaundryBadge {
-  switch (status) {
-    case 'LISTO':
-      return { bg: 'bg-emerald-50 text-emerald-800 border-emerald-200', label: 'Listo para entrega' };
-    case 'EN_PROCESO':
-      return { bg: 'bg-sky-50 text-sky-800 border-sky-200', label: 'En lavado' };
-    default:
-      return { bg: 'bg-amber-50 text-amber-800 border-amber-200', label: 'Pendiente' };
-  }
+  return status === 'ENTREGADO'
+    ? { bg: 'bg-emerald-50 text-emerald-800 border-emerald-200', label: 'Entregado' }
+    : { bg: 'bg-amber-50 text-amber-800 border-amber-200', label: 'Pendiente' };
 }
