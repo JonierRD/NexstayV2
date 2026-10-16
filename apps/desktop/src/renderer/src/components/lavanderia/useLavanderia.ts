@@ -106,23 +106,16 @@ export function useLavanderia() {
     () => ({
       total: orders.length,
       pendientes: orders.filter((o) => o.status === 'PENDIENTE').length,
-      enProceso: orders.filter((o) => o.status === 'EN_PROCESO').length,
-      listos: orders.filter((o) => o.status === 'LISTO').length
+      entregados: orders.filter((o) => o.status === 'ENTREGADO').length
     }),
     [orders]
   );
 
-  // PROCESO: Avanzar el estado de la orden (PENDIENTE → EN_PROCESO → LISTO → ENTREGADO)
+  // PROCESO: Marcar una orden pendiente como entregada.
   function handleAdvanceStatus(order: Laundry) {
-    const next: Partial<Record<LaundryStatus, LaundryStatus>> = {
-      PENDIENTE: 'EN_PROCESO',
-      EN_PROCESO: 'LISTO',
-      LISTO: 'ENTREGADO'
-    };
-    const nextStatus = next[order.status as LaundryStatus];
-    if (!nextStatus) return;
+    if (order.status !== 'PENDIENTE') return;
 
-    updateLaundryRequest(order.id, { status: nextStatus })
+    updateLaundryRequest(order.id, { status: 'ENTREGADO' })
       .then(() => loadOrders())
       .catch((error) => console.error('Error updating status:', error));
   }

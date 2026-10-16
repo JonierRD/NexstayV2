@@ -34,7 +34,7 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
   // Lavandería asociada a la habitación
   const laundryItems = stay.laundry ?? [];
   const laundryTotal = laundryItems.reduce((sum, item) => sum + Number(item.totalPrice), 0);
-  const hasPendingLaundry = laundryItems.some((item) => item.status === 'PENDIENTE' || item.status === 'EN_PROCESO');
+  const hasPendingLaundry = laundryItems.some((item) => item.status !== 'ENTREGADO');
 
   // Pagos parciales registrados durante la estadía (se descuentan del total).
   const priorPayments = (stay.payments ?? []).reduce((sum, payment) => sum + Number(payment.amount), 0);

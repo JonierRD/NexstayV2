@@ -5,15 +5,16 @@ import './styles.css';
 import { applyStoredTheme, ensureInitialTheme } from './lib/theme';
 
 async function bootstrap(): Promise<void> {
-  // Aplica el tema local al instante y luego lo confirma contra el servidor.
+  // Usa el tema local y no bloquea el primer render por la disponibilidad de la API.
   applyStoredTheme();
-  await ensureInitialTheme();
 
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <App />
     </React.StrictMode>
   );
+
+  void ensureInitialTheme();
 }
 
 void bootstrap();

@@ -295,7 +295,7 @@ export function DashboardPage({ user }: Props): ReactElement {
               </div>
               <div>
                 <h2 className="text-[13px] font-bold text-sapay-950">Lavandería Activa</h2>
-                <p className="text-[10px] text-sapay-750">Servicios pendientes, en lavado o listos para entrega</p>
+                <p className="text-[10px] text-sapay-750">Servicios pendientes de entrega</p>
               </div>
             </div>
             <span
@@ -312,7 +312,7 @@ export function DashboardPage({ user }: Props): ReactElement {
           {activeLaundry.length === 0 ? (
             <div className="flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 text-[11px] text-emerald-900">
               <CheckCircle2 size={16} className="text-emerald-700 shrink-0" />
-              <span>No hay prendas pendientes ni en proceso en el área de lavandería.</span>
+              <span>No hay prendas pendientes de entrega.</span>
             </div>
           ) : (
             <div

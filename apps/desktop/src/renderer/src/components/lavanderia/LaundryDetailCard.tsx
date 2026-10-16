@@ -29,11 +29,6 @@ export function LaundryDetailCard({
 }: Props): ReactElement {
     const status = laundry.status as LaundryStatus;
     const hasMultipleItemTypes = laundry.description.includes(',');
-    const nextStatusLabel: Partial<Record<LaundryStatus, string>> = {
-        PENDIENTE: 'Marcar En Proceso',
-        EN_PROCESO: 'Marcar Listo',
-        LISTO: 'Marcar Entregado'
-    };
 
     return (
         <section className="flex min-h-0 w-full flex-col rounded-[26px] border border-sapay-350 bg-white shadow-[0_20px_50px_rgba(67,42,27,0.08)] xl:w-[380px]">
@@ -53,13 +48,13 @@ export function LaundryDetailCard({
                     <p className="text-sapay-950">{laundry.description}</p>
                 </div>
 
-                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-xl border border-sapay-300 bg-sapay-150 px-4 py-3 text-[12px]">
+                <div className="mt-2 grid grid-cols-1 gap-y-1.5 rounded-xl border border-sapay-300 bg-sapay-150 px-4 py-3 text-[12px]">
                     <DetailLine label="Cliente" value={laundry.clientName} />
                     <DetailLine label="Habitación" value={laundry.roomNumber ?? '---'} />
                     <DetailLine label="Precio total" value={fmtMoney(laundry.totalPrice)} />
                 </div>
 
-                <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-xl border border-sapay-300 bg-sapay-150 px-4 py-3 text-[12px]">
+                <div className="mt-2 grid grid-cols-1 gap-y-1.5 rounded-xl border border-sapay-300 bg-sapay-150 px-4 py-3 text-[12px]">
                     <DetailLine label="Fecha entrega" value={fmtDate(laundry.deliveryDate)} />
                     <DetailLine label="Creada" value={fmtDate(laundry.createdAt)} />
                 </div>
@@ -78,7 +73,7 @@ export function LaundryDetailCard({
                             className="w-full gap-1.5 bg-sapay-900 text-white hover:bg-[#5b3428]"
                         >
                             <CheckCircle size={14} aria-hidden="true" />
-                            {nextStatusLabel[status]}
+                            Marcar Entregado
                         </AccentButton>
                     )}
                     <div className="flex gap-2">

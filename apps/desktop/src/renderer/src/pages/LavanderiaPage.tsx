@@ -1,5 +1,4 @@
 import {
-    CheckCircle,
     Clock3,
     PackageCheck,
     Plus,
@@ -52,8 +51,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                 <ModuleHeader icon={Shirt} title="Lavandería" subtitle="Gestiona las órdenes, prendas y tarifas del servicio." metrics={[
                     { label: 'Órdenes', value: l.stats.total, icon: Shirt },
                     { label: 'Pendientes', value: l.stats.pendientes, icon: Clock3 },
-                    { label: 'En proceso', value: l.stats.enProceso, icon: PackageCheck },
-                    { label: 'Listos', value: l.stats.listos, icon: PackageCheck }
+                    { label: 'Entregados', value: l.stats.entregados, icon: PackageCheck }
                 ]} />
                 <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
                     <section className="flex min-h-0 flex-1 flex-col rounded-[20px] border border-sapay-350 bg-white p-3 shadow-[0_16px_40px_rgba(67,42,27,0.08)]">

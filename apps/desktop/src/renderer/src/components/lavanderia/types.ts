@@ -1,19 +1,15 @@
 import { formatCOP, formatDateShort } from '../../lib/format';
 
-export type LaundryStatus = 'PENDIENTE' | 'EN_PROCESO' | 'LISTO' | 'ENTREGADO';
+export type LaundryStatus = 'PENDIENTE' | 'ENTREGADO';
 export type LaundryItemType = 'CAMISA' | 'PANTALON' | 'TOALLA' | 'SABANA' | 'FUNDAS_ALMOHADA' | 'EDREDON' | 'OTRO';
 
 export const statusStyles: Record<LaundryStatus, string> = {
     PENDIENTE: 'bg-[#fff5df] text-gold border-[#f2dbab]',
-    EN_PROCESO: 'bg-[#eaf1fb] text-[#2f6f9f] border-[#c6dcf0]',
-    LISTO: 'bg-success-50 text-success border-success-100',
     ENTREGADO: 'bg-[#f5efe9] text-[#8f5e3d] border-[#dcc5b1]'
 };
 
 export const statusLabels: Record<LaundryStatus, string> = {
     PENDIENTE: 'Pendiente',
-    EN_PROCESO: 'En Proceso',
-    LISTO: 'Listo',
     ENTREGADO: 'Entregado'
 };
 
@@ -85,7 +81,7 @@ export function parseLaundryItemCounts(
 }
 
 export const itemOptions: LaundryItemType[] = ['CAMISA', 'PANTALON', 'TOALLA', 'SABANA', 'FUNDAS_ALMOHADA', 'EDREDON', 'OTRO'];
-export const statusOptions: LaundryStatus[] = ['PENDIENTE', 'EN_PROCESO', 'LISTO', 'ENTREGADO'];
+export const statusOptions: LaundryStatus[] = ['PENDIENTE', 'ENTREGADO'];
 
 export function fmtMoney(n: number): string {
     return formatCOP(n);

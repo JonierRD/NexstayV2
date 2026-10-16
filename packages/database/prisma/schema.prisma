@@ -422,8 +422,6 @@ model AuditLog {
 
 enum LaundryStatus {
   PENDIENTE
-  EN_PROCESO
-  LISTO
   ENTREGADO
 }
 
