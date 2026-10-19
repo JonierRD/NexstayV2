@@ -7,6 +7,7 @@ import {
 import { Prisma, ReservationPaymentType, ReservationStatus } from '@prisma/client';
 import type { JwtPayload } from '../auth/auth.types';
 import { AuditoriaService } from '../auditoria/auditoria.service';
+import { FinanceService } from '../finance/finance.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StaysService } from '../stays/stays.service';
 import { CancelReservationDto, CreateReservationDto, UpdateReservationDto } from './dto/create-reservation.dto';
@@ -46,7 +47,8 @@ export class ReservationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditoriaService,
-    private readonly stays: StaysService
+    private readonly stays: StaysService,
+    private readonly finance: FinanceService
   ) {}
 
   async findAll(status?: string) {
@@ -180,6 +182,14 @@ export class ReservationsService {
       description: `Creó reserva ${reservation.id} para habitación ${reservation.roomNumber}; total ${reservation.total}.`,
       newValue: reservation
     });
+    // Anticipo de reserva queda registrado como ingreso en Ingresos y Gastos.
+    await this.finance.registerAutomatic({
+      type: 'INGRESO',
+      category: 'Reservas',
+      description: `Anticipo reserva ${reservation.id} habitación ${reservation.roomNumber}`,
+      amount: Number(reservation.total),
+      notes: `Automático: pago completo al confirmar reserva`
+    }, user);
     return reservation;
   }
 
@@ -300,6 +310,19 @@ export class ReservationsService {
       } });
       return result;
     });
+    if (refund > 0) {
+      await this.finance.registerAutomatic({
+        type: 'GASTO',
+        category: 'Reservas',
+        description: `Devolución por cancelación reserva ${id} habitación ${cancelled.roomNumber}`,
+        amount: refund,
+        notes: force
+          ? `Exoneración forzada: ${dto.forceReason?.trim() || ''}`
+          : late
+            ? 'Devolución del 80%; penalidad del 20% por cancelación dentro de las 24 horas previas.'
+            : 'Devolución total por cancelación con más de 24 horas de anticipación.'
+      }, user);
+    }
     return { reservation: cancelled, penalty, refund, forceWaiver: force };
   }
 

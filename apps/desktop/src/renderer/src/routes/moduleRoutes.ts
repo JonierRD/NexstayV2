@@ -33,8 +33,10 @@ import { ConfiguracionPage } from '../pages/ConfiguracionPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { HabitacionesPage } from '../pages/HabitacionesPage';
 import { HuespedesPage } from '../pages/HuespedesPage';
+import { IngresosGastosPage } from '../pages/IngresosGastosPage';
 import { InventarioPage } from '../pages/InventarioPage';
 import { LavanderiaPage } from '../pages/LavanderiaPage';
+import { LavadoTanquePage } from '../pages/LavadoTanquePage';
 import { PerfilPage } from '../pages/PerfilPage';
 import { RecepcionPage } from '../pages/RecepcionPage';
 import { ReservasPage } from '../pages/ReservasPage';
@@ -217,11 +219,11 @@ export const moduleRoutes: AppRoute[] = [
     meta: {
       title: 'Lavado tanque',
       roles: staff,
-      section: 'future',
+      section: 'main',
       icon: Droplets,
-      assistantSummary: 'Lavado tanque: registro y estado de servicios de lavado de tanque.'
+      assistantSummary: 'Lavado tanque: registro, avance de estado y control de los servicios de lavado de tanques.'
     },
-    component: ModulePlaceholder
+    component: LavadoTanquePage
   },
   {
     key: 'ingresos-gastos',
@@ -229,12 +231,12 @@ export const moduleRoutes: AppRoute[] = [
     meta: {
       title: 'Ingresos y Gastos',
       roles: staff,
-      section: 'future',
+      section: 'main',
       icon: DollarSign,
       assistantSummary:
-        'Ingresos y gastos: seguimiento de movimientos financieros del negocio y control de egresos.'
+        'Ingresos y gastos: seguimiento de movimientos financieros, balance y registro manual de ingresos/egresos.'
     },
-    component: ModulePlaceholder
+    component: IngresosGastosPage
   },
   {
     key: 'aires',

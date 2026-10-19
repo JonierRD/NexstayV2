@@ -517,3 +517,59 @@ model Asignacion {
   @@index([fecha])
   @@map("asignaciones_semanario")
 }
+
+// [LavadoTanque] Estados del ciclo de vida de un servicio de lavado de tanque.
+enum TankWashStatus {
+  PENDIENTE
+  EN_PROCESO
+  COMPLETADO
+}
+
+// [LavadoTanque] Tipo de tanque servido. Se deja como enum porque el catalogo
+// es cerrado y lo define el hotel; no crece sin una decision administrativa.
+enum TankWashType {
+  RESERVA
+  ELEVADO
+  SUBTERRANEO
+  OTRO
+}
+
+model TankWash {
+  id          Int            @id @default(autoincrement())
+  clientName  String         @map("cliente")
+  roomNumber  String?        @map("habitacion")
+  tankType    TankWashType   @map("tipo_tanque")
+  serviceDate DateTime       @default(now()) @map("fecha_servicio") @db.Date
+  amount      Decimal        @map("valor")
+  status      TankWashStatus @default(PENDIENTE) @map("estado")
+  notes       String?        @map("notas")
+  createdAt   DateTime       @default(now()) @map("creado_en")
+  updatedAt   DateTime       @updatedAt @map("actualizado_en")
+
+  @@index([status, serviceDate])
+  @@map("lavado_tanque")
+}
+
+// [IngresosGastos] Tipo de movimiento financiero del negocio.
+enum FinanceMovementType {
+  INGRESO
+  GASTO
+}
+
+// [IngresosGastos] Registro manual de un ingreso o gasto. Es un libro de
+// caja independiente: no se enlaza a reservas ni ventas para no amarrar la
+// contabilidad diaria a otros modulos.
+model FinanceMovement {
+  id           Int                 @id @default(autoincrement())
+  type         FinanceMovementType @map("tipo")
+  category     String              @map("categoria")
+  description  String              @map("descripcion")
+  amount       Decimal             @map("valor")
+  movementDate DateTime            @default(now()) @map("fecha") @db.Date
+  notes        String?             @map("notas")
+  createdAt    DateTime            @default(now()) @map("creado_en")
+  updatedAt    DateTime            @updatedAt @map("actualizado_en")
+
+  @@index([type, movementDate])
+  @@map("movimientos_financieros")
+}

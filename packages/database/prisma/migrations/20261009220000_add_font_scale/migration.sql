@@ -1,0 +1,2 @@
+ALTER TABLE "app_settings"
+ADD COLUMN "escala_fuente" INTEGER NOT NULL DEFAULT 100;

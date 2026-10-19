@@ -12,6 +12,7 @@ import type { CheckinDto } from './dto/checkin.dto';
 import type { UpdateStayDto } from './dto/update-stay.dto';
 import type { CheckoutDto } from './dto/checkout.dto';
 import { AuditoriaService, AuditAction } from '../auditoria/auditoria.service';
+import { FinanceService } from '../finance/finance.service';
 import type { RegisterStayPaymentDto } from './dto/register-payment.dto';
 import { calculateBillableNights } from './stay-nights';
 import { assertAdminPassword } from '../auth/admin-password';
@@ -75,7 +76,8 @@ function computeStayAccount(
 export class StaysService {
   constructor(
     private prisma: PrismaService,
-    private auditoria: AuditoriaService
+    private auditoria: AuditoriaService,
+    private finance: FinanceService
   ) {}
 
   async findAll() {
@@ -499,6 +501,17 @@ export class StaysService {
       newValue: updatedStay
     });
 
+    // Ingreso automático en Ingresos y Gastos por el pago final del check-out.
+    if (balanceDue > 0) {
+      await this.finance.registerAutomatic({
+        type: 'INGRESO',
+        category: 'Hospedaje',
+        description: `Check-out habitación ${stay.roomNumber} (${stay.client.firstName} ${stay.client.lastName})`,
+        amount: balanceDue,
+        notes: `Automático: pago final hospedaje ID ${stay.id}`
+      }, user);
+    }
+
     return updatedStay;
   }
 
@@ -560,6 +573,14 @@ export class StaysService {
       description: `Registró pago de $${Math.round(Number(payment.amount)).toLocaleString('es-CO')} (${payment.method}) a ${stay.client.firstName} ${stay.client.lastName}, habitación ${stay.roomNumber}. Saldo restante: $${Math.round(Math.max(0, account.balance - Number(payment.amount))).toLocaleString('es-CO')}.`,
       newValue: payment
     });
+
+    await this.finance.registerAutomatic({
+      type: 'INGRESO',
+      category: 'Hospedaje',
+      description: `Pago hospedaje habitación ${stay.roomNumber} (${stay.client.firstName} ${stay.client.lastName})`,
+      amount: Number(payment.amount),
+      notes: `Automático: pago parcial hospedaje ID ${stay.id}`
+    }, user);
 
     return payment;
   }

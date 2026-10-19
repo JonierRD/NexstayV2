@@ -16,6 +16,7 @@ import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { formatCOP, formatDateTime } from '../lib/format';
 import { Button } from '../components/ui/Button';
+import { ModuleHeader } from '../components/ui/ModuleHeader';
 import { useDashboard } from '../components/dashboard/useDashboard';
 import { getLaundryBadge } from '../components/dashboard/metrics';
 
@@ -42,28 +43,25 @@ export function DashboardPage({ user }: Props): ReactElement {
   const { occupiedRooms, availableRooms, maintenanceRooms, occupancyRate } = roomMetrics;
 
   return (
-    <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
-      {/* Encabezado */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-sapay-350 bg-white p-4 shadow-[0_12px_28px_rgba(52,39,28,0.04)] sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f7efe8] text-sapay-950">
-            <Building2 size={22} />
-          </div>
-          <div>
-            <h1 className="text-[18px] font-bold text-sapay-950">Dashboard Operativo</h1>
-            <p className="text-[11px] text-sapay-750">
-              Resumen en tiempo real del estado del hotel, alertas activas y ocupación.
-            </p>
-          </div>
-        </div>
-
+    <div className="module-page flex h-full flex-col overflow-y-auto">
+      <ModuleHeader
+        icon={Building2}
+        title="Dashboard Operativo"
+        subtitle="Resumen en tiempo real del estado del hotel, alertas activas y ocupación."
+        metrics={[
+          { label: 'Ocupación', value: `${occupancyRate}%`, icon: BadgePercent },
+          { label: 'Huéspedes', value: guestsCount, icon: Users },
+          { label: 'Llegadas hoy', value: todayCheckIns, icon: CalendarDays }
+        ]}
+      />
+      <div className="flex justify-end">
         <Button
           onClick={() => void reload()}
           disabled={loading}
-          className="h-8 self-start sm:self-auto rounded-xl border border-sapay-450 bg-white px-3 text-[11px] font-semibold text-sapay-900 transition hover:bg-sapay-100"
+          className="h-9 rounded-lg border border-sapay-350 bg-white px-3 text-xs text-sapay-900"
         >
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-          {loading ? 'Actualizando...' : 'Actualizar datos'}
+          {loading ? 'Actualizando...' : 'Actualizar'}
         </Button>
       </div>
 

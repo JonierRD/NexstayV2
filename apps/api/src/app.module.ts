@@ -14,6 +14,8 @@ import { SettingsModule } from './settings/settings.module';
 import { UsersModule } from './users/users.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { ParkingModule } from './parking/parking.module';
+import { TankWashModule } from './tank-wash/tank-wash.module';
+import { FinanceModule } from './finance/finance.module';
 
 @Module({
   imports: [
@@ -36,7 +38,9 @@ import { ParkingModule } from './parking/parking.module';
     SettingsModule,
     UsersModule,
     ReservationsModule,
-    ParkingModule
+    ParkingModule,
+    TankWashModule,
+    FinanceModule
   ],
   controllers: [AppController]
 })

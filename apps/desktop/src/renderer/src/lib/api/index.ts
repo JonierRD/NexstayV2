@@ -13,3 +13,5 @@ export * from './settings';
 export * from './users';
 export * from './reservations';
 export * from './parking';
+export * from './tank-wash';
+export * from './finance';
