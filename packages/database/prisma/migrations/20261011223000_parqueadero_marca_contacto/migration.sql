@@ -1,5 +1,5 @@
 ALTER TABLE "movimientos_parqueadero"
-ADD COLUMN "marca" TEXT NOT NULL DEFAULT 'No registrada';
+ADD COLUMN IF NOT EXISTS "marca" TEXT NOT NULL DEFAULT 'No registrada';
 
 UPDATE "movimientos_parqueadero"
 SET "telefono" = 'No registrado'

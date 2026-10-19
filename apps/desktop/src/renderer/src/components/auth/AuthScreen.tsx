@@ -1,4 +1,4 @@
-import { Shield, Sparkles, UsersRound } from 'lucide-react';
+import { ArrowLeft, Shield, Sparkles, UsersRound } from 'lucide-react';
 import FondoLogin from '../../assets/login/FondoLogin.png';
 import Logo from '../../assets/login/Logo.png';
 import { LoadingOverlay } from '../ui/LoadingOverlay';
@@ -35,7 +35,7 @@ const accessCards = [
   }
 ];
 
-export function AuthScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
+export function AuthScreen({ auth, onBack }: { auth: ReturnType<typeof useAuth>; onBack?: () => void }) {
   const mode = auth.mode;
 
   const goToLogin = () => {
@@ -63,6 +63,11 @@ export function AuthScreen({ auth }: { auth: ReturnType<typeof useAuth> }) {
       <section className="relative z-10 flex h-full items-center justify-center px-4 sm:px-8">
         <div className="w-full max-w-[430px] overflow-hidden rounded-2xl border border-white/75 bg-white px-6 py-5 text-foreground shadow-[0_30px_90px_rgba(0,0,0,0.3)] backdrop-blur-xl sm:px-7 sm:py-6">
           <div className="flex flex-col items-center text-center">
+            {onBack ? (
+              <button type="button" onClick={onBack} className="mb-2 self-start inline-flex items-center gap-1.5 text-[11px] font-semibold text-sapay-800 transition hover:text-sapay-1000">
+                <ArrowLeft size={14} /> Volver al inicio
+              </button>
+            ) : null}
             <img src={Logo} alt="SAPAY Hotel" className="h-[102px] w-[102px] object-contain" />
             <p className="-mt-1 text-[13px] font-semibold uppercase tracking-[0.24em] text-sapay-1000">
               - HOTEL-
