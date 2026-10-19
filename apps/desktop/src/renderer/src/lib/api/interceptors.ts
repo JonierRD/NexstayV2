@@ -42,7 +42,7 @@ function dispatchAuthEvent(event: 'unauthorized' | 'forbidden', detail: AuthEven
     );
   }
 }
-
+//interceptor de fetch
 export function applyAuthInterceptors(): void {
   if ((globalThis as typeof globalThis & { __sapayAuthInterceptorsApplied?: boolean }).__sapayAuthInterceptorsApplied) {
     return;
@@ -52,7 +52,7 @@ export function applyAuthInterceptors(): void {
 
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const request =
-      typeof input === 'string'
+      typeof input === 'string'  //crea el request
         ? new Request(input, init)
         : input instanceof Request
           ? new Request(input, init)
@@ -63,7 +63,12 @@ export function applyAuthInterceptors(): void {
       request.headers.set('Authorization', `Bearer ${token}`);
     }
 
-    const path = toPathname(input);
+    const path =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : input.url;
 
     const response = await originalFetch(request);
 

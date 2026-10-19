@@ -13,7 +13,7 @@ class AuthEventBus {
     unauthorized: new Set(),
     forbidden: new Set()
   };
-
+//suscribirsse
   on(event: AuthEventName, callback: AuthEventCallback): () => void {
     this.listeners[event].add(callback);
 
@@ -21,7 +21,7 @@ class AuthEventBus {
       this.listeners[event].delete(callback);
     };
   }
-
+//avisar
   emit(event: AuthEventName, detail: AuthEventDetail): void {
     for (const callback of this.listeners[event]) {
       callback(detail);
