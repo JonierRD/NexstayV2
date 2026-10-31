@@ -13,6 +13,8 @@
     "dev:desktop": "npm run dev --workspace @sapay/desktop",
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspace @sapay/desktop",
+    "test:coverage": "npm run test:coverage --workspace @sapay/desktop",
     "prisma:generate": "npm run prisma:generate --workspace @sapay/database",
     "prisma:migrate": "npm run prisma:migrate --workspace @sapay/database",
     "prisma:push": "npm run prisma:db:push --workspace @sapay/database",
