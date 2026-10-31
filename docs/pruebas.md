@@ -14,11 +14,16 @@ del frontend de NexStay (Electron + React + TypeScript).
 Desde la raíz del repositorio:
 
 ```bash
-npm test                 # corre las 12 pruebas
+npm test                 # corre las 12 suites (unitarias + integración)
 npm run test:coverage    # genera reporte HTML en apps/desktop/coverage
 npm run test --workspace @sapay/desktop -- tests/unit/format.test.ts
 npm run test:watch --workspace @sapay/desktop
 ```
+
+La salida agrupa los archivos por **unitarias** e **integración**, muestra el
+responsable y el avance (`aprobadas/total`) de cada uno, y deja el detalle de los
+fallos debajo del resumen. Los archivos aún sin implementar aparecen como
+`PENDIENTE` con sus casos en `it.todo`.
 
 Atajos dentro de `apps/desktop`:
 
@@ -33,9 +38,11 @@ npm run test:coverage
 
 ```
 apps/desktop/
-├── vitest.config.ts
+├── vitest.config.mts
 └── tests/
     ├── setup.ts                 # limpieza global (solo Jonier)
+    ├── reporters/
+    │   └── grouped.ts           # salida agrupada por categoría y responsable
     ├── helpers/
     │   ├── fixtures.ts          # datos de ejemplo
     │   ├── mocks.ts             # puente IPC, fetch, respuestas
@@ -88,7 +95,7 @@ Todo se integra en `proyecto-actual`. **No se tocan `main` ni `develop`.**
 
 ### Reglas para evitar conflictos
 
-- Solo Jonier modifica `vitest.config.ts`, `tests/setup.ts` y `tests/helpers/**`.
+- Solo Jonier modifica `vitest.config.mts`, `tests/setup.ts`, `tests/reporters/**` y `tests/helpers/**`.
 - Cada archivo de prueba tiene un único dueño.
 - No usar `git add -A` (hay capturas sueltas en la raíz del repo).
 - Si una prueba descubre un bug, se corrige en un commit aparte y se avisa al
