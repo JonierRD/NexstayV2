@@ -54,11 +54,11 @@ apps/desktop/
 | U4 | `tests/unit/api-client.test.ts` | `apiRequest`, token y `ApiError` | Harold | Pendiente |
 | U5 | `tests/unit/auth-interceptors.test.ts` | Interceptor 401/403 y limpieza de sesión | Harold | Pendiente |
 | U6 | `tests/unit/settings-cache.test.tsx` | Cache de configuración y `useHotelBrand` | Harold | Pendiente |
-| U7 | `tests/unit/roles-access.test.ts` | Jerarquía de roles y acceso a rutas | Jonier | Pendiente |
-| U8 | `tests/unit/permissions.test.tsx` | `canAccessModule` y `usePermissions` | Jonier | Pendiente |
+| U7 | `tests/unit/roles-access.test.ts` | Jerarquía de roles y acceso a rutas | Jonier | Completado (7/7) |
+| U8 | `tests/unit/permissions.test.tsx` | `canAccessModule` y `usePermissions` | Jonier | Completado (7/7) |
 | U9 | `tests/unit/ui-primitives.test.tsx` | `StatusPill`, `FilterSelect`, `DetailLine`, `StatCard` | Legarda | Pendiente |
 | U10 | `tests/unit/modal-breakpoint.test.tsx` | `Modal` y `useBreakpoint` | Legarda | Pendiente |
-| I1 | `tests/integration/auth-flow.test.tsx` | Login → dashboard → sidebar por rol → logout | Jonier | Pendiente |
+| I1 | `tests/integration/auth-flow.test.tsx` | Login → dashboard → sidebar por rol → logout | Jonier | Completado (4/4) |
 | I2 | `tests/integration/checkin-flow.test.tsx` | Wizard completo de check-in | Legarda | Pendiente |
 
 Cada archivo trae los casos como `it.todo(...)`. El integrante reemplaza cada
