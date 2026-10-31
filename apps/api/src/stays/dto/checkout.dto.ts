@@ -19,4 +19,8 @@ export class CheckoutDto {
   @IsOptional()
   @IsString()
   paymentReference?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  chargeOvertime?: boolean;
 }

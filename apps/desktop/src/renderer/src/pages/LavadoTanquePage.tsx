@@ -213,9 +213,6 @@ export function LavadoTanquePage(): ReactElement {
               <input required value={form.clientName} onChange={(event) => setForm({ ...form, clientName: event.target.value })} className="mt-1 w-full rounded-lg border border-sapay-350 px-3 py-2 text-xs" />
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <label className="text-[11px] font-medium">Habitación
-                <input value={form.roomNumber} onChange={(event) => setForm({ ...form, roomNumber: event.target.value })} className="mt-1 w-full rounded-lg border border-sapay-350 px-3 py-2 text-xs" />
-              </label>
               <label className="text-[11px] font-medium">Tipo de tanque
                 <select value={form.tankType} onChange={(event) => setForm({ ...form, tankType: event.target.value as TankWash['tankType'] })} className="mt-1 w-full rounded-lg border border-sapay-350 px-2 py-2 text-xs">
                   <option value="RESERVA">Tanque de reserva</option>

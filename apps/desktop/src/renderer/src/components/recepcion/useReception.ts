@@ -8,6 +8,7 @@ import {
   clientesRequest,
   checkinRequest
 } from '../../lib/api';
+import { reservationsRequest, type Reservation } from '../../lib/api/reservations';
 
 export type CheckinStep = 'CLIENT_DATA' | 'SELECT_ROOM' | 'CONFIRM' | 'SUCCESS';
 
@@ -66,6 +67,7 @@ export function useReception(_user?: PublicUser) {
   const [step, setStep] = useState<CheckinStep>('CLIENT_DATA');
   // Habitaciones disponibles traídas de la API
   const [rooms, setRooms] = useState<Habitacion[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(false);
   // Cédula que escribe el recepcionista para buscar cliente
   const [ccSearch, setCcSearch] = useState('');
@@ -94,9 +96,10 @@ export function useReception(_user?: PublicUser) {
   // Trae todas las habitaciones de la API (GET /habitaciones)
   const loadRooms = useCallback(() => {
     setLoading(true);
-    habitacionesRequest()
-      .then((data) => {
+    Promise.all([habitacionesRequest(), reservationsRequest()])
+      .then(([data, bookings]) => {
         setRooms(data);
+        setReservations(bookings);
       })
       .catch((err) => {
         console.error('Error loading rooms:', err);
@@ -293,7 +296,11 @@ export function useReception(_user?: PublicUser) {
   };
 
   // Solo las disponibles se muestran/exigen para ocupar
-  const availableRooms = useMemo(() => rooms.filter(r => r.status === 'DISPONIBLE'), [rooms]);
+  const availableRooms = useMemo(() => rooms.filter(r => r.status === 'DISPONIBLE' || r.status === 'RESERVADA'), [rooms]);
+  const upcomingReservation = useMemo(() => reservations
+    .filter((reservation) => reservation.status === 'CONFIRMADA' && reservation.roomNumber === selectedRoom?.number && reservation.checkIn.slice(0, 10) >= checkInDate)
+    .sort((a, b) => a.checkIn.localeCompare(b.checkIn))[0] ?? null,
+  [reservations, selectedRoom?.number, checkInDate]);
 
   return {
     step,
@@ -315,6 +322,7 @@ export function useReception(_user?: PublicUser) {
     hasSearched,
     ccHistory,
     availableRooms,
+    upcomingReservation,
     handleSearchClient,
     handleSelectCc,
     clearClientData,

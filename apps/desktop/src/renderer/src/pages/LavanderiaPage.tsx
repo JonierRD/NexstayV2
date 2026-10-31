@@ -80,13 +80,13 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                                     labels={itemLabels}
                                 />
 
-                                <AccentButton
+                                {user.role === 'ADMIN' && <AccentButton
                                     onClick={() => setShowRates(true)}
                                     className="gap-1.5 h-8 shrink-0 text-[11px]"
                                 >
                                     <SlidersHorizontal size={14} aria-hidden="true" />
                                     Tarifas
-                                </AccentButton>
+                                </AccentButton>}
 
                                 <AccentButton
                                     onClick={l.openCreateForm}
@@ -135,7 +135,7 @@ export function LavanderiaPage({ user }: { user: PublicUser }): ReactElement {
                 />
             )}
 
-            {showRates && (
+            {showRates && user.role === 'ADMIN' && (
                 <LaundryRatesModal
                     prices={prices}
                     onSave={handleSavePrices}

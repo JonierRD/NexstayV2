@@ -33,13 +33,15 @@ export function InventoryTable({
   totalItems,
   onQuickAdjust,
   onEdit,
-  onDelete
+  onDelete,
+  canEditCatalog
 }: {
   items: StockItem[];
   totalItems: number;
   onQuickAdjust: (item: StockItem, delta: number) => void;
   onEdit: (item: StockItem) => void;
   onDelete: (item: StockItem) => void;
+  canEditCatalog?: boolean;
 }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-sapay-350 bg-white shadow-[0_10px_30px_rgba(67,42,27,0.04)]">
@@ -152,22 +154,22 @@ export function InventoryTable({
                   {/* Acciones */}
                   <td className="py-3 px-3 align-middle text-center">
                     <div className="inline-flex items-center gap-1.5">
-                      <button
+                      {canEditCatalog && <button
                         type="button"
                         onClick={() => onEdit(item)}
                         className="flex h-7 w-7 items-center justify-center rounded-lg border border-sapay-450 bg-white text-sapay-750 hover:border-sapay-600 hover:text-sapay-900 hover:bg-sapay-200 transition"
                         title="Editar producto"
                       >
                         <Edit2 size={13} />
-                      </button>
-                      <button
+                      </button>}
+                      {canEditCatalog && <button
                         type="button"
                         onClick={() => onDelete(item)}
                         className="flex h-7 w-7 items-center justify-center rounded-lg border border-danger-150 bg-white text-danger hover:bg-danger-50 transition"
                         title="Eliminar producto"
                       >
                         <Trash2 size={13} />
-                      </button>
+                      </button>}
                     </div>
                   </td>
                 </tr>

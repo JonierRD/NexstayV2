@@ -321,6 +321,16 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
                   className={inputClass}
                 />
               </Field>
+              <Field label="Tarifa por hora excedida ($)">
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={s.checkoutOvertimeRate}
+                  onChange={(e) => s.setCheckoutOvertimeRate(Math.max(0, Number(e.target.value) || 0))}
+                  className={inputClass}
+                />
+              </Field>
               <Field label="Política de cancelación" className="col-span-2">
                 <textarea
                   value={s.cancellationPolicy}

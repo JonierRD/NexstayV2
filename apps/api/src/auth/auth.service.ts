@@ -117,6 +117,15 @@ export class AuthService {
     const email = dto.email.trim().toLowerCase();
     const phone = dto.phone?.trim();
 
+    const activeAdmins = await this.prisma.user.findMany({
+      where: { role: Role.ADMIN, isActive: true },
+      select: { passwordHash: true }
+    });
+    const authorized = await Promise.all(activeAdmins.map((admin) => verifyPassword(dto.adminPassword, admin.passwordHash)));
+    if (!authorized.some(Boolean)) {
+      throw new UnauthorizedException('La contrase?a del administrador no es correcta.');
+    }
+
     if (dto.password !== dto.confirmPassword) {
       throw new BadRequestException('Las contraseÃ±as no coinciden.');
     }

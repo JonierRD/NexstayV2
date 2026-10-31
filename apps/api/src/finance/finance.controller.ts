@@ -6,6 +6,7 @@ import type { JwtPayload } from '../auth/auth.types';
 import { FinanceService } from './finance.service';
 import { CreateFinanceMovementDto } from './dto/create-finance-movement.dto';
 import { UpdateFinanceMovementDto } from './dto/update-finance-movement.dto';
+import { AdminGuard } from '../auth/admin.guard';
 
 @Controller('finance')
 @UseGuards(JwtAuthGuard)
@@ -39,6 +40,7 @@ export class FinanceController {
   }
 
   @Delete('movements/:id')
+  @UseGuards(AdminGuard)
   async remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.service.remove(parseInt(id), user);
   }

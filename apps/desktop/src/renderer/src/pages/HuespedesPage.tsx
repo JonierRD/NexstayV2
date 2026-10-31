@@ -131,8 +131,9 @@ export function HuespedesPage({ user }: Props): ReactElement {
       {g.checkoutStay && (
         <CheckoutModal
           stay={g.checkoutStay}
+          canChargeOvertime={user.role === 'ADMIN' || user.role === 'RECEPTION'}
           onClose={() => g.setCheckoutStay(null)}
-          onConfirm={(nights, method, confirmed) => void g.confirmCheckout(nights, method, confirmed)}
+          onConfirm={(nights, method, confirmed, chargeOvertime) => void g.confirmCheckout(nights, method, confirmed, chargeOvertime)}
           isProcessing={g.isCheckingOut}
         />
       )}

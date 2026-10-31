@@ -48,11 +48,7 @@ export function DashboardPage({ user }: Props): ReactElement {
         icon={Building2}
         title="Dashboard Operativo"
         subtitle="Resumen en tiempo real del estado del hotel, alertas activas y ocupación."
-        metrics={[
-          { label: 'Ocupación', value: `${occupancyRate}%`, icon: BadgePercent },
-          { label: 'Huéspedes', value: guestsCount, icon: Users },
-          { label: 'Llegadas hoy', value: todayCheckIns, icon: CalendarDays }
-        ]}
+        metrics={[]}
       />
       <div className="flex justify-end">
         <Button

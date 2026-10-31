@@ -109,6 +109,7 @@ export function HabitacionesPage({ user }: { user: PublicUser }): ReactElement {
       {h.showRoomForm && (
         <RoomFormModal
           room={h.editingRoom ?? undefined}
+          canEditPrices={user.role === 'ADMIN'}
           existingRooms={h.apiRooms}
           onSubmit={h.submitRoom}
           onRequestDelete={user.role === 'ADMIN' ? h.requestDeleteRoom : undefined}

@@ -1,5 +1,5 @@
 import { createElement, type ReactElement, useEffect, useState } from 'react';
-import { Bell, CalendarDays, ChevronDown, LogOut, PanelRightClose, Settings, UserRound } from 'lucide-react';
+import { CalendarDays, ChevronDown, LogOut, PanelRightClose, Settings, UserRound } from 'lucide-react';
 import type { PublicUser } from '../../lib/api';
 import { formatClock, formatHeaderDate } from '../../lib/format';
 import { useBreakpoint } from '../../lib/useBreakpoint';
@@ -11,6 +11,7 @@ import { findRoute, getAllowedRoutes } from '../../routes/routeAccess';
 import { Role } from '../../routes/roles';
 import type { ModuleKey } from '../../routes/types';
 import { useProfileAvatar } from '../perfil/profileAvatar';
+import { useSettingsCached } from '../../lib/settingsCache';
 
 type DashboardLayoutProps = {
   user: PublicUser;
@@ -37,6 +38,7 @@ function getHomeModule(user: PublicUser | null): ModuleKey {
 
 export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): ReactElement {
   const { user: sessionUser } = useAuthSession();
+  const settings = useSettingsCached();
   const resolvedUser = sessionUser ?? user ?? null;
   const [active, setActive] = useState<ModuleKey>(() => getHomeModule(resolvedUser));
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -110,16 +112,6 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
               <p className="text-[10px] text-[#7a6a60]">{formattedTime}</p>
             </div>
           </div>
-
-          <button
-            type="button"
-            className="relative flex h-9 w-9 items-center justify-center rounded-[14px] border border-sapay-350 bg-white text-sapay-900 shadow-[0_10px_24px_rgba(67,42,27,0.06)] transition hover:border-[#cdb9ab] hover:bg-[#fff9f5]"
-            aria-label="Notificaciones"
-          >
-            <Bell size={16} aria-hidden="true" />
-            <span className="absolute right-0.5 top-0.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-[#cf3d2e] text-[9px] font-semibold text-white shadow-md" />
-          </button>
-
           <span className="hidden h-4 w-px bg-[hsl(var(--border))] lg:block" />
           <div className="relative">
             <button
@@ -171,7 +163,7 @@ export function DashboardLayout({ user, onLogout }: DashboardLayoutProps): React
                 })
               : null}
           </RouteGuard>
-          <AssistantChat user={resolvedUser ?? user} pageKey={active} pageTitle={pageTitle} />
+          {settings?.aiEnabled && resolvedUser && <AssistantChat user={resolvedUser} pageKey={active} pageTitle={pageTitle} />}
         </div>
       </div>
     </div>

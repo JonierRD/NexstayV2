@@ -28,7 +28,6 @@ export class ClientesService {
           },
           orderBy: { checkIn: 'desc' }
         },
-        parkingSessions: { where: { isGuest: false }, orderBy: { entryAt: 'desc' } }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -44,7 +43,6 @@ export class ClientesService {
           },
           orderBy: { checkIn: 'desc' }
         },
-        parkingSessions: { where: { isGuest: false }, orderBy: { entryAt: 'desc' } }
       }
     });
 
@@ -65,7 +63,6 @@ export class ClientesService {
           },
           orderBy: { checkIn: 'desc' }
         },
-        parkingSessions: { where: { isGuest: false }, orderBy: { entryAt: 'desc' } }
       }
     });
 
@@ -268,11 +265,8 @@ export class ClientesService {
           await tx.sale.deleteMany({ where: { id: { in: saleIds } } });
         }
         await tx.stayPayment.deleteMany({ where: { stayId: { in: stayIds } } });
-        await tx.parkingSession.deleteMany({ where: { stayId: { in: stayIds } } });
         await tx.stay.deleteMany({ where: { id: { in: stayIds } } });
       }
-
-      await tx.parkingSession.deleteMany({ where: { clientId } });
 
       if (reservationIds.length > 0) {
         await tx.reservationPayment.deleteMany({ where: { reservationId: { in: reservationIds } } });

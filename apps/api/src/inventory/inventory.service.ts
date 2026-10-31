@@ -50,6 +50,13 @@ export class InventoryService {
   }
 
   async createProduct(data: CreateProductDto, user: JwtPayload) {
+    const allowedCategories = ['BEBIDAS', 'SNACKS', 'ASEO', 'TIENDA', 'LENCERIA', 'OTROS'];
+    if (user.role !== 'ADMIN' && user.role !== 'RECEPTION') {
+      throw new ForbiddenException('No tienes permiso para administrar el inventario.');
+    }
+    if (user.role !== 'ADMIN' && (data.price !== 0 || (data.category && !allowedCategories.includes(data.category.toUpperCase())))) {
+      throw new ForbiddenException('Solo un administrador puede definir precios o crear categorías de inventario.');
+    }
     const product = await this.prisma.product.create({
       data: {
         name: data.name,
@@ -203,6 +210,12 @@ export class InventoryService {
   }
 
   async updateProduct(id: number, data: UpdateProductDto, user: JwtPayload) {
+    if (user.role !== 'ADMIN' && user.role !== 'RECEPTION') {
+      throw new ForbiddenException('No tienes permiso para administrar el inventario.');
+    }
+    if (user.role !== 'ADMIN' && (data.price !== undefined || data.category !== undefined)) {
+      throw new ForbiddenException('Solo un administrador puede modificar precios o categorías de inventario.');
+    }
     const existing = await this.prisma.product.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('Producto no encontrado');

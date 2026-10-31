@@ -68,6 +68,11 @@ export class UpdateSettingsDto {
   checkoutTolerance?: number;
 
   @IsOptional()
+  @IsInt({ message: 'La tarifa por hora debe ser un número entero.' })
+  @Min(0, { message: 'La tarifa por hora no puede ser negativa.' })
+  checkoutOvertimeRate?: number;
+
+  @IsOptional()
   @IsString({ message: 'Ingresa una política de cancelación válida.' })
   @MaxLength(2000, { message: 'La política de cancelación es demasiado larga.' })
   cancellationPolicy?: string;

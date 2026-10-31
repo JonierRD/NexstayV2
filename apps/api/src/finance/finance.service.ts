@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { $Enums, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
@@ -80,6 +80,9 @@ export class FinanceService {
   }
 
   async create(data: CreateFinanceMovementDto, user: JwtPayload) {
+    if (user.role !== 'ADMIN' && user.role !== 'RECEPTION') {
+      throw new ForbiddenException('No tienes permiso para registrar movimientos financieros.');
+    }
     const row = await this.prisma.financeMovement.create({
       data: {
         type: data.type,
@@ -103,6 +106,9 @@ export class FinanceService {
   }
 
   async update(id: number, data: UpdateFinanceMovementDto, user: JwtPayload) {
+    if (user.role !== 'ADMIN' && user.role !== 'RECEPTION') {
+      throw new ForbiddenException('No tienes permiso para editar movimientos financieros.');
+    }
     const existing = await this.prisma.financeMovement.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('Movimiento no encontrado.');

@@ -22,10 +22,26 @@ export class HabitacionesService {
   ) {}
 
   async findAll() {
-    return this.prisma.room.findMany({ orderBy: { number: 'asc' } });
+    const rooms = await this.prisma.room.findMany({ orderBy: { number: 'asc' } });
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date());
+    const start = new Date(`${today}T00:00:00.000Z`);
+    const end = new Date(start.getTime() + 86_400_000);
+    const arrivals = await this.prisma.reservation.findMany({
+      where: { status: 'CONFIRMADA', checkIn: { gte: start, lt: end } },
+      select: { roomNumber: true }
+    });
+    const reservedToday = new Set(arrivals.map((reservation) => reservation.roomNumber));
+    return rooms.map((room) => room.status === 'DISPONIBLE' && reservedToday.has(room.number)
+      ? { ...room, status: 'RESERVADA' as const }
+      : room);
   }
 
   async create(dto: CreateHabitacionDto, user: JwtPayload) {
+    if (user.role !== Role.ADMIN && (dto.priceWithAir !== undefined || dto.priceWithFan !== undefined)) {
+      throw new ForbiddenException('Solo un administrador puede configurar tarifas de habitaciones.');
+    }
     const existing = await this.prisma.room.findUnique({ where: { number: dto.number } });
     if (existing) {
       throw new ConflictException(`La habitación ${dto.number} ya existe.`);
@@ -58,6 +74,9 @@ export class HabitacionesService {
   }
 
   async update(number: string, dto: UpdateHabitacionDto, user: JwtPayload) {
+    if (user.role !== Role.ADMIN && (dto.priceWithAir !== undefined || dto.priceWithFan !== undefined)) {
+      throw new ForbiddenException('Solo un administrador puede modificar tarifas de habitaciones.');
+    }
     const room = await this.prisma.room.findUnique({ where: { number } });
     if (!room) {
       throw new NotFoundException(`La habitación ${number} no existe.`);

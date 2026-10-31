@@ -13,7 +13,6 @@ import { SemanarioModule } from './semanario/semanario.module';
 import { SettingsModule } from './settings/settings.module';
 import { UsersModule } from './users/users.module';
 import { ReservationsModule } from './reservations/reservations.module';
-import { ParkingModule } from './parking/parking.module';
 import { TankWashModule } from './tank-wash/tank-wash.module';
 import { FinanceModule } from './finance/finance.module';
 
@@ -38,7 +37,6 @@ import { FinanceModule } from './finance/finance.module';
     SettingsModule,
     UsersModule,
     ReservationsModule,
-    ParkingModule,
     TankWashModule,
     FinanceModule
   ],

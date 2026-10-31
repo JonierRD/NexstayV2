@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { $Enums } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
@@ -60,6 +60,11 @@ export class LaundryService {
 
   async update(id: number, data: UpdateLaundryDto, user: JwtPayload) {
     const existing = await this.findOne(id);
+    const changesPrice = (data.unitPrice !== undefined && Number(data.unitPrice) !== Number(existing.unitPrice)) ||
+      (data.totalPrice !== undefined && Number(data.totalPrice) !== Number(existing.totalPrice));
+    if (user.role !== 'ADMIN' && changesPrice) {
+      throw new ForbiddenException('Solo un administrador puede modificar tarifas de lavandería.');
+    }
 
     const laundry = await this.prisma.laundry.update({
       where: { id },

@@ -48,6 +48,11 @@ function todayColombia(): string {
   return `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}-${parts.find((part) => part.type === 'day')?.value}`;
 }
 function isArrivalDay(value: string): boolean { return value === todayColombia(); }
+function canCheckinReservation(value: string): boolean {
+  if (!isArrivalDay(value)) return false;
+  const hour = Number(new Intl.DateTimeFormat('en-US', { timeZone: 'America/Bogota', hour: 'numeric', hourCycle: 'h23' }).format(new Date()));
+  return hour >= 14;
+}
 
 export function ReservasPage(): ReactElement {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -114,7 +119,7 @@ export function ReservasPage(): ReactElement {
   const total = Math.round(nightlyPrice * Math.max(0, nights));
   const selectedRoomUnavailable = !!form.roomNumber && (
     unavailableRooms?.includes(form.roomNumber) ??
-    (selectedRoom?.status === 'MANTENIMIENTO' || selectedRoom?.status === 'RESERVADA')
+    (selectedRoom?.status === 'MANTENIMIENTO')
   );
 
   const filteredReservations = useMemo(() => {
@@ -311,7 +316,7 @@ export function ReservasPage(): ReactElement {
             {clientFound && <p className="self-end text-[10px] text-emerald-700">Cliente encontrado. Se actualizarán sus datos con lo confirmado en este formulario.</p>}
             <label className={labelClass}>Ingreso *<input className={inputClass} type="date" min={todayColombia()} value={form.checkIn} onChange={(e) => setForm({ ...form, checkIn: e.target.value, ...(form.checkOut && form.checkOut <= e.target.value ? { checkOut: '' } : {}) })} required /></label>
             <label className={labelClass}>Salida *<input className={inputClass} type="date" min={form.checkIn ? new Date(Date.parse(`${form.checkIn}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10) : undefined} value={form.checkOut} onChange={(e) => setForm({ ...form, checkOut: e.target.value })} required /></label>
-            <label className={labelClass}>Habitación *<select className={inputClass} value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} required><option value="">Seleccionar</option>{rooms.filter((room) => room.status !== 'MANTENIMIENTO' && room.status !== 'RESERVADA').map((room) => {
+            <label className={labelClass}>Habitación *<select className={inputClass} value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} required><option value="">Seleccionar</option>{rooms.filter((room) => room.status !== 'MANTENIMIENTO').map((room) => {
               const unavailable = unavailableRooms?.includes(room.number) ?? false;
               return <option key={room.number} value={room.number} disabled={unavailable}>{room.number} · {room.type} · {unavailable ? 'No disponible en estas fechas' : `estado actual ${room.status.toLowerCase()}`}</option>;
             })}</select>{availabilityLoading && <span className="mt-1 block text-[10px] text-sapay-650">Consultando habitaciones para estas fechas…</span>}{!availabilityLoading && unavailableRooms && <span className="mt-1 block text-[10px] text-sapay-650">Las habitaciones ocupadas o reservadas en este intervalo aparecen deshabilitadas.</span>}</label>
@@ -336,7 +341,7 @@ export function ReservasPage(): ReactElement {
       )}
 
 
-      <section className="min-h-0 flex-1 overflow-auto rounded-2xl border border-sapay-350 bg-white">
+      {!formOpen && <section className="min-h-0 flex-1 overflow-auto rounded-2xl border border-sapay-350 bg-white">
         {loading ? <p className="p-8 text-center text-xs text-sapay-650">Cargando reservas…</p> : filteredReservations.length === 0 ? <div className="p-10 text-center text-xs text-sapay-650"><CalendarDays size={18} className="mx-auto mb-2" />No hay reservas registradas.</div> :
           <div className="divide-y divide-sapay-200">{filteredReservations.map((reservation) => {
             const paid = reservation.payments.reduce((sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)), 0);
@@ -349,15 +354,14 @@ export function ReservasPage(): ReactElement {
               </div>
               {reservation.status === 'CONFIRMADA' && <div className="flex flex-wrap gap-1.5">
                 <Button onClick={() => startEdit(reservation)} className="h-8 border border-sapay-450 bg-white px-2.5 text-[10px] !text-sapay-900 hover:bg-sapay-100"><Pencil size={12} /> Editar</Button>
-                <Button disabled={!isArrivalDay(dateValue(reservation.checkIn))} onClick={() => setCheckinTarget(reservation)} title={isArrivalDay(dateValue(reservation.checkIn)) ? 'Hacer check-in hoy' : `Disponible el ${formatDateOnly(reservation.checkIn)}`} className="h-8 bg-sapay-900 px-2.5 text-[10px] !text-white disabled:bg-sapay-200 disabled:!text-sapay-700"><Check size={12} /> Check-in</Button>
+                <Button disabled={!canCheckinReservation(dateValue(reservation.checkIn))} onClick={() => setCheckinTarget(reservation)} title={canCheckinReservation(dateValue(reservation.checkIn)) ? 'Hacer check-in hoy' : `Disponible desde las 14:00 del ${formatDateOnly(reservation.checkIn)}`} className="h-8 bg-sapay-900 px-2.5 text-[10px] !text-white disabled:bg-sapay-200 disabled:!text-sapay-700"><Check size={12} /> Check-in</Button>
                 <Button onClick={() => openCancellation(reservation)} className="h-8 border border-rose-300 bg-rose-50 px-2.5 text-[10px] !text-rose-900 hover:bg-rose-100"><X size={12} /> Cancelar</Button>
                 {!isArrivalDay(dateValue(reservation.checkIn)) && <span className="flex items-center text-[10px] text-sapay-700">Disponible el {formatDateOnly(reservation.checkIn)}</span>}
                 {late && <span title="La cancelación está dentro de las 24 horas previas" className="flex items-center text-amber-700"><CircleAlert size={13} /></span>}
               </div>}
             </article>;
           })}</div>}
-      </section>
-
+      </section>}
       {settlementDraft && <Modal onClose={() => !saving && setSettlementDraft(null)} title="Confirmar diferencia de la reserva" maxWidthClass="max-w-lg">
         <div className="space-y-3 text-xs text-sapay-900">
           <div className="grid grid-cols-3 gap-2 rounded-xl bg-sapay-50 p-3 text-center">

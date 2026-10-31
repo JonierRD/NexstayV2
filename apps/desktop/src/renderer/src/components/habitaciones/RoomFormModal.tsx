@@ -9,6 +9,7 @@ type RoomPayload = ReturnType<typeof priceFields>;
 
 type RoomFormModalProps = {
   room?: Habitacion;
+  canEditPrices?: boolean;
   /** Habitaciones ya cargadas, para tomar precios de referencia del mismo tipo. */
   existingRooms: Habitacion[];
   /** Ejecuta create/update. Lanza si la API falla. */
@@ -55,7 +56,7 @@ function findPriceReference(rooms: Habitacion[], type: RoomType): Habitacion | u
 }
 
 /** null si todo ok; en el texto a mostrar si no se puede guardar. */
-function validateRoomForm(form: FormData, isEdit: boolean): string | null {
+function validateRoomForm(form: FormData, isEdit: boolean, canEditPrices: boolean): string | null {
   if (!isEdit && !form.number.trim()) {
     return 'El número de habitación es obligatorio.';
   }
@@ -64,13 +65,13 @@ function validateRoomForm(form: FormData, isEdit: boolean): string | null {
   }
 
   const warnings: string[] = [];
-  if (form.hasAir && !form.priceWithAir) {
+  if (canEditPrices && form.hasAir && !form.priceWithAir) {
     warnings.push('La habitación tiene aire pero no tiene precio con aire configurado.');
   }
-  if (form.hasFan && !form.priceWithFan) {
+  if (canEditPrices && form.hasFan && !form.priceWithFan) {
     warnings.push('La habitación tiene ventilador pero no tiene precio con ventilador configurado.');
   }
-  if (!form.hasAir && !form.hasFan && !form.priceWithAir && !form.priceWithFan) {
+  if (canEditPrices && !form.hasAir && !form.hasFan && !form.priceWithAir && !form.priceWithFan) {
     warnings.push('La habitación no tiene precios configurados.');
   }
 
@@ -78,18 +79,20 @@ function validateRoomForm(form: FormData, isEdit: boolean): string | null {
 }
 
 /** Campos comunes a creación y edición. */
-function priceFields(form: FormData) {
+function priceFields(form: FormData, canEditPrices: boolean) {
   return {
     type: form.type,
     hasAir: form.hasAir,
     hasFan: form.hasFan,
-    priceWithAir: form.priceWithAir ? Number(form.priceWithAir) : undefined,
-    priceWithFan: form.priceWithFan ? Number(form.priceWithFan) : undefined,
+    ...(canEditPrices && {
+      priceWithAir: form.priceWithAir ? Number(form.priceWithAir) : undefined,
+      priceWithFan: form.priceWithFan ? Number(form.priceWithFan) : undefined
+    }),
     notes: form.notes || undefined
   };
 }
 
-export function RoomFormModal({ room, existingRooms, onSubmit, onRequestDelete, onClose }: RoomFormModalProps): ReactElement {
+export function RoomFormModal({ room, existingRooms, onSubmit, onRequestDelete, onClose, canEditPrices = false }: RoomFormModalProps): ReactElement {
   const isEdit = !!room;
   const canDelete = isEdit && !!onRequestDelete;
 
@@ -179,7 +182,7 @@ export function RoomFormModal({ room, existingRooms, onSubmit, onRequestDelete, 
     event.preventDefault();
     setError('');
 
-    const validationError = validateRoomForm(form, isEdit);
+    const validationError = validateRoomForm(form, isEdit, canEditPrices);
     if (validationError) {
       setError(validationError);
       return;
@@ -189,13 +192,13 @@ export function RoomFormModal({ room, existingRooms, onSubmit, onRequestDelete, 
     try {
       if (isEdit && room) {
         await onSubmit({
-          ...priceFields(form),
+          ...priceFields(form, canEditPrices),
           status: form.status,
           image: form.image
         });
       } else {
         await onSubmit({
-          ...priceFields(form),
+          ...priceFields(form, canEditPrices),
           number: form.number.trim(),
           image: form.image ?? undefined
         });
@@ -254,7 +257,6 @@ export function RoomFormModal({ room, existingRooms, onSubmit, onRequestDelete, 
                     {room?.status === 'OCUPADA' ? 'Disponible (usar botón Liberar)' : 'Disponible'}
                   </option>
                   <option value="OCUPADA">Ocupada</option>
-                  <option value="RESERVADA">Reservada</option>
                   <option value="MANTENIMIENTO">Mantenimiento</option>
                 </select>
                 {room?.status === 'OCUPADA' && (
@@ -269,6 +271,7 @@ export function RoomFormModal({ room, existingRooms, onSubmit, onRequestDelete, 
               <input
                 type="number"
                 min="0"
+                disabled={!canEditPrices}
                 value={form.priceWithAir}
                 onChange={(e) => update('priceWithAir', e.target.value)}
                 className="w-full bg-transparent text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550"
@@ -280,6 +283,7 @@ export function RoomFormModal({ room, existingRooms, onSubmit, onRequestDelete, 
               <input
                 type="number"
                 min="0"
+                disabled={!canEditPrices}
                 value={form.priceWithFan}
                 onChange={(e) => update('priceWithFan', e.target.value)}
                 className="w-full bg-transparent text-[12px] text-sapay-950 outline-none placeholder:text-sapay-550"

@@ -14,6 +14,7 @@ export type AppSettings = {
   checkinLimit: string;
   checkoutLimit: string;
   checkoutTolerance: number;
+  checkoutOvertimeRate: number;
   cancellationPolicy: string;
   aiEnabled: boolean;
 };

@@ -1,9 +1,11 @@
 import { BedDouble } from 'lucide-react';
 import { type Dispatch, type SetStateAction } from 'react';
 import { type Habitacion } from '../../lib/api';
+import { type Reservation } from '../../lib/api/reservations';
 import { formatCOP } from '../../lib/format';
 import { cn } from '../../lib/utils';
 import { type CheckinStep } from './useReception';
+import { useSettingsCached } from '../../lib/settingsCache';
 
 type Props = {
   rooms: Habitacion[];
@@ -14,6 +16,7 @@ type Props = {
   setAcType: Dispatch<SetStateAction<'AIRE' | 'VENTILADOR'>>;
   checkInDate: string;
   setCheckInDate: Dispatch<SetStateAction<string>>;
+  upcomingReservation: Reservation | null;
   setStep: Dispatch<SetStateAction<CheckinStep>>;
 };
 
@@ -26,8 +29,10 @@ export function SelectRoomStep({
   setAcType,
   checkInDate,
   setCheckInDate,
+  upcomingReservation,
   setStep
 }: Props) {
+  const settings = useSettingsCached();
   return (
     <div className="space-y-6">
       <div>
@@ -88,6 +93,12 @@ export function SelectRoomStep({
           </div>
         )}
 
+        {upcomingReservation && (
+          <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+            Esta habitación tiene una reserva para el {new Date(`${upcomingReservation.checkIn.slice(0, 10)}T12:00:00`).toLocaleDateString('es-CO')}. El huésped debe salir antes de las 13:00 de ese día.
+          </p>
+        )}
+
         <div className="space-y-4">
           <div>
             <label className="mb-2 block text-xs font-medium text-sapay-700">
@@ -125,20 +136,8 @@ export function SelectRoomStep({
             </div>
           </div>
 
-          <div>
-            <label className="mb-2 block text-xs font-medium text-sapay-700">
-              Fecha de Ingreso
-            </label>
-            <input
-              type="date"
-              value={checkInDate}
-              onChange={(e) => setCheckInDate(e.target.value)}
-              className="w-full rounded-lg border border-sapay-450 px-4 py-3 text-sm focus:border-sapay-500 focus:outline-none"
-            />
-          </div>
-
           <p className="rounded-lg bg-sapay-100 px-4 py-3 text-xs text-sapay-700">
-            El hospedaje inicia con una noche. Las noches adicionales se calculan automáticamente después de la 1:00 p. m.
+            La salida es a las 13:00. Durante la tolerancia se cobran {formatCOP(settings?.checkoutOvertimeRate ?? 10000)} por hora iniciada; después se cobra un día completo.
           </p>
         </div>
 

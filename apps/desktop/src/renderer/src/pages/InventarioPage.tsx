@@ -19,7 +19,9 @@ import { useInventario } from '../components/inventario/useInventario';
 import { ModuleHeader } from '../components/ui/ModuleHeader';
 
 export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
-  const inv = useInventario();
+  const canEditPrices = user.role === 'ADMIN';
+  const canEditCatalog = user.role !== 'CLEANING';
+  const inv = useInventario({ canEditPrices });
 
   const filterActive =
     inv.search !== '' || inv.selectedCategory !== 'TODAS' || inv.stockFilter !== 'ALL';
@@ -53,13 +55,13 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
             Actualizar
           </Button>
 
-          <Button
+          {canEditCatalog && <Button
             onClick={inv.openCreateModal}
             className="flex h-9 items-center gap-1.5 rounded-xl bg-sapay-900 px-4 text-[12px] font-medium text-white hover:bg-sapay-850 shadow-sm transition"
           >
             <Plus size={16} />
             Nuevo Producto
-          </Button>
+          </Button>}
         </div>
       </div>
 
@@ -128,6 +130,7 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
             onQuickAdjust={inv.quickAdjust}
             onEdit={inv.openEditModal}
             onDelete={inv.requestDelete}
+            canEditCatalog={canEditCatalog}
           />
         )}
       </div>
@@ -140,6 +143,7 @@ export function InventarioPage({ user }: { user: PublicUser }): ReactElement {
           setFormData={inv.setFormData}
           onSubmit={inv.saveProduct}
           onClose={inv.closeModal}
+          canEditPrices={canEditPrices}
         />
       )}
 

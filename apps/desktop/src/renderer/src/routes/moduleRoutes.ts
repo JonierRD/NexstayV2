@@ -9,13 +9,10 @@ import {
   BedDouble,
   CalendarCheck,
   CalendarDays,
-  Candy,
-  Car,
   ClipboardList,
   ConciergeBell,
   DollarSign,
   Droplets,
-  FileText,
   LayoutDashboard,
   Package,
   Settings,
@@ -24,7 +21,6 @@ import {
   UserCheck,
   UserCircle,
   Users,
-  Wind
 } from 'lucide-react';
 import { AuthScreen } from '../components/auth/AuthScreen';
 import { AuditoriaPage } from '../pages/AuditoriaPage';
@@ -42,7 +38,6 @@ import { RecepcionPage } from '../pages/RecepcionPage';
 import { ReservasPage } from '../pages/ReservasPage';
 import { SemanarioPage } from '../pages/SemanarioPage';
 import { VentasPage } from '../pages/VentasPage';
-import { ParqueaderoPage } from '../pages/ParqueaderoPage';
 import { Role } from './roles';
 import { type AppRoute } from './types';
 
@@ -159,19 +154,6 @@ export const moduleRoutes: AppRoute[] = [
     component: VentasPage
   },
   {
-    key: 'parqueadero',
-    path: '/parqueadero',
-    meta: {
-      title: 'Parqueadero',
-      roles: staff,
-      section: 'main',
-      icon: Car,
-      assistantSummary:
-        'Parqueadero: control de parqueadero mensual y gestión asociada al huésped o cliente.'
-    },
-    component: ParqueaderoPage
-  },
-  {
     key: 'lavanderia',
     path: '/lavanderia',
     meta: {
@@ -237,43 +219,6 @@ export const moduleRoutes: AppRoute[] = [
         'Ingresos y gastos: seguimiento de movimientos financieros, balance y registro manual de ingresos/egresos.'
     },
     component: IngresosGastosPage
-  },
-  {
-    key: 'aires',
-    path: '/aires',
-    meta: {
-      title: 'Aires',
-      roles: staff,
-      section: 'future',
-      icon: Wind,
-      assistantSummary: 'Aires: control del servicio de aires en habitaciones o áreas.'
-    },
-    component: ModulePlaceholder
-  },
-  {
-    key: 'mecato',
-    path: '/mecato',
-    meta: {
-      title: 'Mecato',
-      roles: staff,
-      section: 'future',
-      icon: Candy,
-      assistantSummary:
-        'Mecato: gestión de productos y consumos del punto de venta complementario.'
-    },
-    component: ModulePlaceholder
-  },
-  {
-    key: 'facturas',
-    path: '/facturas',
-    meta: {
-      title: 'Facturas',
-      roles: staff,
-      section: 'future',
-      icon: FileText,
-      assistantSummary: 'Facturas: revisión e impresión de comprobantes del negocio.'
-    },
-    component: ModulePlaceholder
   },
 
   // ── Solo Administrador ─────────────────────────────────────────────

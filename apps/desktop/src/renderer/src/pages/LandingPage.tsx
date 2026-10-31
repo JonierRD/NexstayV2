@@ -2,7 +2,6 @@ import {
   ArrowRight,
   BedDouble,
   CalendarCheck,
-  Car,
   Check,
   ChevronDown,
   ConciergeBell,
@@ -39,11 +38,6 @@ const hotelServices = [
     title: 'Reservas y estancias',
     description: 'Mantén el control de reservas, fechas de ingreso, salida y estados.'
   },
-  {
-    icon: Car,
-    title: 'Parqueadero',
-    description: 'Lleva un registro organizado del parqueadero asociado a huéspedes y clientes.'
-  }
 ];
 
 const platformFeatures = [
@@ -52,7 +46,6 @@ const platformFeatures = [
   { icon: CalendarCheck, title: 'Reservas y estancias', description: 'Organiza fechas, disponibilidad y confirmaciones.' },
   { icon: ShoppingCart, title: 'Consumos y ventas', description: 'Registra ventas y consumos vinculados a la operación.' },
   { icon: Package, title: 'Inventario', description: 'Controla productos, existencias y alertas de bajo stock.' },
-  { icon: Car, title: 'Parqueadero', description: 'Gestiona registros asociados a huéspedes y clientes.' },
   { icon: Shirt, title: 'Lavandería', description: 'Da seguimiento a órdenes, estados y servicios de ropa.' },
   { icon: Settings, title: 'Configuración', description: 'Adapta los datos del hotel, políticas y preferencias del sistema.' },
   { icon: LayoutDashboard, title: 'Vista general', description: 'Revisa las métricas y accesos importantes de la jornada.' }
@@ -93,9 +86,6 @@ export function LandingPage({ onLogin }: LandingPageProps): ReactElement {
                 {label}
               </a>
             ))}
-            <button type="button" onClick={() => { closeMenu(); onLogin(); }} className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg bg-sapay-900 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,42,27,0.18)] transition hover:bg-sapay-850 md:mt-0">
-              Iniciar sesión <ArrowRight size={16} />
-            </button>
           </div>
         </div>
       </header>
@@ -131,7 +121,7 @@ export function LandingPage({ onLogin }: LandingPageProps): ReactElement {
 
       <section id="funcionalidades" className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10 lg:py-24"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[0.28em] text-sapay-700">Funcionalidades de la plataforma</p><h2 className="mt-3 text-3xl font-semibold text-sapay-1000 sm:text-4xl">La operación del hotel, en una sola vista.</h2></div><p className="max-w-sm text-sm leading-6 text-sapay-700">Herramientas para el personal autorizado. El acceso a cada módulo depende del rol dentro de la plataforma.</p></div><div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{platformFeatures.map(({ icon: Icon, title, description }) => <article key={title} className="flex gap-4 rounded-xl border border-sapay-300 bg-sapay-50 p-5 transition hover:-translate-y-0.5 hover:border-sapay-500 hover:shadow-[0_12px_28px_rgba(67,42,27,0.08)]"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sapay-200 text-sapay-900"><Icon size={19} /></div><div><h3 className="text-sm font-semibold text-sapay-1000">{title}</h3><p className="mt-1 text-sm leading-6 text-sapay-700">{description}</p></div></article>)}</div></section>
 
-      <section className="mx-5 mb-16 overflow-hidden rounded-2xl bg-sapay-900 px-6 py-14 text-center text-white shadow-[0_24px_60px_rgba(67,42,27,0.18)] sm:mx-8 sm:px-10 lg:mx-auto lg:max-w-7xl"><p className="text-xs font-bold uppercase tracking-[0.28em] text-[#f3c331]">Acceso para personal autorizado</p><h2 className="mt-4 text-3xl font-semibold sm:text-4xl">¿Listo para gestionar SAPAY Hotel?</h2><p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">Accede a la plataforma para administrar las operaciones del hotel desde un solo lugar.</p><button type="button" onClick={onLogin} className="mt-8 inline-flex items-center gap-2 rounded-lg bg-[#f3c331] px-6 py-3 text-sm font-bold text-sapay-1000 transition hover:bg-[#ffd866]">Acceder al sistema <ArrowRight size={17} /></button></section>
+      <section className="mx-5 mb-16 overflow-hidden rounded-2xl bg-sapay-900 px-6 py-14 text-center text-white shadow-[0_24px_60px_rgba(67,42,27,0.18)] sm:mx-8 sm:px-10 lg:mx-auto lg:max-w-7xl"><p className="text-xs font-bold uppercase tracking-[0.28em] text-[#f3c331]">Acceso para personal autorizado</p><h2 className="mt-4 text-3xl font-semibold sm:text-4xl">¿Listo para gestionar SAPAY Hotel?</h2><p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">Accede a la plataforma para administrar las operaciones del hotel desde un solo lugar.</p></section>
 
       <footer className="border-t border-sapay-300 bg-sapay-150"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-10"><div className="flex items-center gap-3"><img src={Logo} alt="SAPAY Hotel" className="h-10 w-10 rounded-full bg-white object-contain p-0.5" /><div><p className="text-sm font-semibold uppercase tracking-[0.18em] text-sapay-1000">SAPAY Hotel</p><p className="mt-1 text-xs text-sapay-700">Hospitalidad y organización en un solo lugar.</p></div></div><nav className="flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-sapay-700"><a href="#inicio" className="hover:text-sapay-1000">Inicio</a><a href="#sobre-el-hotel" className="hover:text-sapay-1000">Sobre el hotel</a><a href="#servicios" className="hover:text-sapay-1000">Servicios</a><a href="#funcionalidades" className="hover:text-sapay-1000">Funcionalidades</a></nav></div></footer>
     </main>

@@ -12,7 +12,10 @@ import {
   LockKeyhole,
   Mail,
   Camera,
+  Moon,
+  Palette,
   Phone,
+  Sun,
   X,
   ShieldCheck,
   UserRound,
@@ -25,6 +28,7 @@ import { ApiError, forgotPasswordRequest, resetPasswordRequest, type PublicUser 
 import { formatDate } from '../lib/format';
 import hotelLogo from '../assets/login/Logo.png';
 import hotelLobby from '../assets/login/FondoLogin.png';
+import { applyTheme, THEME_LABELS, type ThemeColor } from '../lib/theme';
 
 const ROLE_LABEL: Record<PublicUser['role'], string> = {
   ADMIN: 'Administrador',
@@ -108,6 +112,19 @@ export function PerfilPage({
   const [recoveryConfirmPassword, setRecoveryConfirmPassword] = useState('');
   const [recoveryStatus, setRecoveryStatus] = useState<{ kind: 'success' | 'error'; message: string } | null>(null);
   const [isRecovering, setIsRecovering] = useState(false);
+  const [themeColor, setThemeColor] = useState<ThemeColor>(() => {
+    const value = document.documentElement.dataset.theme;
+    return value === 'verde' || value === 'azul' ? value : 'cafe';
+  });
+  const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+
+  function updateTheme(next: { themeColor?: ThemeColor; darkMode?: boolean }): void {
+    const color = next.themeColor ?? themeColor;
+    const dark = next.darkMode ?? darkMode;
+    setThemeColor(color);
+    setDarkMode(dark);
+    applyTheme({ themeColor: color, darkMode: dark });
+  }
 
   useEffect(() => {
     if (p.profileStatus?.kind === 'success') {
@@ -318,6 +335,22 @@ export function PerfilPage({
             </form>
           </section>
         </div>
+
+        <section className={CARD}>
+          <SectionHeading icon={Palette} title="Apariencia" subtitle="Personaliza los colores y el modo de visualización de tu sesión." />
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {(['cafe', 'verde', 'azul'] as ThemeColor[]).map((theme) => (
+              <button key={theme} type="button" onClick={() => updateTheme({ themeColor: theme })}
+                className={`rounded-lg border px-3 py-2 text-[11px] ${themeColor === theme ? 'border-sapay-900 bg-sapay-100 font-semibold text-sapay-900' : 'border-sapay-350 text-sapay-750'}`}>
+                {THEME_LABELS[theme].split(' ')[0]}
+              </button>
+            ))}
+            <button type="button" onClick={() => updateTheme({ darkMode: !darkMode })}
+              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-sapay-350 px-3 py-2 text-[11px] text-sapay-800">
+              {darkMode ? <Moon size={14} /> : <Sun size={14} />}{darkMode ? 'Desactivar modo oscuro' : 'Activar modo oscuro'}
+            </button>
+          </div>
+        </section>
 
         <section className={`${CARD} grid gap-4 sm:grid-cols-3`}>
           <div className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f8ebc9] text-sapay-800"><BedDouble size={18} /></span><div><p className="text-[13px] font-bold text-sapay-950">17</p><p className="text-[10px] text-sapay-700">Habitaciones</p></div></div>

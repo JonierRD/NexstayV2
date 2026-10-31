@@ -10,7 +10,7 @@ import {
 } from '../../lib/api';
 import { INITIAL_FORM, type ProductFormData, type StockFilter } from './types';
 
-export function useInventario() {
+export function useInventario({ canEditPrices = true }: { canEditPrices?: boolean } = {}) {
   const [items, setItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -149,7 +149,7 @@ export function useInventario() {
       setError('El nombre del producto es obligatorio.');
       return;
     }
-    if (formData.price === '' || Number(formData.price) < 0) {
+    if (canEditPrices && (formData.price === '' || Number(formData.price) < 0)) {
       setError('El precio unitario no puede ser negativo.');
       return;
     }
@@ -162,8 +162,7 @@ export function useInventario() {
         // Actualizar producto
         await updateProductRequest(editingItem.product.id, {
           name: formData.name.trim(),
-          category: formData.category,
-          price: Number(formData.price),
+          ...(canEditPrices ? { category: formData.category, price: Number(formData.price) } : {}),
           description: formData.description.trim() || undefined
         });
 
@@ -180,7 +179,7 @@ export function useInventario() {
         const newProd = await createProductRequest({
           name: formData.name.trim(),
           category: formData.category,
-          price: Number(formData.price),
+          price: canEditPrices ? Number(formData.price) : 0,
           description: formData.description.trim() || undefined
         });
 

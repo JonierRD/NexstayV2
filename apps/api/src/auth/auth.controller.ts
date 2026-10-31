@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { Role } from '@prisma/client';
 import { AuthService, type AuthResult } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
@@ -13,7 +12,6 @@ import { CurrentUser } from './current-user.decorator';
 import type { AuthenticatedUser, JwtPayload, PublicUser } from './auth.types';
 import type { SeededAdmin } from './seed.service';
 import { SeedService } from './seed.service';
-import { AdminGuard } from './admin.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -28,7 +26,7 @@ export class AuthController {
   }
 
   @Post('register')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   register(@Body() registerDto: RegisterDto): Promise<AuthResult> {
     return this.authService.register(registerDto);
   }

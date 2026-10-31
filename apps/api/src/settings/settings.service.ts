@@ -53,6 +53,7 @@ export class SettingsService implements OnModuleInit {
         checkinLimit: dto.checkinLimit,
         checkoutLimit: dto.checkoutLimit,
         checkoutTolerance: dto.checkoutTolerance,
+        checkoutOvertimeRate: dto.checkoutOvertimeRate,
         cancellationPolicy: dto.cancellationPolicy,
         aiEnabled: dto.aiEnabled
       }

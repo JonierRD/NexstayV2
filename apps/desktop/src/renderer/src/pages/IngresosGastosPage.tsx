@@ -1,4 +1,4 @@
-import { DollarSign, Plus, Search, TrendingDown, TrendingUp, Wallet, X } from 'lucide-react';
+import { DollarSign, Pencil, Plus, Search, TrendingDown, TrendingUp, Wallet, X } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent, type ReactElement } from 'react';
 import { formatCOP, formatDateShort } from '../lib/format';
 import { Button } from '../components/ui/Button';
@@ -13,14 +13,17 @@ import {
   type FinanceMovement,
   type FinancePayload
 } from '../lib/api';
+import { updateFinanceRequest } from '../lib/api';
+import type { PublicUser } from '../lib/api';
 
 type MovementType = FinanceMovement['type'];
 type Filter = 'TODOS' | MovementType;
 
-const categories = ['Hospedaje', 'Reservas', 'Parqueadero', 'Lavandería', 'Ventas', 'Servicios', 'Compras', 'Nómina', 'Otros'];
+const categories = ['Hospedaje', 'Reservas', 'Lavandería', 'Ventas', 'Servicios', 'Compras', 'Nómina', 'Otros'];
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function IngresosGastosPage(): ReactElement {
+export function IngresosGastosPage({ user }: { user: PublicUser }): ReactElement {
+  const isAdmin = user.role === 'ADMIN';
   const [movements, setMovements] = useState<FinanceMovement[]>([]);
   const [summary, setSummary] = useState({ income: 0, expense: 0, balance: 0 });
   const [loading, setLoading] = useState(true);
@@ -37,6 +40,7 @@ export function IngresosGastosPage(): ReactElement {
   });
   const [toDelete, setToDelete] = useState<FinanceMovement | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState<FinanceMovement | null>(null);
 
   const load = async () => {
     try {
@@ -75,9 +79,11 @@ export function IngresosGastosPage(): ReactElement {
         amount,
         date: form.date
       };
-      await createFinanceRequest(payload);
+      if (editing) await updateFinanceRequest(editing.id, payload);
+      else await createFinanceRequest(payload);
       setForm({ ...form, description: '', amount: '' });
       setFormOpen(false);
+      setEditing(null);
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Error guardando');
@@ -87,7 +93,7 @@ export function IngresosGastosPage(): ReactElement {
   }
 
   async function confirmDelete() {
-    if (!toDelete) return;
+    if (!toDelete || !isAdmin) return;
     try {
       await deleteFinanceRequest(toDelete.id);
       setToDelete(null);
@@ -95,6 +101,18 @@ export function IngresosGastosPage(): ReactElement {
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Error eliminando');
     }
+  }
+
+  function openEdit(item: FinanceMovement) {
+    setEditing(item);
+    setForm({ type: item.type, category: item.category, description: item.description, amount: String(item.amount), date: item.movementDate.slice(0, 10) });
+    setFormOpen(true);
+  }
+
+  function openCreate() {
+    setEditing(null);
+    setForm({ type: 'INGRESO', category: 'Hospedaje', description: '', amount: '', date: today() });
+    setFormOpen(true);
   }
 
   return (
@@ -114,7 +132,7 @@ export function IngresosGastosPage(): ReactElement {
           <option value="INGRESO">Solo ingresos</option>
           <option value="GASTO">Solo gastos</option>
         </select>
-        <Button onClick={() => setFormOpen(true)} className="h-9 rounded-lg bg-sapay-900 px-3 text-xs text-white">
+        <Button onClick={openCreate} className="h-9 rounded-lg bg-sapay-900 px-3 text-xs text-white">
           <Plus size={14} /> Registrar movimiento
         </Button>
       </div>
@@ -159,9 +177,10 @@ export function IngresosGastosPage(): ReactElement {
                       {item.type === 'INGRESO' ? '+' : '-'}{formatCOP(item.amount)}
                     </td>
                     <td className="px-3 py-3 text-right">
-                      <button type="button" onClick={() => setToDelete(item)} className="rounded-lg p-1.5 text-sapay-600 hover:bg-rose-50 hover:text-rose-700" aria-label="Eliminar movimiento">
-                        <X size={14} />
-                      </button>
+                      <div className="flex justify-end gap-1">
+                        <button type="button" onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-sapay-600 hover:bg-sapay-100" aria-label="Editar movimiento"><Pencil size={14} /></button>
+                        {isAdmin && <button type="button" onClick={() => setToDelete(item)} className="rounded-lg p-1.5 text-sapay-600 hover:bg-rose-50 hover:text-rose-700" aria-label="Eliminar movimiento"><X size={14} /></button>}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -171,7 +190,7 @@ export function IngresosGastosPage(): ReactElement {
         )}
       </section>
       {formOpen && (
-        <Modal title="Registrar movimiento" onClose={() => setFormOpen(false)}>
+        <Modal title={editing ? 'Editar movimiento' : 'Registrar movimiento'} onClose={() => { setFormOpen(false); setEditing(null); }}>
           <form onSubmit={submit} className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setForm({ ...form, type: 'INGRESO' })} className={`rounded-lg border py-2 text-xs font-semibold ${form.type === 'INGRESO' ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-sapay-300'}`}>Ingreso</button>
@@ -193,11 +212,11 @@ export function IngresosGastosPage(): ReactElement {
             <label className="block text-[11px] font-medium">Fecha
               <input type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} className="mt-1 w-full rounded-lg border border-sapay-350 px-3 py-2 text-xs" />
             </label>
-            <Button type="submit" disabled={saving} className="w-full bg-sapay-900 text-white disabled:opacity-50">{saving ? 'Guardando...' : 'Guardar movimiento'}</Button>
+            <Button type="submit" disabled={saving} className="w-full bg-sapay-900 text-white disabled:opacity-50">{saving ? 'Guardando...' : editing ? 'Guardar cambios' : 'Guardar movimiento'}</Button>
           </form>
         </Modal>
       )}
-      {toDelete && (
+      {isAdmin && toDelete && (
         <ConfirmModal
           title="¿Eliminar este movimiento?"
           message="Esta acción no se puede deshacer."

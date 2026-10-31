@@ -9,6 +9,7 @@ import { UpdateStockDto } from './dto/update-stock.dto';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { CreateSalesBatchDto } from './dto/create-sales-batch.dto';
 import { AdjustStockDto } from './dto/adjust-stock.dto';
+import { AdminGuard } from '../auth/admin.guard';
 
 @Controller('inventory')
 @UseGuards(JwtAuthGuard)
@@ -78,6 +79,7 @@ export class InventoryController {
   }
 
   @Delete(':id')
+  @UseGuards(AdminGuard)
   async remove(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.service.remove(parseInt(id), user);
   }

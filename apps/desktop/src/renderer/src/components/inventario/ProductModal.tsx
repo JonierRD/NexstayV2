@@ -9,13 +9,15 @@ export function ProductModal({
   formData,
   setFormData,
   onSubmit,
-  onClose
+  onClose,
+  canEditPrices = true
 }: {
   editingItem: StockItem | null;
   formData: ProductFormData;
   setFormData: React.Dispatch<React.SetStateAction<ProductFormData>>;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
+  canEditPrices?: boolean;
 }) {
   return (
     <Modal
@@ -66,6 +68,7 @@ export function ProductModal({
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                disabled={!canEditPrices && !!editingItem}
                 className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none transition focus:border-sapay-600 focus:bg-white"
               >
                 <option value="BEBIDAS">Bebidas</option>
@@ -87,14 +90,15 @@ export function ProductModal({
                 step="100"
                 required
                 placeholder="Ej: 3000"
-                value={formData.price}
+                value={!canEditPrices && formData.price === '' ? 0 : formData.price}
+                disabled={!canEditPrices}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
                     price: e.target.value === '' ? '' : Number(e.target.value)
                   })
                 }
-                className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none transition placeholder:text-sapay-550 focus:border-sapay-600 focus:bg-white font-medium"
+                className="h-9 w-full rounded-xl border border-sapay-400 bg-sapay-100 px-3 text-[12px] text-sapay-950 outline-none transition placeholder:text-sapay-550 focus:border-sapay-600 focus:bg-white font-medium disabled:opacity-60"
               />
             </div>
           </div>

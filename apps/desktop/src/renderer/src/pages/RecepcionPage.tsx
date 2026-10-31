@@ -30,6 +30,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     hasSearched,
     ccHistory,
     availableRooms,
+    upcomingReservation,
     handleSearchClient,
     handleContinueToRoom,
     handleSelectRoom,
@@ -93,6 +94,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                 setAcType={setAcType}
                 checkInDate={checkInDate}
                 setCheckInDate={setCheckInDate}
+                upcomingReservation={upcomingReservation}
                 setStep={setStep}
               />
             )}

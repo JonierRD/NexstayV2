@@ -35,11 +35,7 @@ function nightsBetween(checkIn: Date, checkOut: Date): number {
 }
 
 function overlapWhere(roomNumber: string, checkIn: Date, checkOut: Date) {
-  return {
-    roomNumber,
-    checkIn: { lt: checkOut },
-    checkOut: { gt: checkIn }
-  };
+  return { roomNumber, checkIn: { lt: checkOut }, checkOut: { gt: checkIn } };
 }
 
 @Injectable()
@@ -96,7 +92,7 @@ export class ReservationsService {
     const unavailable = new Set([
       ...reservations.map((reservation) => reservation.roomNumber),
       ...stays.map((stay) => stay.roomNumber),
-      ...rooms.filter((room) => room.status === 'MANTENIMIENTO' || room.status === 'RESERVADA').map((room) => room.number)
+      ...rooms.filter((room) => room.status === 'MANTENIMIENTO').map((room) => room.number)
     ]);
     return { unavailableRoomNumbers: [...unavailable] };
   }
@@ -126,7 +122,7 @@ export class ReservationsService {
     const reservation = await this.prisma.$transaction(async (tx) => {
       const room = await tx.room.findUnique({ where: { number: dto.roomNumber } });
       if (!room) throw new NotFoundException(`La habitación ${dto.roomNumber} no existe.`);
-      if (room.status === 'MANTENIMIENTO' || room.status === 'RESERVADA') {
+      if (room.status === 'MANTENIMIENTO') {
         throw new ConflictException('La habitación está bloqueada o en mantenimiento.');
       }
       this.validateAcType(dto.acTypeUsed, room);
@@ -137,10 +133,6 @@ export class ReservationsService {
         throw new BadRequestException('La habitación no tiene una tarifa válida para esa opción.');
       }
       const total = new Prisma.Decimal(nightly).mul(nights).toDecimalPlaces(0);
-      await tx.room.update({
-        where: { number: room.number },
-        data: { status: 'RESERVADA' }
-      });
       const client = await tx.client.upsert({
         where: { cc: dto.cc.trim() },
         create: {
@@ -210,7 +202,7 @@ export class ReservationsService {
     const updated = await this.prisma.$transaction(async (tx) => {
       const room = await tx.room.findUnique({ where: { number: roomNumber } });
       if (!room) throw new NotFoundException(`La habitación ${roomNumber} no existe.`);
-      if (room.status === 'MANTENIMIENTO' || room.status === 'RESERVADA') throw new ConflictException('La habitación está bloqueada o en mantenimiento.');
+      if (room.status === 'MANTENIMIENTO') throw new ConflictException('La habitación está en mantenimiento.');
       this.validateAcType(acTypeUsed, room);
       await this.assertAvailable(tx, roomNumber, checkIn, checkOut, id);
       const nightly = acTypeUsed === 'AIRE' ? room.priceWithAir : room.priceWithFan;

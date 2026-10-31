@@ -14,14 +14,6 @@ export type Cliente = {
   notes: string | null;
   createdAt: string;
   stays?: Stay[];
-  parkingSessions?: Array<{
-    id: number;
-    licensePlate: string;
-    entryAt: string;
-    exitAt: string | null;
-    status: 'ACTIVO' | 'CERRADO';
-    amount: number;
-  }>;
 };
 
 export type CreateClienteInput = {
