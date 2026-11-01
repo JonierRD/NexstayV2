@@ -1,21 +1,90 @@
-import { describe, it } from 'vitest';
-
-// Responsable: Harold
-// Objetivo: interceptor global de fetch para 401/403.
-//   import { applyAuthInterceptors } from '@/lib/api/interceptors';
-//   import { authEvents } from '@/lib/api/authEvents';
-//   import { resetAuthInterceptors, jsonResponse, stubFetch } from '../helpers/mocks';
-//
-// OJO: hay un bug conocido aqui. `isPublicAuthPath` recibe la URL absoluta y
-// nunca usa `toPathname`, asi que un login fallido (401 en /auth/login) dispara
-// "sesion expirada". Escribe el test que lo demuestre y luego corrige el codigo
-// en un commit aparte (avisando a Jonier).
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { applyAuthInterceptors } from '@/lib/api/interceptors';
+import { authEvents } from '@/lib/api/authEvents';
+import { setStoredToken } from '@/lib/api/client';
+import {
+  jsonResponse,
+  resetAuthInterceptors,
+  stubFetch
+} from '../helpers/mocks';
 
 describe('U5 - lib/api/interceptors.ts', () => {
-  it.todo('adjunta el token guardado a las peticiones');
-  it.todo('no sobrescribe un Authorization ya presente');
-  it.todo('un 401 en /auth/login NO emite unauthorized ni borra el token');
-  it.todo('un 401 en una ruta privada emite unauthorized y borra el token');
-  it.todo('un 403 emite forbidden con el motivo');
-  it.todo('aplicar el interceptor dos veces no lo envuelve dos veces');
+  beforeEach(() => {
+    resetAuthInterceptors();
+    setStoredToken('token-123');
+  });
+
+  it('adjunta el token guardado a las peticiones', async () => {
+    const fetchMock = stubFetch(() => jsonResponse({ ok: true }));
+    applyAuthInterceptors();
+
+    await fetch('http://api.test/private');
+
+    expect(fetchMock.mock.calls[0][0]).toBeInstanceOf(Request);
+    expect((fetchMock.mock.calls[0][0] as Request).headers.get('Authorization')).toBe(
+      'Bearer token-123'
+    );
+  });
+
+  it('no sobrescribe un Authorization ya presente', async () => {
+    const fetchMock = stubFetch(() => jsonResponse({ ok: true }));
+    applyAuthInterceptors();
+
+    await fetch('http://api.test/private', { headers: { Authorization: 'Bearer custom' } });
+
+    expect((fetchMock.mock.calls[0][0] as Request).headers.get('Authorization')).toBe(
+      'Bearer custom'
+    );
+  });
+
+  it('un 401 en /auth/login NO emite unauthorized ni borra el token', async () => {
+    const emit = vi.spyOn(authEvents, 'emit');
+    stubFetch(() => jsonResponse({ message: 'Credenciales invalidas' }, { status: 401 }));
+    applyAuthInterceptors();
+
+    await fetch('http://api.test/auth/login');
+
+    expect(emit).not.toHaveBeenCalledWith('unauthorized', expect.anything());
+    expect(localStorage.getItem('sapay-token')).toBe('token-123');
+  });
+
+  it('un 401 en una ruta privada emite unauthorized y borra el token', async () => {
+    const emit = vi.spyOn(authEvents, 'emit');
+    stubFetch(() => jsonResponse({ message: 'Expirada' }, { status: 401 }));
+    applyAuthInterceptors();
+
+    await fetch('http://api.test/stays');
+
+    expect(localStorage.getItem('sapay-token')).toBeNull();
+    expect(emit).toHaveBeenCalledWith(
+      'unauthorized',
+      expect.objectContaining({ status: 401, path: 'http://api.test/stays' })
+    );
+  });
+
+  it('un 403 emite forbidden con el motivo', async () => {
+    const emit = vi.spyOn(authEvents, 'emit');
+    stubFetch(() => jsonResponse({ message: 'Sin permisos' }, { status: 403 }));
+    applyAuthInterceptors();
+
+    await fetch('http://api.test/admin');
+
+    expect(emit).toHaveBeenCalledWith(
+      'forbidden',
+      expect.objectContaining({
+        status: 403,
+        reason: 'No tienes permisos para realizar esta acción.'
+      })
+    );
+  });
+
+  it('aplicar el interceptor dos veces no lo envuelve dos veces', async () => {
+    const fetchMock = stubFetch(() => jsonResponse({ ok: true }));
+    applyAuthInterceptors();
+    applyAuthInterceptors();
+
+    await fetch('http://api.test/private');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

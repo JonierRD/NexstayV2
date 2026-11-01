@@ -72,7 +72,7 @@ export function applyAuthInterceptors(): void {
 
     const response = await originalFetch(request);
 
-    if (response.status === 401 && !isPublicAuthPath(path)) {
+    if (response.status === 401 && !isPublicAuthPath(toPathname(path))) {
       setStoredToken(null);
       dispatchAuthEvent('unauthorized', {
         reason: 'Tu sesión expiró. Inicia sesión nuevamente.',
