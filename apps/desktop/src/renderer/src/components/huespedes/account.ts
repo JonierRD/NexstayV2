@@ -17,9 +17,9 @@ export type StayAccountSummary = {
  * (crédito de la reserva + pagos parciales).
  */
 export function computeStayAccount(stay: Stay, nights?: number): StayAccountSummary {
-  const roomTotal = nights === undefined && stay.status === 'ACTIVA'
+  const roomTotal = stay.status === 'FINALIZADA'
     ? Number(stay.total)
-    : Number(stay.pricePerNight) * (nights ?? stay.nights ?? 1) + (stay.status === 'ACTIVA' ? Number(stay.overtimeAmount ?? 0) : 0);
+    : Number(stay.pricePerNight) * (nights ?? stay.nights ?? 1) + Number(stay.overtimeAmount ?? 0);
   const salesTotal = (stay.sales ?? [])
     .filter((sale) => sale.saleType === 'FIADO' || !sale.saleType)
     .reduce((sum, sale) => sum + Number(sale.unitPrice) * sale.quantity, 0);
