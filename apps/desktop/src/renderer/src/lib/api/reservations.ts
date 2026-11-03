@@ -18,6 +18,7 @@ export type Reservation = {
   roomNumber: string;
   checkIn: string;
   checkOut: string;
+  isIndefinite: boolean;
   nights: number;
   pricePerNight: number;
   total: number;
@@ -35,6 +36,7 @@ export type CreateReservationInput = Omit<CreateClienteInput, 'adminPassword'> &
   roomNumber: string;
   checkIn: string;
   checkOut: string;
+  isIndefinite?: boolean;
   acTypeUsed: 'AIRE' | 'VENTILADOR';
   paymentConfirmed: boolean;
   cancellationPolicyAccepted: boolean;
@@ -49,6 +51,7 @@ export type UpdateReservationInput = Partial<Omit<CreateReservationInput,
   additionalPaymentMethod?: string;
   additionalPaymentReference?: string;
   refundConfirmed?: boolean;
+  refundAmount?: number;
   refundMethod?: string;
   refundReference?: string;
 };
@@ -72,12 +75,15 @@ export async function updateReservationRequest(id: number, input: UpdateReservat
 }
 
 export async function cancelReservationRequest(id: number, input: {
-  forceWaiver?: boolean; forceReason?: string; confirmationText?: string;
-  refundConfirmed?: boolean; refundMethod?: string; refundReference?: string;
-}): Promise<{ reservation: Reservation; penalty: number; refund: number; forceWaiver: boolean }> {
+  refundConfirmed?: boolean; refundAmount?: number; refundMethod?: string; refundReference?: string;
+}): Promise<{ reservation: Reservation; penalty: number; refund: number }> {
   return apiRequest(`/reservations/${id}/cancel`, { method: 'POST', body: input });
 }
 
 export async function checkinReservationRequest(id: number): Promise<{ id: number }> {
   return apiRequest<{ id: number }>(`/reservations/${id}/checkin`, { method: 'POST' });
+}
+
+export async function deleteCancelledReservationRequest(id: number): Promise<{ success: boolean }> {
+  return apiRequest<{ success: boolean }>(`/reservations/${id}`, { method: 'DELETE' });
 }

@@ -2,22 +2,34 @@ import { AlertTriangle, BedDouble, CheckCircle2, Clock, LogOut, Package, Shirt, 
 import { type ReactElement, useState } from 'react';
 import { type Stay } from '../../lib/api';
 import { formatCOP, formatDateTime } from '../../lib/format';
+import { useSettingsCached } from '../../lib/settingsCache';
 
 type Props = {
   stay: Stay;
   onClose: () => void;
-  onConfirm: (nights: number, paymentMethod: string, paymentConfirmed: boolean) => void;
+  onConfirm: (nights: number, paymentMethod: string, paymentConfirmed: boolean, chargeOvertime: boolean) => void;
   isProcessing: boolean;
 };
 
 export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props): ReactElement {
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  // El excedente es opcional: solo se cobra cuando el hotel está lleno.
+  const [chargeOvertime, setChargeOvertime] = useState(false);
+  const settings = useSettingsCached();
   const guestName = stay.client ? `${stay.client.firstName} ${stay.client.lastName}` : 'Huésped sin nombre';
   const cc = stay.client?.cc ?? 'Sin documento';
 
   const roomPrice = Number(stay.pricePerNight);
-  const roomTotal = (stay.nights || 1) * roomPrice;
+  const overtimeAmount = Number(stay.overtimeAmount ?? 0);
+  const currentRoomTotal = Number(stay.total) || (stay.nights || 1) * roomPrice;
+  const roomTotal = currentRoomTotal + (chargeOvertime ? overtimeAmount : 0);
+  const checkoutLimit = settings?.checkoutLimit || '13:00';
+  const [limitHour, limitMinute] = checkoutLimit.split(':').map(Number);
+  const checkoutLimitMinutes = (Number.isFinite(limitHour) ? limitHour : 13) * 60 + (Number.isFinite(limitMinute) ? limitMinute : 0);
+  const toleranceEndMinutes = checkoutLimitMinutes + Number(stay.checkoutToleranceMinutes ?? settings?.checkoutTolerance ?? 180);
+  const toleranceEnd = `${String(Math.floor(toleranceEndMinutes / 60)).padStart(2, '0')}:${String(toleranceEndMinutes % 60).padStart(2, '0')}`;
+  const canChargeOvertime = overtimeAmount > 0;
   const reservationPaid = stay.reservation?.payments?.reduce(
     (sum, payment) => sum + (payment.type === 'PAGO' ? Number(payment.amount) : -Number(payment.amount)),
     0
@@ -109,10 +121,28 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           <div className="flex items-center gap-2.5 rounded-xl border border-sapay-350 bg-sapay-100 p-3 text-[11px] text-sapay-750">
             <Clock size={14} className="shrink-0 text-sapay-700" />
             <span>
-              Hora límite de salida: <strong className="font-semibold text-sapay-900">13:00</strong>.
-              A las 13:00 exactas se cobra la noche anterior; después de esa hora cuenta una noche adicional.
+              Hora límite de salida: <strong className="font-semibold text-sapay-900">{checkoutLimit}</strong>.
+              Hasta las <strong className="font-semibold text-sapay-900">{toleranceEnd}</strong> puedes agregar {formatCOP(stay.checkoutOvertimeRate ?? 10000)} por cada hora iniciada a la cuenta; después de esa hora cuenta una noche adicional completa.
             </span>
           </div>
+
+          {canChargeOvertime && (
+            <label className="flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-[11px] text-amber-950 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={chargeOvertime}
+                disabled={isProcessing}
+                onChange={(event) => setChargeOvertime(event.target.checked)}
+              />
+              <span>
+                <strong>Hotel lleno:</strong> agregar cobro por exceso de tiempo a la cuenta: <strong>{formatCOP(overtimeAmount)}</strong> ({formatCOP(stay.checkoutOvertimeRate ?? 10000)} por hora iniciada).
+                <span className="mt-0.5 block text-[10px] text-amber-800">
+                  Déjalo desmarcado si hay habitaciones disponibles: el excedente es opcional y solo se cobra cuando el hotel está lleno.
+                </span>
+              </span>
+            </label>
+          )}
 
           {/* Desglose 1: Hospedaje */}
           <div className="rounded-2xl border border-sapay-350 bg-white p-3.5">
@@ -130,6 +160,12 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
             <div className="flex items-center justify-between text-[11px] text-sapay-700 pl-5 mt-1.5">
               <span>Noches a liquidar:</span><span className="font-bold text-sapay-950">{stay.nights || 1}</span>
             </div>
+            {chargeOvertime && overtimeAmount > 0 && (
+              <div className="flex items-center justify-between text-[11px] text-amber-800 pl-5 mt-1">
+                <span>Excedente de salida:</span>
+                <span className="font-bold">+{formatCOP(overtimeAmount)}</span>
+              </div>
+            )}
             {stay.reservation && (
               <div className="mt-2 flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-[11px] text-emerald-800">
                 <span>Pago de reserva aplicado:</span>
@@ -258,7 +294,7 @@ export function CheckoutModal({ stay, onClose, onConfirm, isProcessing }: Props)
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(stay.nights || 1, paymentMethod, paymentConfirmed || outstanding === 0)}
+            onClick={() => onConfirm(stay.nights || 1, paymentMethod, paymentConfirmed || outstanding === 0, chargeOvertime)}
             disabled={isProcessing || (outstanding > 0 && !paymentConfirmed)}
             className="flex items-center gap-1.5 rounded-xl bg-sapay-900 px-5 py-2 text-[12px] font-bold text-white transition hover:bg-sapay-850 disabled:opacity-60 shadow-sm"
           >

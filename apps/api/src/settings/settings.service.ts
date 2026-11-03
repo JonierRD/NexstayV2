@@ -39,23 +39,26 @@ export class SettingsService implements OnModuleInit {
 
   /** Actualiza solo las propiedades enviadas; las demás se conservan. */
   async update(dto: UpdateSettingsDto): Promise<AppSettingsData> {
-    const settings = await this.prisma.appSettings.update({
+    const data = {
+      hotelName: dto.hotelName,
+      hotelNit: dto.hotelNit,
+      hotelAddress: dto.hotelAddress,
+      hotelPhone: dto.hotelPhone,
+      hotelEmail: dto.hotelEmail,
+      logoDataUrl: dto.logoDataUrl,
+      themeColor: dto.themeColor,
+      darkMode: dto.darkMode,
+      checkinLimit: dto.checkinLimit,
+      checkoutLimit: dto.checkoutLimit,
+      checkoutTolerance: dto.checkoutTolerance,
+      checkoutOvertimeRate: dto.checkoutOvertimeRate,
+      cancellationPolicy: dto.cancellationPolicy,
+      aiEnabled: dto.aiEnabled
+    };
+    const settings = await this.prisma.appSettings.upsert({
       where: { id: 1 },
-      data: {
-        hotelName: dto.hotelName,
-        hotelNit: dto.hotelNit,
-        hotelAddress: dto.hotelAddress,
-        hotelPhone: dto.hotelPhone,
-        hotelEmail: dto.hotelEmail,
-        logoDataUrl: dto.logoDataUrl,
-        themeColor: dto.themeColor,
-        darkMode: dto.darkMode,
-        checkinLimit: dto.checkinLimit,
-        checkoutLimit: dto.checkoutLimit,
-        checkoutTolerance: dto.checkoutTolerance,
-        cancellationPolicy: dto.cancellationPolicy,
-        aiEnabled: dto.aiEnabled
-      }
+      update: data,
+      create: { id: 1, ...data }
     });
     return toSettingsData(settings);
   }

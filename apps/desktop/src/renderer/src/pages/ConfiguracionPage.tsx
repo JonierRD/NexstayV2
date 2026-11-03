@@ -293,17 +293,9 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
 
           <Card
             title="Políticas del hotel"
-            description="Reglas operativas de salida y cancelación."
+            description="Hora límite de salida, tolerancia y excedente opcional."
           >
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Hora de check-in">
-                <input
-                  type="time"
-                  value={s.checkinLimit}
-                  onChange={(e) => s.setCheckinLimit(e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
               <Field label="Hora límite de salida (check-out)">
                 <input
                   type="time"
@@ -317,9 +309,22 @@ export function ConfiguracionPage({ onNavigate }: Props): ReactElement {
                   type="number"
                   min={0}
                   value={s.checkoutTolerance}
-                  onChange={(e) => s.setCheckoutTolerance(Math.max(0, Number(e.target.value) || 0))}
+                  onChange={(e) => s.setCheckoutTolerance(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
                   className={inputClass}
                 />
+              </Field>
+              <Field label="Tarifa excedente por hora (COP)" className="col-span-2">
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={s.checkoutOvertimeRate}
+                  onChange={(e) => s.setCheckoutOvertimeRate(e.target.value === '' ? '' : Math.max(0, Math.round(Number(e.target.value))))}
+                  className={inputClass}
+                />
+                <p className="mt-1 text-[10px] text-sapay-600">
+                  El excedente es opcional en el check-out: solo se cobra si el hotel está lleno y el huésped sale después de la hora límite (dentro de la tolerancia).
+                </p>
               </Field>
               <Field label="Política de cancelación" className="col-span-2">
                 <textarea

@@ -4,6 +4,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
   Min,
   MinLength
@@ -60,12 +61,18 @@ export class UpdateSettingsDto {
   @IsOptional()
   @IsString({ message: 'Ingresa la hora límite de salida.' })
   @MaxLength(5, { message: 'La hora límite debe tener formato HH:mm.' })
+  @Matches(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'La hora límite debe tener formato HH:mm.' })
   checkoutLimit?: string;
 
   @IsOptional()
   @IsInt({ message: 'La tolerancia de salida debe ser un número.' })
   @Min(0, { message: 'La tolerancia de salida no puede ser negativa.' })
   checkoutTolerance?: number;
+
+  @IsOptional()
+  @IsInt({ message: 'La tarifa de excedente debe ser un número.' })
+  @Min(0, { message: 'La tarifa de excedente no puede ser negativa.' })
+  checkoutOvertimeRate?: number;
 
   @IsOptional()
   @IsString({ message: 'Ingresa una política de cancelación válida.' })

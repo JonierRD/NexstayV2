@@ -55,7 +55,7 @@ export function Modal({
     >
       <div
         className={cn(
-          'app-modal relative w-full rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]',
+        'app-modal relative flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden rounded-2xl border border-sapay-350 bg-white p-5 shadow-[0_30px_80px_rgba(0,0,0,0.25)]',
           maxWidthClass,
           className
         )}
@@ -77,7 +77,7 @@ export function Modal({
           )
         )}
 
-        <div className={cn(title ? 'mt-4' : '')}>{children}</div>
+        <div className={cn('min-h-0 overflow-y-auto', title ? 'mt-4' : '')}>{children}</div>
       </div>
     </div>
   );

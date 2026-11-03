@@ -6,6 +6,16 @@ export function formatDate(value: string | Date): string {
   return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(value));
 }
 
+/**
+ * Fechas de solo día (reservas): se guardan como medianoche UTC, por lo que
+ * formatearlas en hora local de Bogotá mostraría el día anterior.
+ */
+export function formatDateOnly(value: string | Date): string {
+  return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeZone: 'UTC' }).format(
+    new Date(value)
+  );
+}
+
 export function formatDateShort(value: string | Date): string {
   return new Date(value).toLocaleDateString('es-CO', {
     day: '2-digit',

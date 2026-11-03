@@ -1,0 +1,2 @@
+ALTER TABLE "reservas"
+ADD COLUMN "salida_indefinida" BOOLEAN NOT NULL DEFAULT FALSE;

@@ -23,6 +23,7 @@ export class CreateReservationDto {
   @IsString() @IsNotEmpty() roomNumber!: string;
   @IsString() @IsNotEmpty() checkIn!: string;
   @IsString() @IsNotEmpty() checkOut!: string;
+  @IsOptional() @IsBoolean() isIndefinite?: boolean;
   @IsEnum(['AIRE', 'VENTILADOR']) acTypeUsed!: 'AIRE' | 'VENTILADOR';
   @IsBoolean() paymentConfirmed!: boolean;
   @IsBoolean() cancellationPolicyAccepted!: boolean;
@@ -41,21 +42,21 @@ export class UpdateReservationDto {
   @IsOptional() @IsString() roomNumber?: string;
   @IsOptional() @IsString() checkIn?: string;
   @IsOptional() @IsString() checkOut?: string;
+  @IsOptional() @IsBoolean() isIndefinite?: boolean;
   @IsOptional() @IsEnum(['AIRE', 'VENTILADOR']) acTypeUsed?: 'AIRE' | 'VENTILADOR';
   @IsOptional() @IsBoolean() additionalPaymentConfirmed?: boolean;
   @IsOptional() @Type(() => Number) @IsNumber() @Min(0) additionalPaymentAmount?: number;
   @IsOptional() @IsString() additionalPaymentMethod?: string;
   @IsOptional() @IsString() additionalPaymentReference?: string;
   @IsOptional() @IsBoolean() refundConfirmed?: boolean;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) refundAmount?: number;
   @IsOptional() @IsString() refundMethod?: string;
   @IsOptional() @IsString() refundReference?: string;
 }
 
 export class CancelReservationDto {
-  @IsOptional() @IsBoolean() forceWaiver?: boolean;
-  @IsOptional() @IsString() forceReason?: string;
-  @IsOptional() @IsString() confirmationText?: string;
   @IsOptional() @IsBoolean() refundConfirmed?: boolean;
+  @IsOptional() @Type(() => Number) @IsNumber() @Min(0) refundAmount?: number;
   @IsOptional() @IsString() refundMethod?: string;
   @IsOptional() @IsString() refundReference?: string;
 }

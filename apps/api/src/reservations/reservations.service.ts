@@ -10,6 +10,8 @@ import { AuditoriaService } from '../auditoria/auditoria.service';
 import { FinanceService } from '../finance/finance.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StaysService } from '../stays/stays.service';
+import { dateOnlyToUtc } from '../common/hotel-date';
+import { syncRoomHold } from '../common/room-hold';
 import { CancelReservationDto, CreateReservationDto, UpdateReservationDto } from './dto/create-reservation.dto';
 
 const includeReservation = {
@@ -23,7 +25,7 @@ function dateOnly(value: string): Date {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new BadRequestException('La fecha debe tener formato AAAA-MM-DD.');
   }
-  const date = new Date(`${value}T00:00:00.000Z`);
+  const date = dateOnlyToUtc(value);
   if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
     throw new BadRequestException('La fecha indicada no es válida.');
   }
@@ -37,8 +39,7 @@ function nightsBetween(checkIn: Date, checkOut: Date): number {
 function overlapWhere(roomNumber: string, checkIn: Date, checkOut: Date) {
   return {
     roomNumber,
-    checkIn: { lt: checkOut },
-    checkOut: { gt: checkIn }
+    checkIn: { lt: checkOut }
   };
 }
 
@@ -86,17 +87,16 @@ export class ReservationsService {
         select: { roomNumber: true }
       }),
       this.prisma.stay.findMany({
-        where: {
-          status: 'ACTIVA', checkIn: { lt: checkOut },
-          OR: [{ checkOut: null }, { checkOut: { gt: checkIn } }]
-        },
+        where: { status: 'ACTIVA' },
         select: { roomNumber: true }
       })
     ]);
     const unavailable = new Set([
       ...reservations.map((reservation) => reservation.roomNumber),
+      // Un huésped dentro no tiene fecha de salida cierta: la habitación queda
+      // bloqueada para reservas hasta que se registre su check-out.
       ...stays.map((stay) => stay.roomNumber),
-      ...rooms.filter((room) => room.status === 'MANTENIMIENTO' || room.status === 'RESERVADA').map((room) => room.number)
+      ...rooms.filter((room) => room.status === 'MANTENIMIENTO').map((room) => room.number)
     ]);
     return { unavailableRoomNumbers: [...unavailable] };
   }
@@ -113,21 +113,21 @@ export class ReservationsService {
 
   async create(dto: CreateReservationDto, user: JwtPayload) {
     if (!dto.paymentConfirmed) {
-      throw new BadRequestException('Confirma que el pago completo fue recibido para confirmar la reserva.');
+      throw new BadRequestException('Confirma que el anticipo fue recibido para confirmar la reserva.');
     }
     if (!dto.cancellationPolicyAccepted) {
       throw new BadRequestException('El cliente debe aceptar la política de cancelación antes de confirmar.');
     }
     const checkIn = dateOnly(dto.checkIn);
     const checkOut = dateOnly(dto.checkOut);
-    const nights = nightsBetween(checkIn, checkOut);
+      const nights = nightsBetween(checkIn, checkOut);
     if (nights < 1) throw new BadRequestException('La salida debe ser posterior al ingreso.');
 
     const reservation = await this.prisma.$transaction(async (tx) => {
       const room = await tx.room.findUnique({ where: { number: dto.roomNumber } });
       if (!room) throw new NotFoundException(`La habitación ${dto.roomNumber} no existe.`);
-      if (room.status === 'MANTENIMIENTO' || room.status === 'RESERVADA') {
-        throw new ConflictException('La habitación está bloqueada o en mantenimiento.');
+      if (room.status === 'MANTENIMIENTO') {
+        throw new ConflictException('La habitación está en mantenimiento.');
       }
       this.validateAcType(dto.acTypeUsed, room);
       await this.assertAvailable(tx, dto.roomNumber, checkIn, checkOut);
@@ -137,10 +137,6 @@ export class ReservationsService {
         throw new BadRequestException('La habitación no tiene una tarifa válida para esa opción.');
       }
       const total = new Prisma.Decimal(nightly).mul(nights).toDecimalPlaces(0);
-      await tx.room.update({
-        where: { number: room.number },
-        data: { status: 'RESERVADA' }
-      });
       const client = await tx.client.upsert({
         where: { cc: dto.cc.trim() },
         create: {
@@ -162,18 +158,22 @@ export class ReservationsService {
       });
       const created = await tx.reservation.create({
         data: {
-          clientId: client.id, roomNumber: room.number, checkIn, checkOut, nights,
+          clientId: client.id, roomNumber: room.number, checkIn, checkOut, nights, isIndefinite: dto.isIndefinite ?? false,
           pricePerNight: nightly, total, acTypeUsed: dto.acTypeUsed, createdById: user.sub,
           payments: {
             create: {
-              userId: user.sub, type: ReservationPaymentType.PAGO, amount: total,
+              userId: user.sub, type: ReservationPaymentType.PAGO,
+              amount: new Prisma.Decimal(Math.round(Number(total) / 2)),
               method: dto.paymentMethod.trim(), reference: dto.paymentReference?.trim() || null,
-              note: 'Pago completo recibido para confirmar la reserva. Política aceptada: devolución completa con más de 24 horas; dentro de las 24 horas se retiene el 20% del alojamiento.'
+              note: 'Anticipo del 50% recibido para confirmar la reserva. El valor de devolución, si aplica, se define al cancelar.'
             }
           }
         },
         include: includeReservation
       });
+      // Solo las reservas que ocupan hoy retienen la habitación. Las futuras
+      // quedan agendadas sin bloquear el inventario antes de su llegada.
+      await syncRoomHold(tx, room.number);
       return created;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
@@ -187,8 +187,8 @@ export class ReservationsService {
       type: 'INGRESO',
       category: 'Reservas',
       description: `Anticipo reserva ${reservation.id} habitación ${reservation.roomNumber}`,
-      amount: Number(reservation.total),
-      notes: `Automático: pago completo al confirmar reserva`
+      amount: Math.round(Number(reservation.total) / 2),
+      notes: `Automático: anticipo del 50% al confirmar reserva`
     }, user);
     return reservation;
   }
@@ -204,24 +204,27 @@ export class ReservationsService {
     const checkOut = dto.checkOut ? dateOnly(dto.checkOut) : before.checkOut;
     const roomNumber = dto.roomNumber ?? before.roomNumber;
     const acTypeUsed = dto.acTypeUsed ?? before.acTypeUsed;
+    const isIndefinite = dto.isIndefinite ?? before.isIndefinite;
     const nights = nightsBetween(checkIn, checkOut);
     if (nights < 1) throw new BadRequestException('La salida debe ser posterior al ingreso.');
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const room = await tx.room.findUnique({ where: { number: roomNumber } });
       if (!room) throw new NotFoundException(`La habitación ${roomNumber} no existe.`);
-      if (room.status === 'MANTENIMIENTO' || room.status === 'RESERVADA') throw new ConflictException('La habitación está bloqueada o en mantenimiento.');
+      if (room.status === 'MANTENIMIENTO') throw new ConflictException('La habitación está en mantenimiento.');
       this.validateAcType(acTypeUsed, room);
       await this.assertAvailable(tx, roomNumber, checkIn, checkOut, id);
       const nightly = acTypeUsed === 'AIRE' ? room.priceWithAir : room.priceWithFan;
       if (!nightly || Number(nightly) <= 0) throw new BadRequestException('La habitación no tiene una tarifa válida.');
       const total = new Prisma.Decimal(nightly).mul(nights).toDecimalPlaces(0);
       const paid = before.payments.reduce((sum, p) => sum + (p.type === ReservationPaymentType.PAGO ? Number(p.amount) : -Number(p.amount)), 0);
-      const difference = Number(total) - paid;
+      const requiredAdvance = Math.round(Number(total) / 2);
+      const advanceChanged = Number(total) !== Number(before.total) || isIndefinite !== before.isIndefinite;
+      const difference = advanceChanged ? requiredAdvance - paid : 0;
 
       if (difference > 0) {
         if (!dto.additionalPaymentConfirmed || Number(dto.additionalPaymentAmount) !== difference || !dto.additionalPaymentMethod?.trim()) {
-          throw new BadRequestException(`El nuevo total requiere registrar un pago adicional de ${difference}.`);
+          throw new BadRequestException(`El nuevo anticipo requiere registrar un pago adicional de ${difference}.`);
         }
         await tx.reservationPayment.create({ data: {
           reservationId: id, userId: user.sub, type: ReservationPaymentType.PAGO,
@@ -230,15 +233,21 @@ export class ReservationsService {
           note: 'Diferencia cobrada por modificación de la reserva.'
         } });
       } else if (difference < 0) {
-        if (!dto.refundConfirmed || !dto.refundMethod?.trim()) {
-          throw new BadRequestException(`Debe confirmarse la devolución de ${Math.abs(difference)} antes de guardar el cambio.`);
+        const refundAmount = Number(dto.refundAmount ?? 0);
+        if (!Number.isInteger(refundAmount) || refundAmount < 0 || refundAmount > Math.abs(difference)) {
+          throw new BadRequestException('La devolucion debe ser un monto entero dentro del excedente pagado.');
         }
-        await tx.reservationPayment.create({ data: {
-          reservationId: id, userId: user.sub, type: ReservationPaymentType.DEVOLUCION,
-          amount: new Prisma.Decimal(Math.abs(difference)), method: dto.refundMethod.trim(),
-          reference: dto.refundReference?.trim() || null,
-          note: 'Devolución por reducción del total al modificar la reserva.'
-        } });
+        if (refundAmount > 0) {
+          if (!dto.refundConfirmed || !dto.refundMethod?.trim()) {
+            throw new BadRequestException('Confirma la devolucion e indica su metodo antes de guardar.');
+          }
+          await tx.reservationPayment.create({ data: {
+            reservationId: id, userId: user.sub, type: ReservationPaymentType.DEVOLUCION,
+            amount: new Prisma.Decimal(refundAmount), method: dto.refundMethod.trim(),
+            reference: dto.refundReference?.trim() || null,
+            note: `Devolucion manual: ${paid > 0 ? (refundAmount / paid * 100).toFixed(1) : 0}% del pago neto.`
+          } });
+        }
       }
 
       if (dto.firstName || dto.lastName || dto.phone !== undefined || dto.cityOrigin !== undefined || dto.cityDestination !== undefined || dto.profession !== undefined || dto.notes !== undefined) {
@@ -252,15 +261,44 @@ export class ReservationsService {
           ...(dto.notes !== undefined && { notes: dto.notes.trim() || null })
         } });
       }
-      return tx.reservation.update({ where: { id }, data: {
-        roomNumber, checkIn, checkOut, nights, pricePerNight: nightly, total, acTypeUsed
+      const updated = await tx.reservation.update({ where: { id }, data: {
+        roomNumber, checkIn, checkOut, nights, pricePerNight: nightly, total, acTypeUsed, isIndefinite
       }, include: includeReservation });
+      // Reconciliar la retención de la habitación anterior y la nueva.
+      if (before.roomNumber !== roomNumber) {
+        await syncRoomHold(tx, before.roomNumber);
+      }
+      await syncRoomHold(tx, roomNumber);
+      return updated;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
     await this.audit.log(user, {
       action: 'UPDATE', entity: 'RESERVA', entityId: id.toString(),
       description: `Actualizó reserva ${id}.`, oldValue: before, newValue: updated
     });
+    const paidBefore = before.payments.reduce(
+      (sum, payment) => sum + (payment.type === ReservationPaymentType.PAGO ? Number(payment.amount) : -Number(payment.amount)),
+      0
+    );
+    const advanceDifference = Math.round(Number(updated.total) / 2) - paidBefore;
+    if (advanceDifference > 0) {
+      await this.finance.registerAutomatic({
+        type: 'INGRESO', category: 'Reservas',
+        description: `Anticipo adicional reserva ${id} habitacion ${updated.roomNumber}`,
+        amount: advanceDifference,
+        notes: 'Automatico: ajuste del anticipo al modificar reserva'
+      }, user);
+    } else if (advanceDifference < 0) {
+      const refundAmount = Number(dto.refundAmount ?? 0);
+      if (refundAmount > 0) {
+        await this.finance.registerAutomatic({
+          type: 'GASTO', category: 'Reservas',
+          description: `Devolucion por modificacion reserva ${id} habitacion ${updated.roomNumber}`,
+          amount: refundAmount,
+          notes: `Automatico: devolucion manual, ${paidBefore > 0 ? (refundAmount / paidBefore * 100).toFixed(1) : 0}% del pago neto`
+        }, user);
+      }
+    }
     return updated;
   }
 
@@ -270,17 +308,14 @@ export class ReservationsService {
     if (before.status !== ReservationStatus.CONFIRMADA) {
       throw new BadRequestException('Solo se pueden cancelar reservas confirmadas.');
     }
-    const force = dto.forceWaiver === true;
-    if (force && (!dto.forceReason?.trim() || dto.confirmationText !== 'EXONERAR PENALIDAD')) {
-      throw new BadRequestException('La exoneración requiere motivo y escribir EXONERAR PENALIDAD para confirmar.');
-    }
-    const cutoff = before.checkIn.getTime() - 24 * 60 * 60 * 1000;
-    const late = Date.now() > cutoff;
     const payments = before.payments.reduce((sum, p) => sum + (p.type === ReservationPaymentType.PAGO ? Number(p.amount) : -Number(p.amount)), 0);
-    const penalty = !force && late ? Math.round(Number(before.total) * 0.2) : 0;
-    const refund = Math.max(0, payments - penalty);
+    const refund = Number(dto.refundAmount ?? 0);
+    if (!Number.isInteger(refund) || refund < 0 || refund > payments) {
+      throw new BadRequestException('La devolucion debe ser un monto entero dentro del anticipo pagado.');
+    }
+    const penalty = Math.max(0, payments - refund);
     if (refund > 0 && (!dto.refundConfirmed || !dto.refundMethod?.trim())) {
-      throw new BadRequestException(`Confirma la devolución de ${refund} e indica su método antes de cancelar la reserva.`);
+      throw new BadRequestException('Confirma la devolucion e indica su metodo antes de cancelar.');
     }
 
     const cancelled = await this.prisma.$transaction(async (tx) => {
@@ -289,23 +324,23 @@ export class ReservationsService {
           reservationId: id, userId: user.sub, type: ReservationPaymentType.DEVOLUCION,
           amount: new Prisma.Decimal(refund), method: dto.refundMethod!.trim(),
           reference: dto.refundReference?.trim() || null,
-          note: force ? `Exoneración forzada: ${dto.forceReason!.trim()}` : late ? 'Devolución del 80%; penalidad del 20% por cancelación dentro de las 24 horas previas.' : 'Devolución total por cancelación con más de 24 horas de anticipación.'
+          note: `Devolucion manual: ${payments > 0 ? (refund / payments * 100).toFixed(1) : 0}% del anticipo.`
         } });
       }
       const transitioned = await tx.reservation.updateMany({ where: { id, status: ReservationStatus.CONFIRMADA }, data: {
         status: ReservationStatus.CANCELADA,
-        cancellationReason: force ? dto.forceReason!.trim() : late ? 'Cancelación dentro de las 24 horas previas al check-in.' : 'Cancelación con más de 24 horas de anticipación.',
-        forceWaiver: force
+        cancellationReason: 'Cancelaci?n de reserva.',
+        forceWaiver: false
       } });
       if (transitioned.count !== 1) {
         throw new ConflictException('La reserva ya cambió de estado. Actualiza la lista antes de volver a intentar.');
       }
       const result = await tx.reservation.findUniqueOrThrow({ where: { id }, include: includeReservation });
+      // Si la reserva era la que retenía la habitación para hoy, liberarla.
+      await syncRoomHold(tx, result.roomNumber);
       await tx.auditLog.create({ data: {
         userId: user.sub, action: 'UPDATE', entity: 'RESERVA', entityId: id.toString(),
-        description: force
-          ? `Exoneración forzada al cancelar reserva ${id}. Motivo: ${dto.forceReason!.trim()}. Penalidad: $0; devolución registrada: ${refund}.`
-          : `Canceló reserva ${id}. Penalidad: ${penalty}; devolución registrada: ${refund}.`,
+        description: `Canceló reserva ${id}. Valor no devuelto: ${penalty}; devolución registrada: ${refund}.`,
         oldValue: JSON.stringify(before), newValue: JSON.stringify(result)
       } });
       return result;
@@ -316,18 +351,40 @@ export class ReservationsService {
         category: 'Reservas',
         description: `Devolución por cancelación reserva ${id} habitación ${cancelled.roomNumber}`,
         amount: refund,
-        notes: force
-          ? `Exoneración forzada: ${dto.forceReason?.trim() || ''}`
-          : late
-            ? 'Devolución del 80%; penalidad del 20% por cancelación dentro de las 24 horas previas.'
-            : 'Devolución total por cancelación con más de 24 horas de anticipación.'
+        notes: `Devolucion manual: ${payments > 0 ? (refund / payments * 100).toFixed(1) : 0}% del anticipo.`,
       }, user);
     }
-    return { reservation: cancelled, penalty, refund, forceWaiver: force };
+    return { reservation: cancelled, penalty, refund };
   }
 
   async checkin(id: number, user: JwtPayload) {
     return this.stays.checkinFromReservation(id, user);
+  }
+
+  async remove(id: number, user: JwtPayload) {
+    const reservation = await this.prisma.reservation.findUnique({
+      where: { id },
+      include: { payments: true }
+    });
+    if (!reservation) throw new NotFoundException('Reserva no encontrada.');
+    if (reservation.status !== ReservationStatus.CANCELADA) {
+      throw new BadRequestException('Solo se pueden eliminar permanentemente reservas canceladas.');
+    }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.reservationPayment.deleteMany({ where: { reservationId: id } });
+      await tx.reservation.delete({ where: { id } });
+      await tx.auditLog.create({
+        data: {
+          userId: user.sub,
+          action: 'DELETE',
+          entity: 'RESERVA',
+          entityId: id.toString(),
+          description: `Eliminó permanentemente la reserva cancelada # (habitación ).`,
+          oldValue: JSON.stringify(reservation)
+        }
+      });
+    });
+    return { success: true };
   }
 
   private validateAcType(acType: 'AIRE' | 'VENTILADOR', room: { hasAir: boolean; hasFan: boolean }) {
@@ -338,13 +395,19 @@ export class ReservationsService {
   private async assertAvailable(tx: Prisma.TransactionClient, roomNumber: string, checkIn: Date, checkOut: Date, excludeId?: number) {
     const reservation = await tx.reservation.findFirst({ where: {
       ...overlapWhere(roomNumber, checkIn, checkOut),
+      checkOut: { gt: checkIn },
       status: ReservationStatus.CONFIRMADA,
       ...(excludeId !== undefined && { id: { not: excludeId } })
     } });
-    const stay = await tx.stay.findFirst({ where: {
-      roomNumber, status: 'ACTIVA', checkIn: { lt: checkOut },
-      OR: [{ checkOut: null }, { checkOut: { gt: checkIn } }]
-    } });
-    if (reservation || stay) throw new ConflictException('La habitación ya tiene una reserva u hospedaje que se cruza con esas fechas.');
+    const stays = await tx.stay.findMany({
+      where: { roomNumber, status: 'ACTIVA' },
+      select: { id: true }
+    });
+    if (reservation || stays.length > 0) throw new ConflictException(
+      stays.length > 0
+        ? 'La habitación está ocupada por un huésped. Registra primero su salida para poder reservarla.'
+        : 'La habitación ya tiene una reserva que se cruza con esas fechas.'
+    );
   }
+
 }

@@ -77,11 +77,11 @@ export function useHuespedes() {
   }
 
   // PROCESO: Confirmar check-out (POST /stays/:id/checkout)
-  async function confirmCheckout(nights: number, paymentMethod: string, paymentConfirmed: boolean): Promise<void> {
+  async function confirmCheckout(nights: number, paymentMethod: string, paymentConfirmed: boolean, chargeOvertime = false): Promise<void> {
     if (!checkoutStay) return;
     setIsCheckingOut(true);
     try {
-      await checkoutRequest(checkoutStay.id, { nights, paymentMethod, paymentConfirmed });
+      await checkoutRequest(checkoutStay.id, { nights, paymentMethod, paymentConfirmed, chargeOvertime });
       setCheckoutStay(null);
       await load();
     } catch (reason) {

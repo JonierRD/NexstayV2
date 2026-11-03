@@ -4,9 +4,10 @@ import { StaysService } from './stays.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuditoriaModule } from '../auditoria/auditoria.module';
 import { FinanceModule } from '../finance/finance.module';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
-  imports: [PrismaModule, AuditoriaModule, FinanceModule],
+  imports: [PrismaModule, AuditoriaModule, FinanceModule, SettingsModule],
   controllers: [StaysController],
   providers: [StaysService],
   exports: [StaysService]

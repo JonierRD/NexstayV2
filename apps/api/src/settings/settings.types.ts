@@ -17,6 +17,7 @@ export type AppSettingsData = {
   checkinLimit: string;
   checkoutLimit: string;
   checkoutTolerance: number;
+  checkoutOvertimeRate: number;
   cancellationPolicy: string;
   aiEnabled: boolean;
 };
@@ -34,6 +35,7 @@ export function toSettingsData(settings: AppSettings): AppSettingsData {
     checkinLimit: settings.checkinLimit,
     checkoutLimit: settings.checkoutLimit,
     checkoutTolerance: settings.checkoutTolerance,
+    checkoutOvertimeRate: settings.checkoutOvertimeRate,
     cancellationPolicy: settings.cancellationPolicy,
     aiEnabled: settings.aiEnabled
   };

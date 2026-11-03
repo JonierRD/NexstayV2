@@ -1,7 +1,8 @@
-import { Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { type Dispatch, type SetStateAction } from 'react';
 import { type Habitacion } from '../../lib/api';
-import { formatCOP } from '../../lib/format';
+import { type Reservation } from '../../lib/api/reservations';
+import { formatCOP, formatDateOnly } from '../../lib/format';
 import { cn } from '../../lib/utils';
 import { type CheckinStep, type ClientFormData } from './useReception';
 
@@ -14,6 +15,7 @@ type Props = {
   checkInDate: string;
   setCheckInDate: Dispatch<SetStateAction<string>>;
   calculateEstimatedTotal: () => number;
+  upcomingReservation?: Reservation;
   loading: boolean;
   handleConfirmCheckin: () => void;
   setStep: Dispatch<SetStateAction<CheckinStep>>;
@@ -28,17 +30,19 @@ export function ConfirmStep({
   checkInDate,
   setCheckInDate,
   calculateEstimatedTotal,
+  upcomingReservation,
   loading,
   handleConfirmCheckin,
   setStep
 }: Props) {
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col">
         <label className="mb-3 block text-sm font-medium text-sapay-900">
           Confirmar Check-In
         </label>
 
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 [scrollbar-width:thin]">
         <div className="rounded-xl border border-sapay-300 bg-sapay-150 p-5">
           <h3 className="mb-4 font-medium text-sapay-950">Datos del Cliente</h3>
           <div className="space-y-3 text-sm">
@@ -148,7 +152,20 @@ export function ConfirmStep({
           </div>
         </div>
 
-        <div className="flex gap-3 pt-2">
+        {upcomingReservation && (
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600" />
+            <div>
+              <strong className="font-semibold">Habitación con reserva próxima.</strong>{' '}
+              Está reservada para el <strong>{formatDateOnly(upcomingReservation.checkIn)}</strong>
+              {upcomingReservation.client ? ` (${upcomingReservation.client.firstName} ${upcomingReservation.client.lastName})` : ''}.
+              Informa al huésped que debe salir antes de esa fecha.
+            </div>
+          </div>
+        )}
+
+        </div>
+        <div className="flex shrink-0 gap-3 border-t border-sapay-200 pt-3">
           <button
             onClick={() => setStep('SELECT_ROOM')}
             className="flex-1 rounded-lg border border-sapay-450 px-4 py-3 text-sm font-medium text-sapay-900 hover:bg-sapay-200"

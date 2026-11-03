@@ -1,36 +1,38 @@
-import { BedDouble } from 'lucide-react';
+import { AlertTriangle, BedDouble } from 'lucide-react';
 import { type Dispatch, type SetStateAction } from 'react';
 import { type Habitacion } from '../../lib/api';
-import { formatCOP } from '../../lib/format';
+import { type Reservation } from '../../lib/api/reservations';
+import { formatCOP, formatDateOnly } from '../../lib/format';
 import { cn } from '../../lib/utils';
 import { type CheckinStep } from './useReception';
 
 type Props = {
   rooms: Habitacion[];
   availableRooms: Habitacion[];
+  upcomingByRoom: Map<string, Reservation>;
   selectedRoom: Habitacion | null;
   handleSelectRoom: (room: Habitacion | null) => void;
   acType: 'AIRE' | 'VENTILADOR';
   setAcType: Dispatch<SetStateAction<'AIRE' | 'VENTILADOR'>>;
-  checkInDate: string;
-  setCheckInDate: Dispatch<SetStateAction<string>>;
   setStep: Dispatch<SetStateAction<CheckinStep>>;
 };
 
 export function SelectRoomStep({
   rooms,
   availableRooms,
+  upcomingByRoom,
   selectedRoom,
   handleSelectRoom,
   acType,
   setAcType,
-  checkInDate,
-  setCheckInDate,
   setStep
 }: Props) {
+  const selectedReservation = selectedRoom ? upcomingByRoom.get(selectedRoom.number) : undefined;
+
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1 [scrollbar-width:thin]">
         <label className="mb-3 block text-sm font-medium text-sapay-900">
           Asignar Habitación
         </label>
@@ -50,6 +52,7 @@ export function SelectRoomStep({
             {availableRooms.map((room) => (
               <option key={room.number} value={room.number}>
                 {room.number} - {room.type} - {room.hasAir ? 'Aire' : ''} {room.hasFan ? 'Ventilador' : ''}
+                {upcomingByRoom.has(room.number) ? ` · Reservada desde ${formatDateOnly(upcomingByRoom.get(room.number)!.checkIn)}` : ''}
               </option>
             ))}
           </select>
@@ -66,6 +69,18 @@ export function SelectRoomStep({
                 <p className="text-sm text-sapay-700">{selectedRoom.type}</p>
               </div>
             </div>
+
+            {selectedReservation && (
+              <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950">
+                <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600" />
+                <div>
+                  <strong className="font-semibold">Esta habitación está reservada.</strong>{' '}
+                  Tiene una reserva confirmada para el <strong>{formatDateOnly(selectedReservation.checkIn)}</strong>
+                  {selectedReservation.client ? ` (${selectedReservation.client.firstName} ${selectedReservation.client.lastName})` : ''}.
+                  El huésped que registres hoy debe salir antes de esa fecha.
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               {selectedRoom.hasAir && (
@@ -125,24 +140,10 @@ export function SelectRoomStep({
             </div>
           </div>
 
-          <div>
-            <label className="mb-2 block text-xs font-medium text-sapay-700">
-              Fecha de Ingreso
-            </label>
-            <input
-              type="date"
-              value={checkInDate}
-              onChange={(e) => setCheckInDate(e.target.value)}
-              className="w-full rounded-lg border border-sapay-450 px-4 py-3 text-sm focus:border-sapay-500 focus:outline-none"
-            />
-          </div>
-
-          <p className="rounded-lg bg-sapay-100 px-4 py-3 text-xs text-sapay-700">
-            El hospedaje inicia con una noche. Las noches adicionales se calculan automáticamente después de la 1:00 p. m.
-          </p>
         </div>
 
-        <div className="flex gap-3 pt-2">
+        </div>
+        <div className="flex shrink-0 gap-3 border-t border-sapay-200 pt-3">
           <button
             onClick={() => setStep('CLIENT_DATA')}
             className="flex-1 rounded-lg border border-sapay-450 px-4 py-3 text-sm font-medium text-sapay-900 hover:bg-sapay-200"

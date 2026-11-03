@@ -193,6 +193,7 @@ model Reservation {
   roomNumber   String            @map("habitacion_numero")
   checkIn      DateTime          @map("fecha_ingreso") @db.Date
   checkOut     DateTime          @map("fecha_salida") @db.Date
+  isIndefinite Boolean           @default(false) @map("salida_indefinida")
   nights       Int               @map("noches")
   pricePerNight Decimal          @map("precio_por_noche")
   total        Decimal           @map("total")
@@ -396,7 +397,8 @@ model AppSettings {
   darkMode           Boolean @default(false) @map("modo_oscuro")
   checkinLimit       String  @default("12:00") @map("hora_limite_checkin")
   checkoutLimit      String  @default("13:00") @map("hora_limite_checkout")
-  checkoutTolerance  Int     @default(30) @map("tolerancia_checkout")
+  checkoutTolerance  Int     @default(180) @map("tolerancia_checkout")
+  checkoutOvertimeRate Int    @default(10000) @map("tarifa_excedente_checkout")
   cancellationPolicy String  @default("") @map("politica_cancelacion")
   aiEnabled          Boolean @default(true) @map("asistente_ia")
   updatedAt          DateTime @updatedAt @map("actualizado_en")

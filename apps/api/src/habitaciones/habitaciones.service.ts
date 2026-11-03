@@ -13,6 +13,7 @@ import type { CreateHabitacionDto } from './dto/create-habitacion.dto';
 import type { UpdateHabitacionDto } from './dto/update-habitacion.dto';
 import type { RemoveHabitacionDto } from './dto/remove-habitacion.dto';
 import { AuditoriaService, AuditAction } from '../auditoria/auditoria.service';
+import { reconcileRoomHolds } from '../common/room-hold';
 
 @Injectable()
 export class HabitacionesService {
@@ -22,6 +23,9 @@ export class HabitacionesService {
   ) {}
 
   async findAll() {
+    // El estado de retención se recalcula al leer: una reserva futura no
+    // bloquea la habitación, pero el mismo día de llegada aparece RESERVADA.
+    await reconcileRoomHolds(this.prisma);
     return this.prisma.room.findMany({ orderBy: { number: 'asc' } });
   }
 

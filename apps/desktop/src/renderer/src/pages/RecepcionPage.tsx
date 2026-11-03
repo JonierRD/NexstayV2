@@ -1,4 +1,3 @@
-import { CalendarDays, CheckCircle, Clock3, PackageCheck } from 'lucide-react';
 import { type ReactElement } from 'react';
 import { type PublicUser } from '../lib/api';
 import { useReception } from '../components/recepcion/useReception';
@@ -7,7 +6,7 @@ import { SelectRoomStep } from '../components/recepcion/SelectRoomStep';
 import { ConfirmStep } from '../components/recepcion/ConfirmStep';
 import { AvailableRoomsPanel } from '../components/recepcion/AvailableRoomsPanel';
 import { SuccessScreen } from '../components/recepcion/SuccessScreen';
-import { ModuleHeader } from '../components/ui/ModuleHeader';
+import { ReceptionHeader } from '../components/recepcion/ReceptionHeader';
 
 export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   const {
@@ -30,6 +29,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
     hasSearched,
     ccHistory,
     availableRooms,
+    upcomingReservationsByRoom,
     handleSearchClient,
     handleContinueToRoom,
     handleSelectRoom,
@@ -40,11 +40,8 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
   } = useReception(user);
 
   return (
-    <div className="module-page flex h-full min-h-0 flex-1 flex-col overflow-hidden">
-      <ModuleHeader icon={CalendarDays} title="Recepción - Check-In" subtitle="Registro de huéspedes y asignación de habitaciones." metrics={[
-        { label: 'Habitaciones', value: rooms.length, icon: PackageCheck },
-        { label: 'Disponibles', value: rooms.filter((room) => room.status === 'DISPONIBLE').length, icon: CheckCircle }
-      ]} />
+    <div className="module-page flex h-full min-h-0 flex-1 flex-col gap-4 overflow-hidden">
+      <ReceptionHeader totalRooms={rooms.length} availableRooms={rooms.filter((room) => room.status === 'DISPONIBLE').length} />
 
       {error && (
         <div className="mb-3 shrink-0 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -62,9 +59,10 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
       )}
 
       {!success && (
-        <div className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-4 overflow-hidden lg:flex-row">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
+          <AvailableRoomsPanel loading={loading} rooms={rooms} availableRooms={availableRooms} selectedRoom={selectedRoom} handleSelectRoom={handleSelectRoom} />
           {/* Panel Izquierdo - Formulario */}
-          <div className="flex min-h-0 flex-1 w-full lg:w-1/2 flex-col overflow-y-auto rounded-2xl border border-sapay-350 bg-white p-4 sm:p-5 lg:p-6">
+          <div className="order-first flex min-h-0 flex-col overflow-hidden rounded-2xl border-2 border-sapay-500 bg-white p-4 shadow-md shadow-sapay-900/10 sm:p-5 lg:w-[48%] lg:p-5">
             {step === 'CLIENT_DATA' && (
               <ClientDataStep
                 ccSearch={ccSearch}
@@ -87,12 +85,11 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
               <SelectRoomStep
                 rooms={rooms}
                 availableRooms={availableRooms}
+                upcomingByRoom={upcomingReservationsByRoom}
                 selectedRoom={selectedRoom}
                 handleSelectRoom={handleSelectRoom}
                 acType={acType}
                 setAcType={setAcType}
-                checkInDate={checkInDate}
-                setCheckInDate={setCheckInDate}
                 setStep={setStep}
               />
             )}
@@ -107,6 +104,7 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
                 checkInDate={checkInDate}
                 setCheckInDate={setCheckInDate}
                 calculateEstimatedTotal={calculateEstimatedTotal}
+                upcomingReservation={selectedRoom ? upcomingReservationsByRoom.get(selectedRoom.number) : undefined}
                 loading={loading}
                 handleConfirmCheckin={handleConfirmCheckin}
                 setStep={setStep}
@@ -114,14 +112,6 @@ export function RecepcionPage({ user }: { user: PublicUser }): ReactElement {
             )}
           </div>
 
-          {/* Panel Derecho - Habitaciones Disponibles */}
-          <AvailableRoomsPanel
-            loading={loading}
-            rooms={rooms}
-            availableRooms={availableRooms}
-            selectedRoom={selectedRoom}
-            handleSelectRoom={handleSelectRoom}
-          />
         </div>
       )}
     </div>

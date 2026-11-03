@@ -4,11 +4,11 @@ import { createParkingVehicleTypeRequest, deleteParkingVehicleTypeRequest, updat
 import { ConfirmModal } from '../ui/ConfirmModal';
 
 export function ParkingConfigModal({ types, onClose, onSaved }: { types: ParkingVehicleType[]; onClose: () => void; onSaved: () => void }): ReactElement {
-  const [rows, setRows] = useState(types);
+  const [rows, setRows] = useState(types.map((row) => ({ ...row, dailyRate: String(row.dailyRate), monthlyRate: String(row.monthlyRate) })));
   const [newRow, setNewRow] = useState({ name: '', dailyRate: '', monthlyRate: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [pendingDelete, setPendingDelete] = useState<ParkingVehicleType | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Pick<ParkingVehicleType, 'id' | 'name'> | null>(null);
   const update = (id: number, field: 'name' | 'dailyRate' | 'monthlyRate' | 'isActive', value: string | boolean) =>
     setRows((current) => current.map((row) => row.id === id ? { ...row, [field]: value } : row));
   async function save() {
@@ -19,6 +19,7 @@ export function ParkingConfigModal({ types, onClose, onSaved }: { types: Parking
       }
       await Promise.all(rows.map((row) => {
         if (!row.name.trim()) throw new Error('Todos los tipos existentes deben tener un nombre.');
+        if (!row.dailyRate.trim() || !row.monthlyRate.trim() || Number(row.dailyRate) < 0 || Number(row.monthlyRate) < 0) throw new Error('Ingresa tarifas validas para todos los tipos.');
         return updateParkingVehicleTypeRequest(row.id, { name: row.name.trim(), dailyRate: Number(row.dailyRate), monthlyRate: Number(row.monthlyRate), isActive: row.isActive });
       }));
       if (newRow.name.trim()) await createParkingVehicleTypeRequest({ name: newRow.name.trim(), dailyRate: Number(newRow.dailyRate), monthlyRate: Number(newRow.monthlyRate), isActive: true });
@@ -44,7 +45,7 @@ export function ParkingConfigModal({ types, onClose, onSaved }: { types: Parking
         <div className="flex items-center justify-between"><div><h2 className="text-sm font-semibold">Tipos y tarifas</h2><p className="text-[10px] text-sapay-700">Solo el administrador puede modificar estos valores.</p></div><button onClick={onClose}><X size={17} /></button></div>
         <div className="mt-4 overflow-x-auto">
           <div className="grid min-w-[540px] grid-cols-[1.4fr_1fr_1fr_70px] gap-2 border-b border-sapay-200 pb-2 text-[10px] font-semibold text-sapay-700"><span>Tipo</span><span>Tarifa día</span><span>Tarifa mensual</span><span>Activo</span></div>
-          {rows.map((row) => <div key={row.id} className="grid min-w-[620px] grid-cols-[1.4fr_1fr_1fr_70px_34px] items-center gap-2 border-b border-sapay-100 py-2"><input value={row.name} onChange={(e) => update(row.id, 'name', e.target.value)} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><input type="number" min="0" value={row.dailyRate} onChange={(e) => update(row.id, 'dailyRate', e.target.value)} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><input type="number" min="0" value={row.monthlyRate} onChange={(e) => update(row.id, 'monthlyRate', e.target.value)} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><input type="checkbox" checked={row.isActive} onChange={(e) => update(row.id, 'isActive', e.target.checked)} /><button type="button" onClick={() => setPendingDelete(row)} className="text-red-600" title="Eliminar tipo"><Trash2 size={14} /></button></div>)}
+          {rows.map((row) => <div key={row.id} className="grid min-w-[620px] grid-cols-[1.4fr_1fr_1fr_70px_34px] items-center gap-2 border-b border-sapay-100 py-2"><input value={row.name} onChange={(e) => update(row.id, 'name', e.target.value)} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><input type="number" min="0" value={row.dailyRate} onChange={(e) => update(row.id, 'dailyRate', e.target.value)} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><input type="number" min="0" value={row.monthlyRate} onChange={(e) => update(row.id, 'monthlyRate', e.target.value)} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><input type="checkbox" checked={row.isActive} onChange={(e) => update(row.id, 'isActive', e.target.checked)} /><button type="button" onClick={() => setPendingDelete({ id: row.id, name: row.name })} className="text-red-600" title="Eliminar tipo"><Trash2 size={14} /></button></div>)}
           <div className="mt-3 grid min-w-[620px] grid-cols-[1.4fr_1fr_1fr_70px_34px] items-center gap-2"><input placeholder="Nuevo tipo..." value={newRow.name} onChange={(e) => setNewRow({ ...newRow, name: e.target.value })} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><input type="number" min="0" placeholder="Día" value={newRow.dailyRate} onChange={(e) => setNewRow({ ...newRow, dailyRate: e.target.value })} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><input type="number" min="0" placeholder="Mensual" value={newRow.monthlyRate} onChange={(e) => setNewRow({ ...newRow, monthlyRate: e.target.value })} className="rounded border border-sapay-300 px-2 py-1 text-xs" /><span /> <Plus size={16} className="text-sapay-700" /></div>
         </div>
         {error && <p className="mt-3 text-xs text-red-600">{error}</p>}

@@ -8,6 +8,7 @@ import {
   clientesRequest,
   checkinRequest
 } from '../../lib/api';
+import { reservationsRequest, type Reservation } from '../../lib/api/reservations';
 
 export type CheckinStep = 'CLIENT_DATA' | 'SELECT_ROOM' | 'CONFIRM' | 'SUCCESS';
 
@@ -66,6 +67,9 @@ export function useReception(_user?: PublicUser) {
   const [step, setStep] = useState<CheckinStep>('CLIENT_DATA');
   // Habitaciones disponibles traídas de la API
   const [rooms, setRooms] = useState<Habitacion[]>([]);
+  // Reservas confirmadas: sirven para avisar si la habitación elegida ya está
+  // reservada para una fecha próxima.
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(false);
   // Cédula que escribe el recepcionista para buscar cliente
   const [ccSearch, setCcSearch] = useState('');
@@ -94,9 +98,10 @@ export function useReception(_user?: PublicUser) {
   // Trae todas las habitaciones de la API (GET /habitaciones)
   const loadRooms = useCallback(() => {
     setLoading(true);
-    habitacionesRequest()
-      .then((data) => {
-        setRooms(data);
+    Promise.all([habitacionesRequest(), reservationsRequest()])
+      .then(([roomsData, reservationsData]) => {
+        setRooms(roomsData);
+        setReservations(reservationsData);
       })
       .catch((err) => {
         console.error('Error loading rooms:', err);
@@ -295,6 +300,22 @@ export function useReception(_user?: PublicUser) {
   // Solo las disponibles se muestran/exigen para ocupar
   const availableRooms = useMemo(() => rooms.filter(r => r.status === 'DISPONIBLE'), [rooms]);
 
+  // Próxima reserva confirmada por habitación. Se usa para avisar al recepcionista
+  // que, si registra un huésped hoy, debe salir antes de esa fecha.
+  const upcomingReservationsByRoom = useMemo(() => {
+    const map = new Map<string, Reservation>();
+    for (const reservation of reservations) {
+      if (reservation.status !== 'CONFIRMADA') continue;
+      const date = reservation.checkIn.slice(0, 10);
+      if (date <= checkInDate) continue;
+      const current = map.get(reservation.roomNumber);
+      if (!current || date < current.checkIn.slice(0, 10)) {
+        map.set(reservation.roomNumber, reservation);
+      }
+    }
+    return map;
+  }, [reservations, checkInDate]);
+
   return {
     step,
     setStep,
@@ -315,6 +336,7 @@ export function useReception(_user?: PublicUser) {
     hasSearched,
     ccHistory,
     availableRooms,
+    upcomingReservationsByRoom,
     handleSearchClient,
     handleSelectCc,
     clearClientData,

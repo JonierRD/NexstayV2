@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { JwtPayload } from '../auth/auth.types';
+import { Role } from '@prisma/client';
 import { ReservationsService } from './reservations.service';
 import { CancelReservationDto, CreateReservationDto, UpdateReservationDto } from './dto/create-reservation.dto';
 
@@ -47,5 +48,13 @@ export class ReservationsController {
   @Post(':id/checkin')
   checkin(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
     return this.service.checkin(id, user);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: JwtPayload) {
+    if (user.role !== Role.ADMIN) {
+      throw new ForbiddenException('Solo los administradores pueden eliminar reservas canceladas.');
+    }
+    return this.service.remove(id, user);
   }
 }

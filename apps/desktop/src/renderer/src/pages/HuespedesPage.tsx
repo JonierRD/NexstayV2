@@ -132,7 +132,7 @@ export function HuespedesPage({ user }: Props): ReactElement {
         <CheckoutModal
           stay={g.checkoutStay}
           onClose={() => g.setCheckoutStay(null)}
-          onConfirm={(nights, method, confirmed) => void g.confirmCheckout(nights, method, confirmed)}
+          onConfirm={(nights, method, confirmed, chargeOvertime) => void g.confirmCheckout(nights, method, confirmed, chargeOvertime)}
           isProcessing={g.isCheckingOut}
         />
       )}

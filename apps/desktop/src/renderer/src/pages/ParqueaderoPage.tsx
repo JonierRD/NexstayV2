@@ -210,10 +210,10 @@ export function ParqueaderoPage({ user }: { user: PublicUser }): ReactElement {
       <ModuleHeader
         icon={CarFront}
         title="Parqueadero"
-        subtitle="Control de ingresos, salidas y tarifas del parqueadero."
+        subtitle="Control de ingresos, salidas y tarifas del parqueadero (capacidad amplia y sin límite de cupos)."
         metrics={[
           { label: 'Vehículos activos', value: p.activeSessions.length, icon: CarFront },
-          { label: 'Movimientos', value: p.sessions.length, icon: History },
+          { label: 'Capacidad', value: 'Ilimitada', icon: CheckCircle2 },
           { label: 'Ingresos hoy', value: todaySessions, icon: Clock3 }
         ]}
       />
@@ -225,11 +225,41 @@ export function ParqueaderoPage({ user }: { user: PublicUser }): ReactElement {
       </div>
       <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_330px]">
         <section className="min-h-[480px] rounded-2xl border border-sapay-350 bg-white p-4 shadow-[0_12px_30px_rgba(67,42,27,0.08)]">
-          <div className="mb-3 flex items-center justify-between"><div><h2 className="text-sm font-semibold">Vehículos en el parqueadero</h2><p className="text-[10px] text-sapay-700">{p.activeSessions.length} espacios ocupados actualmente</p></div><div className="flex items-center gap-2 text-[10px]"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Libre / <span className="h-2 w-2 rounded-full bg-red-500" /> Ocupado</div></div>
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold">Vehículos en el parqueadero</h2>
+              <p className="text-[10px] text-sapay-700">{p.activeSessions.length} vehículo(s) activo(s) · Espacios disponibles ilimitados</p>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-800">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              Espacios ilimitados
+            </div>
+          </div>
           {p.error && <p className="mb-2 rounded-lg bg-red-50 p-2 text-xs text-red-700">{p.error}</p>}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-            {p.activeSessions.map((session) => <article key={session.id} className="rounded-xl border border-red-200 bg-red-50 p-3"><div className="flex items-center justify-between"><span className="text-lg font-bold">{session.licensePlate}</span><span className="text-red-500"><VehicleIcon name={session.vehicleType.name} /></span></div><p className="mt-2 text-[11px] font-medium">{session.vehicleBrand} · {session.vehicleType.name}</p><p className="text-[10px] text-sapay-700">{session.ownerName} · {session.phone}</p>            <p className="mt-1 text-[10px] text-sapay-700">{`${session.billingType === 'DIARIO' ? 'Día' : 'Mensual'} · ${money(session.amount)}`}</p><button type="button" onClick={() => void p.close(session.id)} className="mt-3 flex w-full items-center justify-center gap-1 rounded-lg bg-white py-1.5 text-[10px] font-semibold text-red-700 hover:bg-red-100"><LogOut size={13} /> Registrar salida</button></article>)}
-            <article className="flex min-h-[145px] items-center justify-center rounded-xl border border-dashed border-emerald-300 bg-emerald-50 text-center"><div><CheckCircle2 className="mx-auto text-emerald-600" size={24} /><p className="mt-1 text-xs font-semibold text-emerald-800">Espacio libre</p><p className="text-[10px] text-emerald-700">Listo para recibir</p></div></article>
+            {p.activeSessions.map((session) => (
+              <article key={session.id} className="rounded-xl border border-red-200 bg-red-50 p-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-bold">{session.licensePlate}</span>
+                  <span className="text-red-500"><VehicleIcon name={session.vehicleType.name} /></span>
+                </div>
+                <p className="mt-2 text-[11px] font-medium">{session.vehicleBrand} · {session.vehicleType.name}</p>
+                <p className="text-[10px] text-sapay-700">{session.ownerName} · {session.phone}</p>
+                <p className="mt-1 text-[10px] text-sapay-700">{`${session.billingType === 'DIARIO' ? 'Día' : 'Mensual'} · ${money(session.amount)}`}</p>
+                <button type="button" onClick={() => void p.close(session.id)} className="mt-3 flex w-full items-center justify-center gap-1 rounded-lg bg-white py-1.5 text-[10px] font-semibold text-red-700 hover:bg-red-100">
+                  <LogOut size={13} /> Registrar salida
+                </button>
+              </article>
+            ))}
+            {p.activeSessions.length === 0 && (
+              <div className="col-span-full flex min-h-[140px] items-center justify-center rounded-xl border border-dashed border-emerald-300 bg-emerald-50 text-center p-4">
+                <div>
+                  <CheckCircle2 className="mx-auto text-emerald-600" size={24} />
+                  <p className="mt-1 text-xs font-semibold text-emerald-900">Parqueadero libre</p>
+                  <p className="text-[10px] text-emerald-700">Espacios ilimitados listos para recibir vehículos.</p>
+                </div>
+              </div>
+            )}
           </div>
           <div className="mt-6 border-t border-sapay-200 pt-3"><h3 className="mb-2 text-xs font-semibold">Movimientos recientes</h3><div className="overflow-x-auto"><table className="w-full min-w-[700px] text-left text-[10px]"><thead className="border-b border-sapay-200 text-sapay-700"><tr><th className="p-2">Fecha</th><th>Placa</th><th>Vehículo</th><th>Cliente</th><th>Estado</th><th>Valor</th></tr></thead><tbody>{recentSessions.map((s) => <tr key={s.id} className="border-b border-sapay-100"><td className="p-2">{date(s.entryAt)}</td><td className="font-semibold">{s.licensePlate}</td><td><span className="inline-flex items-center gap-1"><VehicleIcon name={s.vehicleType.name} />{s.vehicleBrand}</span></td><td>{s.ownerName}</td><td><span className={s.status === 'ACTIVO' ? 'rounded-full bg-amber-100 px-2 py-1 text-amber-800' : 'rounded-full bg-emerald-100 px-2 py-1 text-emerald-800'}>{s.status === 'ACTIVO' ? 'Activo' : 'Salida'}</span></td><td>{money(s.amount)}</td></tr>)}</tbody></table></div></div>
         </section>

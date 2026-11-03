@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, RoomStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtPayload } from '../auth/auth.types';
 import type { CheckinDto } from './dto/checkin.dto';
@@ -14,8 +14,11 @@ import type { CheckoutDto } from './dto/checkout.dto';
 import { AuditoriaService, AuditAction } from '../auditoria/auditoria.service';
 import { FinanceService } from '../finance/finance.service';
 import type { RegisterStayPaymentDto } from './dto/register-payment.dto';
-import { calculateBillableNights } from './stay-nights';
+import { calculateStayCharge } from './stay-nights';
 import { assertAdminPassword } from '../auth/admin-password';
+import { SettingsService } from '../settings/settings.service';
+import { bogotaDateOnly, dateOnlyToUtc, todayDateOnly } from '../common/hotel-date';
+import { releaseRoomToAvailability } from '../common/room-hold';
 
 type PendingSale = { unitPrice: Prisma.Decimal | number; quantity: number; saleType?: string | null };
 
@@ -43,9 +46,10 @@ function computeStayAccount(
     payments?: Array<{ amount: Prisma.Decimal | number }>;
   },
   laundryOrders: Array<{ totalPrice: Prisma.Decimal | number }>,
-  nightsOverride?: number
+  nightsOverride?: number,
+  roomTotalOverride?: number
 ): StayAccount {
-  const roomTotal = Number(stay.pricePerNight) * (nightsOverride ?? stay.nights);
+  const roomTotal = roomTotalOverride ?? Number(stay.pricePerNight) * (nightsOverride ?? stay.nights);
   const salesTotal = (stay.sales ?? [])
     .filter((sale) => sale.saleType === 'FIADO' || !sale.saleType)
     .reduce((sum, sale) => sum + Number(sale.unitPrice) * sale.quantity, 0);
@@ -77,7 +81,8 @@ export class StaysService {
   constructor(
     private prisma: PrismaService,
     private auditoria: AuditoriaService,
-    private finance: FinanceService
+    private finance: FinanceService,
+    private settings: SettingsService
   ) {}
 
   async findAll() {
@@ -121,9 +126,26 @@ export class StaysService {
       })
     );
 
+    const policy = await this.settings.get();
+    const tolerance = policy.checkoutTolerance;
+
     return staysWithLaundry.map((stay) => {
-      const nights = calculateBillableNights(stay.checkIn, new Date());
-      return { ...stay, nights, total: Number(stay.pricePerNight) * nights };
+      const charge = calculateStayCharge(
+        stay.checkIn,
+        new Date(),
+        Number(stay.pricePerNight),
+        tolerance,
+        policy.checkoutOvertimeRate,
+        policy.checkoutLimit
+      );
+      return {
+        ...stay,
+        nights: charge.nights,
+        overtimeAmount: charge.overtimeAmount,
+        checkoutToleranceMinutes: tolerance,
+        checkoutOvertimeRate: policy.checkoutOvertimeRate,
+        total: charge.total - charge.overtimeAmount
+      };
     });
   }
 
@@ -171,8 +193,24 @@ export class StaysService {
     }
 
     if (stay.status !== 'ACTIVA') return stay;
-    const nights = calculateBillableNights(stay.checkIn, new Date());
-    return { ...stay, nights, total: Number(stay.pricePerNight) * nights };
+    const policy = await this.settings.get();
+    const tolerance = policy.checkoutTolerance;
+    const charge = calculateStayCharge(
+      stay.checkIn,
+      new Date(),
+      Number(stay.pricePerNight),
+      tolerance,
+      policy.checkoutOvertimeRate,
+      policy.checkoutLimit
+    );
+    return {
+      ...stay,
+      nights: charge.nights,
+      overtimeAmount: charge.overtimeAmount,
+      checkoutToleranceMinutes: tolerance,
+      checkoutOvertimeRate: policy.checkoutOvertimeRate,
+      total: charge.total - charge.overtimeAmount
+    };
   }
 
   async findByRoom(roomNumber: string) {
@@ -215,12 +253,11 @@ export class StaysService {
     });
     if (!reservation) throw new NotFoundException('Reserva no encontrada.');
     if (reservation.status !== 'CONFIRMADA') throw new BadRequestException('La reserva ya no está confirmada.');
-    const parts = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit'
-    }).formatToParts(new Date());
-    const today = `${parts.find((part) => part.type === 'year')?.value}-${parts.find((part) => part.type === 'month')?.value}-${parts.find((part) => part.type === 'day')?.value}`;
-    if (reservation.checkIn.toISOString().slice(0, 10) !== today) {
-      throw new BadRequestException('El check-in de la reserva solo se puede realizar en la fecha de llegada.');
+    const today = bogotaDateOnly(new Date());
+    // Se permite el ingreso el día de llegada o después (llegadas tardías);
+    // nunca antes de la fecha reservada.
+    if (reservation.checkIn.toISOString().slice(0, 10) > today) {
+      throw new BadRequestException('El check-in de la reserva solo se puede realizar a partir de la fecha de llegada.');
     }
     return this.checkin({
       cc: reservation.client.cc,
@@ -240,8 +277,6 @@ export class StaysService {
   }
 
   async checkin(dto: CheckinDto, user: JwtPayload) {
-    const nights = 1;
-
     // Todo el registro del hospedaje ocurre en una única transacción para que dos
     // check-ins simultaneos sobre la misma habitacion no puedan aceptarse ambos.
     const { stay, client, clientCreated } = await this.prisma.$transaction(
@@ -289,7 +324,29 @@ export class StaysService {
           throw new NotFoundException(`La habitación ${dto.roomNumber} no existe`);
         }
 
-        if (room.status !== 'DISPONIBLE') {
+        // Una reserva puede tener la habitación retenida como RESERVADA; el
+        // check-in vinculado sí puede tomarla. Un ingreso sin reserva exige
+        // que esté DISPONIBLE, salvo que la retención sea obsoleta (reserva
+        // de hoy que nunca llegó o cuya fecha ya pasó).
+        let claimableStatuses: RoomStatus[] = linkedReservation
+          ? [RoomStatus.DISPONIBLE, RoomStatus.RESERVADA]
+          : [RoomStatus.DISPONIBLE];
+        if (!linkedReservation && room.status === RoomStatus.RESERVADA) {
+          const today = dateOnlyToUtc(todayDateOnly());
+          const currentHold = await tx.reservation.findFirst({
+            where: {
+              roomNumber: dto.roomNumber,
+              status: 'CONFIRMADA',
+              checkIn: { lte: today },
+              checkOut: { gt: today }
+            },
+            select: { id: true }
+          });
+          if (!currentHold) {
+            claimableStatuses = [RoomStatus.DISPONIBLE, RoomStatus.RESERVADA];
+          }
+        }
+        if (room.status === 'MANTENIMIENTO' || !claimableStatuses.includes(room.status)) {
           throw new BadRequestException(
             `La habitación ${dto.roomNumber} no está disponible. Estado actual: ${room.status}`
           );
@@ -318,27 +375,25 @@ export class StaysService {
           );
         }
 
-        const total = Number(pricePerNight);
         const requestedCheckIn = dto.checkIn ? new Date(dto.checkIn) : new Date();
-        const reservationNights = linkedReservation?.nights ?? nights;
-        const requestedCheckOut = new Date(requestedCheckIn.getTime() + reservationNights * 24 * 60 * 60 * 1000);
-        const conflictingReservation = await tx.reservation.findFirst({
-          where: {
-            roomNumber: dto.roomNumber,
-            status: 'CONFIRMADA',
-            checkIn: { lt: requestedCheckOut },
-            checkOut: { gt: requestedCheckIn },
-            ...(dto.reservationId !== undefined && { id: { not: dto.reservationId } })
-          }
-        });
-        if (conflictingReservation) {
-          throw new ConflictException(`La habitación ${dto.roomNumber} está reservada durante parte de esas fechas.`);
+        if (Number.isNaN(requestedCheckIn.getTime())) {
+          throw new BadRequestException('La fecha de ingreso no es válida.');
         }
+        // Un ingreso no puede adelantarse: si la llegada es futura debe
+        // registrarse como reserva para no ocupar la habitación desde hoy.
+        if (bogotaDateOnly(requestedCheckIn) > bogotaDateOnly(new Date())) {
+          throw new BadRequestException('No se puede registrar un ingreso con fecha futura. Para fechas posteriores, crea una reserva.');
+        }
+        const stayNights = Math.max(1, linkedReservation?.nights ?? dto.nights ?? 1);
+        const total = Number(pricePerNight) * stayNights;
+        // Una reserva futura no impide el ingreso: la salida del huésped no se
+        // conoce. El recepcionista ve el aviso de la reserva y le indica que
+        // debe desocupar antes de esa fecha.
 
-        // 6. Reclamar la habitación con compare-and-set: el filtro status
-        // DISPONIBLE hace que solo una de las transacciones concurrentes gane.
+        // 6. Reclamar la habitación con compare-and-set: el filtro de estados
+        // hace que solo una de las transacciones concurrentes gane.
         const claimed = await tx.room.updateMany({
-          where: { number: dto.roomNumber, status: 'DISPONIBLE' },
+          where: { number: dto.roomNumber, status: { in: claimableStatuses } },
           data: { status: 'OCUPADA' }
         });
 
@@ -354,7 +409,7 @@ export class StaysService {
             clientId: client.id,
             roomNumber: dto.roomNumber,
             checkIn: requestedCheckIn,
-            nights,
+            nights: stayNights,
             pricePerNight,
             total,
             acTypeUsed: dto.acType,
@@ -390,7 +445,7 @@ export class StaysService {
       action: 'CHECK_IN',
       entity: 'STAY',
       entityId: stay.id.toString(),
-      description: `Check-in: ${client.firstName} ${client.lastName} en habitación ${dto.roomNumber} (${dto.acType}, ${nights} noches)`,
+      description: `Check-in: ${client.firstName} ${client.lastName} en habitación ${dto.roomNumber} (${dto.acType}, ${stay.nights} noches)`,
       newValue: stay
     });
 
@@ -434,8 +489,19 @@ export class StaysService {
 
     // 3. Calcular noches a cobrar y totales según la hora de salida del hotel.
     const checkOut = new Date();
-    const nightsToBill = calculateBillableNights(stay.checkIn, checkOut);
-    const totalRoom = Number(stay.pricePerNight) * nightsToBill;
+    const policy = await this.settings.get();
+    const tolerance = policy.checkoutTolerance;
+    const stayCharge = calculateStayCharge(
+      stay.checkIn,
+      checkOut,
+      Number(stay.pricePerNight),
+      tolerance,
+      policy.checkoutOvertimeRate,
+      policy.checkoutLimit
+    );
+    const nightsToBill = stayCharge.nights;
+    const overtimeAmount = dto.chargeOvertime ? stayCharge.overtimeAmount : 0;
+    const totalRoom = (nightsToBill * Number(stay.pricePerNight)) + overtimeAmount;
     
     // Calcular total de ventas (tienda) - Solo las que quedaron a la cuenta (FIADO o sin tipo)
     const pendingSales = stay.sales.filter((sale) => sale.saleType === 'FIADO' || !sale.saleType);
@@ -481,7 +547,7 @@ export class StaysService {
           method: dto.paymentMethod!.trim(), reference: dto.paymentReference?.trim() || null
         } });
       }
-      await tx.room.update({ where: { number: stay.roomNumber }, data: { status: 'DISPONIBLE' } });
+      await releaseRoomToAvailability(tx, stay.roomNumber);
       await tx.parkingSession.updateMany({
         where: { stayId: id, status: 'ACTIVO' },
         data: { status: 'CERRADO', exitAt: checkOut }
@@ -543,7 +609,22 @@ export class StaysService {
     const laundryOrders = await this.prisma.laundry.findMany({
       where: { roomNumber: stay.roomNumber, createdAt: { gte: stay.checkIn } }
     });
-    const account = computeStayAccount(stay, laundryOrders, calculateBillableNights(stay.checkIn, new Date()));
+    const policy = await this.settings.get();
+    const tolerance = policy.checkoutTolerance;
+    const currentCharge = calculateStayCharge(
+      stay.checkIn,
+      new Date(),
+      Number(stay.pricePerNight),
+      tolerance,
+      policy.checkoutOvertimeRate,
+      policy.checkoutLimit
+    );
+    const account = computeStayAccount(
+      stay,
+      laundryOrders,
+      currentCharge.nights,
+      currentCharge.total - currentCharge.overtimeAmount
+    );
 
     const amount = Number(dto.amount);
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -628,9 +709,17 @@ export class StaysService {
         );
       }
 
+      const policy = await this.settings.get();
       updateData.acTypeUsed = dto.acTypeUsed;
       updateData.pricePerNight = newPricePerNight;
-      updateData.total = Number(newPricePerNight) * calculateBillableNights(stay.checkIn, new Date());
+      updateData.total = calculateStayCharge(
+        stay.checkIn,
+        new Date(),
+        Number(newPricePerNight),
+        policy.checkoutTolerance,
+        policy.checkoutOvertimeRate,
+        policy.checkoutLimit
+      ).total;
     }
 
     // 4. Actualizar
@@ -683,20 +772,20 @@ export class StaysService {
       );
     }
 
-    // 3. Actualizar a CANCELADA
-    const updatedStay = await this.prisma.stay.update({
-      where: { id },
-      data: { status: 'CANCELADA' },
-      include: {
-        client: true,
-        room: true
-      }
-    });
-
-    // 4. Actualizar habitación a DISPONIBLE
-    await this.prisma.room.update({
-      where: { number: stay.roomNumber },
-      data: { status: 'DISPONIBLE' }
+    // 3. Marcar el hospedaje como cancelado y liberar la habitación en una
+    // sola transacción. Si hay una reserva confirmada para hoy, queda
+    // RESERVADA para el siguiente huésped.
+    const updatedStay = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.stay.update({
+        where: { id },
+        data: { status: 'CANCELADA' },
+        include: {
+          client: true,
+          room: true
+        }
+      });
+      await releaseRoomToAvailability(tx, stay.roomNumber);
+      return updated;
     });
 
     // 5. Auditoría

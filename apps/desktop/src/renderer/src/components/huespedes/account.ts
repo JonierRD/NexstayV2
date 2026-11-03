@@ -17,7 +17,12 @@ export type StayAccountSummary = {
  * (crédito de la reserva + pagos parciales).
  */
 export function computeStayAccount(stay: Stay, nights?: number): StayAccountSummary {
-  const roomTotal = Number(stay.pricePerNight) * (nights ?? stay.nights ?? 1);
+  // La API ya envía el total de hospedaje calculado (incluye las noches
+  // liquidables). El excedente de salida es opcional y solo se suma en el
+  // check-out cuando el hotel está lleno, así que no hace parte del saldo.
+  const roomTotal = nights === undefined
+    ? Number(stay.total)
+    : Number(stay.pricePerNight) * nights;
   const salesTotal = (stay.sales ?? [])
     .filter((sale) => sale.saleType === 'FIADO' || !sale.saleType)
     .reduce((sum, sale) => sum + Number(sale.unitPrice) * sale.quantity, 0);

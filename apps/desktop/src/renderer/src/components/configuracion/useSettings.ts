@@ -29,9 +29,9 @@ export function useSettings() {
     ...EMPTY_FIELDS,
     logoDataUrl: ''
   });
-  const [checkinLimit, setCheckinLimit] = useState('12:00');
   const [checkoutLimit, setCheckoutLimit] = useState('13:00');
-  const [checkoutTolerance, setCheckoutTolerance] = useState(30);
+  const [checkoutTolerance, setCheckoutTolerance] = useState<number | ''>(180);
+  const [checkoutOvertimeRate, setCheckoutOvertimeRate] = useState<number | ''>(10000);
   const [cancellationPolicy, setCancellationPolicy] = useState('');
   const [aiEnabled, setAiEnabled] = useState(true);
 
@@ -52,9 +52,9 @@ export function useSettings() {
         hotelEmail: data.hotelEmail,
         logoDataUrl: data.logoDataUrl
       });
-      setCheckinLimit(data.checkinLimit);
       setCheckoutLimit(data.checkoutLimit);
       setCheckoutTolerance(data.checkoutTolerance);
+      setCheckoutOvertimeRate(data.checkoutOvertimeRate ?? 10000);
       setCancellationPolicy(data.cancellationPolicy);
       setAiEnabled(data.aiEnabled);
       applyTheme({ themeColor: data.themeColor, darkMode: data.darkMode });
@@ -118,9 +118,9 @@ export function useSettings() {
 
   async function savePolicies(): Promise<boolean> {
     return persist('politicas', {
-      checkinLimit: checkinLimit.trim() || '12:00',
       checkoutLimit: checkoutLimit.trim() || '13:00',
-      checkoutTolerance,
+      checkoutTolerance: Number(checkoutTolerance) || 0,
+      checkoutOvertimeRate: Number(checkoutOvertimeRate) || 0,
       cancellationPolicy: cancellationPolicy.trim()
     });
   }
@@ -144,12 +144,12 @@ export function useSettings() {
     loadError,
     hotel,
     setHotel,
-    checkinLimit,
-    setCheckinLimit,
     checkoutLimit,
     setCheckoutLimit,
     checkoutTolerance,
     setCheckoutTolerance,
+    checkoutOvertimeRate,
+    setCheckoutOvertimeRate,
     cancellationPolicy,
     setCancellationPolicy,
     aiEnabled,
