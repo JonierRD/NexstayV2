@@ -55,12 +55,12 @@ apps/desktop/
 
 | ID | Archivo | Qué verifica | Responsable | Estado |
 |---|---|---|---|---|
-| U1 | `tests/unit/format.test.ts` | Formato de moneda, fechas y tiempo transcurrido | Belladira | Pendiente |
-| U2 | `tests/unit/dashboard-metrics.test.ts` | Métricas del dashboard y cuentas por cobrar | Belladira | Pendiente |
-| U3 | `tests/unit/stay-account.test.ts` | Cuenta de un hospedaje (cargos, pagos, saldo) | Belladira | Pendiente |
-| U4 | `tests/unit/api-client.test.ts` | `apiRequest`, token y `ApiError` | Harold | Pendiente |
-| U5 | `tests/unit/auth-interceptors.test.ts` | Interceptor 401/403 y limpieza de sesión | Harold | Pendiente |
-| U6 | `tests/unit/settings-cache.test.tsx` | Cache de configuración y `useHotelBrand` | Harold | Pendiente |
+| U1 | `tests/unit/format.test.ts` | Formato de moneda, fechas y tiempo transcurrido | Belladira | Completado (6/6) |
+| U2 | `tests/unit/dashboard-metrics.test.ts` | Métricas del dashboard y cuentas por cobrar | Belladira | Completado (8/8) |
+| U3 | `tests/unit/stay-account.test.ts` | Cuenta de un hospedaje (cargos, pagos, saldo) | Belladira | Completado (7/7) |
+| U4 | `tests/unit/api-client.test.ts` | `apiRequest`, token y `ApiError` | Harold | Completado (8/8) |
+| U5 | `tests/unit/auth-interceptors.test.ts` | Interceptor 401/403 y limpieza de sesión | Harold | Completado (6/6) |
+| U6 | `tests/unit/settings-cache.test.tsx` | Cache de configuración y `useHotelBrand` | Harold | Completado (5/5) |
 | U7 | `tests/unit/roles-access.test.ts` | Jerarquía de roles y acceso a rutas | Jonier | Completado (7/7) |
 | U8 | `tests/unit/permissions.test.tsx` | `canAccessModule` y `usePermissions` | Jonier | Completado (7/7) |
 | U9 | `tests/unit/ui-primitives.test.tsx` | `StatusPill`, `FilterSelect`, `DetailLine`, `StatCard` | Legarda | Pendiente |
@@ -68,8 +68,187 @@ apps/desktop/
 | I1 | `tests/integration/auth-flow.test.tsx` | Login → dashboard → sidebar por rol → logout | Jonier | Completado (4/4) |
 | I2 | `tests/integration/checkin-flow.test.tsx` | Wizard completo de check-in | Legarda | Pendiente |
 
-Cada archivo trae los casos como `it.todo(...)`. El integrante reemplaza cada
-`it.todo` por un `it` con sus aserciones.
+Cada archivo agrupa varios casos `it(...)`. Se puede ejecutar la suite completa
+o filtrar un único caso con `-t`; por eso no es necesario crear un archivo
+separado para cada caso.
+
+## Ejecución rápida por integrante
+
+Todos los comandos se ejecutan desde la raíz del repositorio. La ruta del
+archivo ejecuta la suite completa. Al agregar `-t` y el texto del caso se
+ejecuta un único caso y el resultado esperado es `1/1`.
+
+Para los casos específicos, entrar primero a `apps/desktop`, porque así `-t`
+llega directamente a Vitest:
+
+```bash
+cd apps/desktop
+```
+
+### Pruebas de Belladira
+
+#### Suites completas
+
+**U1 — Formatos (`6/6`)**
+
+```bash
+npm test --workspace @sapay/desktop -- tests/unit/format.test.ts
+```
+
+Prueba formatos de moneda, fechas, rangos de fechas, tiempo transcurrido y
+fecha/hora numérica.
+
+**U2 — Métricas del dashboard (`8/8`)**
+
+```bash
+npm test --workspace @sapay/desktop -- tests/unit/dashboard-metrics.test.ts
+```
+
+Prueba métricas de habitaciones, ventas del día, cuentas por cobrar y estados
+de lavandería.
+
+**U3 — Cuenta de hospedaje (`7/7`)**
+
+```bash
+npm test --workspace @sapay/desktop -- tests/unit/stay-account.test.ts
+```
+
+Prueba cargos de habitación, ventas fiadas, lavandería, anticipos, pagos y
+saldo de una estancia.
+
+#### Casos específicos
+
+**U1 — `format.test.ts`**
+
+```bash
+npx vitest run tests/unit/format.test.ts -t "formatCOP redondea"
+npx vitest run tests/unit/format.test.ts -t "formatCOP funciona"
+npx vitest run tests/unit/format.test.ts -t "formatDate, formatDateShort"
+npx vitest run tests/unit/format.test.ts -t "formatDateRange"
+npx vitest run tests/unit/format.test.ts -t "formatElapsed"
+npx vitest run tests/unit/format.test.ts -t "formatDateTimeNumeric"
+```
+
+Los casos validan, respectivamente, redondeo y símbolo de moneda; cero y
+negativos; formatos de fecha; rangos y estado `En curso`; tiempo transcurrido;
+y formato numérico de fecha/hora. Cada comando muestra `1/1`.
+
+**U2 — `dashboard-metrics.test.ts`**
+
+```bash
+npx vitest run tests/unit/dashboard-metrics.test.ts -t "computeRoomMetrics cuenta"
+npx vitest run tests/unit/dashboard-metrics.test.ts -t "computeRoomMetrics devuelve 0%"
+npx vitest run tests/unit/dashboard-metrics.test.ts -t "isToday reconoce"
+npx vitest run tests/unit/dashboard-metrics.test.ts -t "computeTodaySalesRevenue"
+npx vitest run tests/unit/dashboard-metrics.test.ts -t "computePendingReceivable suma"
+npx vitest run tests/unit/dashboard-metrics.test.ts -t "computePendingReceivable nunca"
+npx vitest run tests/unit/dashboard-metrics.test.ts -t "selectActiveLaundry"
+npx vitest run tests/unit/dashboard-metrics.test.ts -t "getLaundryBadge"
+```
+
+Los casos validan métricas de habitaciones con y sin datos; fecha actual;
+ventas de contado del día; saldo pendiente con sus componentes y límite
+inferior; exclusión de lavandería entregada; y etiquetas de lavandería. Cada
+comando muestra `1/1`.
+
+**U3 — `stay-account.test.ts`**
+
+```bash
+npx vitest run tests/unit/stay-account.test.ts -t "estancia ACTIVA"
+npx vitest run tests/unit/stay-account.test.ts -t "estancia FINALIZADA"
+npx vitest run tests/unit/stay-account.test.ts -t "suma solo ventas"
+npx vitest run tests/unit/stay-account.test.ts -t "suma la lavanderia"
+npx vitest run tests/unit/stay-account.test.ts -t "aplica el credito"
+npx vitest run tests/unit/stay-account.test.ts -t "resta los pagos"
+npx vitest run tests/unit/stay-account.test.ts -t "balance nunca"
+```
+
+Los casos validan el cálculo de estancias activas y finalizadas; ventas fiadas;
+lavandería; crédito de reserva; pagos parciales, cargos y saldo; y que el
+saldo no sea negativo. Cada comando muestra `1/1`.
+
+### Pruebas de Harold
+
+#### Suites completas
+
+**U4 — Cliente API (`8/8`)**
+
+```bash
+npm test --workspace @sapay/desktop -- tests/unit/api-client.test.ts
+```
+
+Prueba headers, token, serialización JSON, respuestas y errores de la capa API.
+
+**U5 — Interceptores de autenticación (`6/6`)**
+
+```bash
+npm test --workspace @sapay/desktop -- tests/unit/auth-interceptors.test.ts
+```
+
+Prueba el token en `fetch`, respuestas `401`/`403`, limpieza de sesión y
+protección contra doble instalación del interceptor.
+
+**U6 — Cache de configuración (`5/5`)**
+
+```bash
+npm test --workspace @sapay/desktop -- tests/unit/settings-cache.test.tsx
+```
+
+Prueba la cache compartida de configuración, invalidación, eventos y
+`useHotelBrand`.
+
+#### Casos específicos
+
+**U4 — `api-client.test.ts`**
+
+```bash
+npx vitest run tests/unit/api-client.test.ts -t "apiRequest agrega"
+npx vitest run tests/unit/api-client.test.ts -t "apiRequest no agrega"
+npx vitest run tests/unit/api-client.test.ts -t "apiRequest serializa"
+npx vitest run tests/unit/api-client.test.ts -t "apiRequest devuelve JSON"
+npx vitest run tests/unit/api-client.test.ts -t "apiRequest devuelve texto"
+npx vitest run tests/unit/api-client.test.ts -t "ApiError con status"
+npx vitest run tests/unit/api-client.test.ts -t "mensaje generico"
+npx vitest run tests/unit/api-client.test.ts -t "setStoredToken/getStoredToken"
+```
+
+Los casos validan headers con y sin autenticación; body JSON; respuestas JSON y
+de texto; errores `ApiError`; mensaje genérico; y almacenamiento del token.
+Cada comando muestra `1/1`.
+
+**U5 — `auth-interceptors.test.ts`**
+
+```bash
+npx vitest run tests/unit/auth-interceptors.test.ts -t "adjunta el token"
+npx vitest run tests/unit/auth-interceptors.test.ts -t "no sobrescribe"
+npx vitest run tests/unit/auth-interceptors.test.ts -t "401 en /auth/login"
+npx vitest run tests/unit/auth-interceptors.test.ts -t "401 en una ruta privada"
+npx vitest run tests/unit/auth-interceptors.test.ts -t "403 emite forbidden"
+npx vitest run tests/unit/auth-interceptors.test.ts -t "dos veces"
+```
+
+Los casos validan adjuntar y preservar tokens; el tratamiento de `401` público
+y privado; el evento `403`; y que el interceptor no se duplique. Cada comando
+muestra `1/1`.
+
+**U6 — `settings-cache.test.tsx`**
+
+```bash
+npx vitest run tests/unit/settings-cache.test.tsx -t "llama a la API solo"
+npx vitest run tests/unit/settings-cache.test.tsx -t "comparte la misma promesa"
+npx vitest run tests/unit/settings-cache.test.tsx -t "setSettingsCache evita"
+npx vitest run tests/unit/settings-cache.test.tsx -t "invalidateSettings"
+npx vitest run tests/unit/settings-cache.test.tsx -t "useHotelBrand devuelve"
+```
+
+Los casos validan una única llamada API; promesas paralelas compartidas; uso de
+la cache; invalidación y evento; y nombre/logo del hotel. Cada comando muestra
+`1/1`.
+
+### Espacio para capturas
+
+Después de ejecutar cada suite o caso específico, agregar aquí la captura
+correspondiente de la salida del comando.
 
 ## Flujo de Git
 
