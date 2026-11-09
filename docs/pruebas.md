@@ -76,7 +76,9 @@ separado para cada caso.
 
 Todos los comandos se ejecutan desde la raíz del repositorio. La ruta del
 archivo ejecuta la suite completa. Al agregar `-t` y el texto del caso se
-ejecuta un único caso y el resultado esperado es `1/1`.
+ejecuta un único caso. El resumen mostrará `1` prueba aprobada y las restantes
+omitidas; la fila del archivo puede mostrar, por ejemplo, `1/6`, porque el
+reporter conserva el total de casos definidos en la suite.
 
 Para los casos específicos, entrar primero a `apps/desktop`, porque así `-t`
 llega directamente a Vitest:
@@ -131,7 +133,8 @@ npx vitest run tests/unit/format.test.ts -t "formatDateTimeNumeric"
 
 Los casos validan, respectivamente, redondeo y símbolo de moneda; cero y
 negativos; formatos de fecha; rangos y estado `En curso`; tiempo transcurrido;
-y formato numérico de fecha/hora. Cada comando muestra `1/1`.
+y formato numérico de fecha/hora. Cada comando ejecuta un solo caso y muestra
+`1` aprobado y los demás omitidos.
 
 **U2 — `dashboard-metrics.test.ts`**
 
@@ -149,7 +152,7 @@ npx vitest run tests/unit/dashboard-metrics.test.ts -t "getLaundryBadge"
 Los casos validan métricas de habitaciones con y sin datos; fecha actual;
 ventas de contado del día; saldo pendiente con sus componentes y límite
 inferior; exclusión de lavandería entregada; y etiquetas de lavandería. Cada
-comando muestra `1/1`.
+comando ejecuta un solo caso y muestra `1` aprobado y los demás omitidos.
 
 **U3 — `stay-account.test.ts`**
 
@@ -165,7 +168,8 @@ npx vitest run tests/unit/stay-account.test.ts -t "balance nunca"
 
 Los casos validan el cálculo de estancias activas y finalizadas; ventas fiadas;
 lavandería; crédito de reserva; pagos parciales, cargos y saldo; y que el
-saldo no sea negativo. Cada comando muestra `1/1`.
+saldo no sea negativo. Cada comando ejecuta un solo caso y muestra `1` aprobado
+y los demás omitidos.
 
 ### Pruebas de Harold
 
@@ -213,8 +217,8 @@ npx vitest run tests/unit/api-client.test.ts -t "setStoredToken/getStoredToken"
 ```
 
 Los casos validan headers con y sin autenticación; body JSON; respuestas JSON y
-de texto; errores `ApiError`; mensaje genérico; y almacenamiento del token.
-Cada comando muestra `1/1`.
+de texto; errores `ApiError`; mensaje genérico; y almacenamiento del token. Cada
+comando ejecuta un solo caso y muestra `1` aprobado y los demás omitidos.
 
 **U5 — `auth-interceptors.test.ts`**
 
@@ -229,7 +233,7 @@ npx vitest run tests/unit/auth-interceptors.test.ts -t "dos veces"
 
 Los casos validan adjuntar y preservar tokens; el tratamiento de `401` público
 y privado; el evento `403`; y que el interceptor no se duplique. Cada comando
-muestra `1/1`.
+ejecuta un solo caso y muestra `1` aprobado y los demás omitidos.
 
 **U6 — `settings-cache.test.tsx`**
 
@@ -242,8 +246,8 @@ npx vitest run tests/unit/settings-cache.test.tsx -t "useHotelBrand devuelve"
 ```
 
 Los casos validan una única llamada API; promesas paralelas compartidas; uso de
-la cache; invalidación y evento; y nombre/logo del hotel. Cada comando muestra
-`1/1`.
+la cache; invalidación y evento; y nombre/logo del hotel. Cada comando ejecuta
+un solo caso y muestra `1` aprobado y los demás omitidos.
 
 ### Espacio para capturas
 
